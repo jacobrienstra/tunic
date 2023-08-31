@@ -1,0 +1,33 @@
+{
+  "extends": [
+    "stylelint-config-standard",
+    "stylelint-config-styled-components",
+    "stylelint-order",
+    "stylelint-config-prettier",
+    "stylelint-config-rational-order"
+  ],
+  "plugins": [
+    "stylelint-prettier",
+    "stylelint-order",
+    "stylelint-config-rational-order/plugin"
+  ],
+  "overrides": [
+    {
+      "files": ["**/*.{js,ts,jsx,tsx}"],
+      "customSyntax": "postcss-jsx"
+    }
+  ],
+  "rules": {
+    "value-keyword-case": null,
+    "declaration-empty-line-before": null,
+    "selector-max-compound-selectors": null,
+    "plugin/rational-order": [
+      true,
+      {
+        "border-in-box-model": false,
+        "empty-line-between-groups": true,
+        "severity": "warning"
+      }
+    ]
+  }
+}
