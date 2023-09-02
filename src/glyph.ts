@@ -40,3 +40,11 @@ export const glyphStrokes = {[LTLK]: LTL, [LTRK]: LTR, [LBLK]: LBL, [LBRK]: LBR,
 export function getCombo(upper: number, lower: number, leftLine: boolean = false) {
   return (((upper & 63) << 6) | (lower & 63)) | (leftLine ? 1 << 12 : 0);
 }
+
+export function getUpper(val: number) {
+  return val & (63 << 6);
+}
+
+export function getLower(val: number) {
+  return val & 63;
+}

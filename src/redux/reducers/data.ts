@@ -2,6 +2,7 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { isEqual } from "lodash";
 
+
 export interface DataSliceState {
   graphemes: GraphemeData[];
   words: WordData[];
@@ -58,5 +59,4 @@ export const dataSlice = createSlice({
 });
 
 export const { addWord } = dataSlice.actions;
-
 export default dataSlice.reducer;

@@ -1,31 +1,26 @@
-import './App.css'
-import GlyphTyper from './components/GlyphTyper';
-import Glyph from './components/Glyph';
-import { getCombo } from './glyph';
+import { css } from "@emotion/react";
+import GlyphsSection from "./components/GlyphsSection";
+import ContextsSection from "./components/ContextsSection";
+import EntrySection from "./components/EntrySection";
+import WordsSection from "./components/WordsSection";
+
+const rootLayout = css`
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  margin: 0;
+  height: 100vh;
+`;
 
 function App() {
-
-  const emit = (val: number) => {
-
-  }
-
-  const glyphs = [];
-
-  for (let i = 0; i < 64; i++) {
-    for (let j = 0; j < 64; j++) {
-      glyphs.push(<Glyph val={getCombo(i, j)} />)
-    }
-  }
-  
-  
   return (
-    <div>
-      <div>
-        {glyphs}
-      </div>
-      <GlyphTyper emit={emit} />
-    </div>
-  )
+    <main css={rootLayout}>
+      <GlyphsSection />
+      <WordsSection />
+      <ContextsSection />
+      <EntrySection />
+    </main>
+  );
 }
 
-export default App
+export default App;

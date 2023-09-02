@@ -1,8 +1,11 @@
 import { configureStore } from "@reduxjs/toolkit";
 import { dataReducer, selectionReducer } from "./reducers";
-import corpusData from "../corpusData.json";
-import { DataSliceState } from "./reducers/data";
+import { DataSliceState, addWord } from "./reducers/data";
 import { SelectionSliceState } from "./reducers/selection";
+import storage from "../storage";
+import { readSingleton } from "@directus/sdk";
+import { has, isEmpty } from "lodash";
+import { updateSingleton } from "@directus/sdk";
 
 export interface RootState {
   data: DataSliceState;
@@ -18,10 +21,33 @@ const initialState: RootState = {
     ngram: null,
     word: null,
   },
-  data: { graphemes: [], words: [] },
+  data: {
+    graphemes: [
+      { id: 2001, sound: "", sure: false },
+      { id: 1490, sound: "", sure: false },
+      { id: 2093, sound: "", sure: false },
+      { id: 187, sound: "", sure: false },
+      { id: 1924, sound: "", sure: false },
+      { id: 3432, sound: "", sure: false },
+      { id: 7892, sound: "", sure: false },
+      { id: 1093, sound: "", sure: false },
+      { id: 5810, sound: "", sure: false },
+    ],
+    words: [],
+  },
 };
-if (corpusData != null) {
-  initialState.data = corpusData as DataSliceState;
+
+const initialData = await storage.request(
+  readSingleton("corpus", { fields: ["state"] })
+);
+
+if (
+  !isEmpty(initialData) &&
+  has(initialData, "state") &&
+  typeof initialData.state === "string" &&
+  !isEmpty(JSON.parse(initialData["state"]))
+) {
+  initialState.data = JSON.parse(initialData["state"]);
 }
 
 const store = configureStore<RootState>({
@@ -31,5 +57,12 @@ const store = configureStore<RootState>({
   },
   preloadedState: initialState,
 });
+
+export const addWordSave = async (word: number[], ctx: string) => {
+  addWord({ word, ctx });
+  await storage.request(
+    updateSingleton("corpus", { state: store.getState().data })
+  );
+};
 
 export default store;

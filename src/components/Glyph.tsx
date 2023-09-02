@@ -20,16 +20,42 @@ function Glyph({width = 20, val}: GlyphProps) {
     lines.push({...LLV, k: 1 << 12});
   }
 
-  return <svg width={width} xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" viewBox={`-5 -5 ${W + 10} 280`} style={{ marginBottom: '10px'}}>  
-    {lines.map((l) => {
-      return <line stroke="black" strokeWidth="10" strokeLinecap="round" strokeLinejoin="round" {...l}/>
-    })}
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      xmlnsXlink="http://www.w3.org/1999/xlink"
+      viewBox={`-5 -5 ${W + 10} 280`}
+    >
+      {lines.map((l) => {
+        return (
+          <line
+            key={l.k}
+            stroke="black"
+            strokeWidth="10"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            {...l}
+          />
+        );
+      })}
 
-    {val & (32) ? <circle stroke="black" strokeWidth="10" {...LBC} fill="transparent"/> : null}
+      {val & 32 ? (
+        <circle stroke="black" strokeWidth="10" {...LBC} fill="transparent" />
+      ) : null}
 
-    {/* Midline */ }
-    <line stroke="black" strokeWidth="10" strokeLinecap="round" strokeLinejoin='round' x1="0" x2={W} y1="125" y2="125" />   
-  </svg>
+      {/* Midline */}
+      <line
+        stroke="black"
+        strokeWidth="10"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        x1="0"
+        x2={W}
+        y1="125"
+        y2="125"
+      />
+    </svg>
+  );
 }
 
 export default Glyph
