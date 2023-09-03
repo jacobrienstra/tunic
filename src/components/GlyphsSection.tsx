@@ -11,7 +11,7 @@ const columnsWrapper = css`
 
 function GlyphsSection() {
   return (
-    <Section title="Glyphs" style={{ flex: "0 1 auto" }}>
+    <Section title="Glyphs" style={{ flex: "1 1 25%" }}>
       <div css={columnsWrapper}>
         <Filters />
         <NGrams />

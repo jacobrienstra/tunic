@@ -8,13 +8,17 @@ import { setLeftLineFilter } from "../redux/reducers/selection";
 import { getLower, getUpper } from "../glyph";
 import { uniq } from "lodash";
 import Glyph from "./Glyph";
+import Tile from "./Tile";
+
+const tileSize = 35;
 
 const filtersColumn = css`
   display: flex;
   flex-direction: column;
-  align-items: start;
-  flex: 0 1 50%;
-  height: 100%;
+  align-items: stretch;
+  flex: 1 0 50%;
+  /* height: 100%; */
+  padding: 0 8px;
   border-right: 3px solid var(--slate-500);
 `;
 
@@ -29,45 +33,46 @@ const filterLL = css`
   display: flex;
   flex-direction: row;
   align-items: center;
-  align-content: start;
+  align-content: center;
   flex-wrap: wrap;
+  flex: 1 0 auto;
 
   button {
-    margin: 4px;
+    margin: 0 0 2px 2px;
   }
 `;
 
 const filterGlyphs = css`
   display: flex;
   flex-direction: row;
-  align-items: start;
-  align-content: stretch;
-  width: 100%;
-  /* height: 100%; */
-  flex: 1 0 auto;
+  align-items: stretch;
+  flex: 1 1 auto;
 `;
 
 const filterGlyphsColumn = css`
   display: flex;
   flex-direction: column;
-  align-items: start;
-  flex: 1 1 50%;
-  height: 100%;
+  align-items: stretch;
+  flex: 1 0 50%;
 `;
 
 const filterGlyphsHeader = css`
   text-align: center;
   width: 100%;
+  flex: 0 0 auto;
 `;
 
-const glyphsColumn = css`
+const glyphsGrid = css`
   padding: 8px;
-  width: 100%;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(30px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(${tileSize}px, 1fr));
   grid-auto-rows: min-content;
-  grid-gap: 4px;
-  height: 100%;
+  grid-gap: 0;
+  flex: 1 1 auto;
+  overflow-y: scroll;
+  ::-webkit-scrollbar {
+    display: none;
+  }
 `;
 
 function Filters() {
@@ -129,19 +134,23 @@ function Filters() {
         <div css={filterGlyphsColumn}>
           <h4 css={filterGlyphsHeader}>Above</h4>
           <div
-            css={glyphsColumn}
-            style={{ borderRight: "3px solid var(--slate-500)" }}
+            css={glyphsGrid}
+            style={{ borderRight: "2px solid var(--slate-500)" }}
           >
             {upperGlyphs.map((val) => (
-              <Glyph val={val} key={val} />
+              <Tile size={tileSize} key={val}>
+                <Glyph val={val} />
+              </Tile>
             ))}
           </div>
         </div>
         <div css={filterGlyphsColumn}>
           <h4 css={filterGlyphsHeader}>Below</h4>
-          <div css={glyphsColumn}>
+          <div css={glyphsGrid}>
             {lowerGlyphs.map((val) => (
-              <Glyph val={val} key={val} />
+              <Tile size={tileSize} key={val}>
+                <Glyph val={val} />
+              </Tile>
             ))}
           </div>
         </div>

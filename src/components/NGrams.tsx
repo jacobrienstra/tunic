@@ -1,37 +1,89 @@
 import { css } from "@emotion/react";
-import { useSelector } from "react-redux";
+import { cx } from "@emotion/css";
+import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../redux/store";
-import Glyph from "./Glyph";
+import { setN } from "../redux/reducers/selection";
+import { createSelector } from "@reduxjs/toolkit";
+import Grapheme from "./Grapheme";
+import Tile from "./Tile";
 
 const ngramsColumn = css`
   display: flex;
   flex-direction: column;
-  align-items: start;
-  flex: 0 1 50%;
-  height: 100%;
-  padding-left: 8px;
+  align-items: stretch;
+  width: min-content;
+  flex: 1 1 50%;
+  padding: 0 8px;
 `;
 
-const ngramsWrapper = css`
-  width: 100%;
+const nGramHeader = css`
+  flex: 0 0 auto;
+`;
+
+const nGramSize = css`
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  align-content: start;
+  flex-wrap: wrap;
+  flex: 0 0 auto;
+
+  button {
+    margin: 2px;
+  }
+`;
+
+const tileSize = 50;
+const ngramsGrid = css`
+  padding: 4px;
+  margin-top: 8px;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(30px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(${tileSize}px, 1fr));
   grid-auto-rows: min-content;
-  grid-gap: 4px;
-  height: 100%;
+  flex: 0 1 auto;
+  overflow-y: scroll;
+
+  ::-webkit-scrollbar {
+    display: none;
+  }
 `;
 
 function NGrams() {
-  const ngrams = useSelector((state: RootState) => {
-    return state.data.graphemes.map((g) => g.id);
-  });
+  const dispatch = useDispatch();
+
+  const selectGraphemes = (state: RootState) => state.data.graphemes;
+  const selectN = (state: RootState) => state.selection.n;
+  const selectNgrams = createSelector(
+    [selectGraphemes, selectN],
+    (graphemes, n) => {
+      return graphemes;
+    }
+  );
+  const n = useSelector(selectN);
+  const ngrams = useSelector(selectNgrams);
 
   return (
     <section css={ngramsColumn}>
-      <h4>NGrams</h4>
-      <div css={ngramsWrapper}>
-        {ngrams.map((n) => (
-          <Glyph val={n} key={n} />
+      <h4 css={nGramHeader}>NGrams</h4>
+      <div css={nGramSize}>
+        <span>Size (n)</span>
+        {[1, 2, 3, 4].map((num) => {
+          return (
+            <button
+              className={cx({ active: n === num })}
+              key={num}
+              onClick={() => dispatch(setN(num))}
+            >
+              {num}
+            </button>
+          );
+        })}
+      </div>
+      <div css={ngramsGrid}>
+        {ngrams.map((ngram) => (
+          <Tile size={tileSize} key={ngram.id}>
+            <Grapheme glyph={ngram} />
+          </Tile>
         ))}
       </div>
     </section>

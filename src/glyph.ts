@@ -35,7 +35,19 @@ export const UBV = {x1: halfW, y1: 100, x2: halfW, y2: 125};
 export const ULV = {x1:0, y1: 50, x2: 0, y2: 125};
 export const LLV = {x1:0, y1: 200, x2: 0, y2: 150};
 
-export const glyphStrokes = {[LTLK]: LTL, [LTRK]: LTR, [LBLK]: LBL, [LBRK]: LBR, [LMVK]: LMV, [LBCK]: LBC, [UTLK]: UTL, [UTRK]: UTR, [UBLK]: UBL, [UBRK]: UBR, [UMVK]: UMV, [UBVK]: UBV}
+export const glyphStrokes = {
+  [LTLK]: LTL,
+  [LTRK]: LTR,
+  [LBLK]: LBL,
+  [LBRK]: LBR,
+  [LMVK]: LMV,
+  [UTLK]: UTL,
+  [UTRK]: UTR,
+  [UBLK]: UBL,
+  [UBRK]: UBR,
+  [UMVK]: UMV,
+  [UBVK]: UBV,
+};
 
 export function getCombo(upper: number, lower: number, leftLine: boolean = false) {
   return (((upper & 63) << 6) | (lower & 63)) | (leftLine ? 1 << 12 : 0);

@@ -1,13 +1,12 @@
-import { ClassNamesProps, css } from "@emotion/react";
-import { DetailedHTMLProps, HTMLProps, PropsWithChildren } from "react";
+import { css } from "@emotion/react";
+import { PropsWithChildren } from "react";
 
 const section = css`
   display: flex;
   flex-direction: column;
-  padding: 8px;
+  padding: 8px 0;
   align-items: stretch;
   align-content: center;
-  height: 100%;
 
   &:not(:last-child) {
     box-shadow: 10px 0px 15px -15px rgba(0, 0, 0, 0.5);
@@ -22,7 +21,7 @@ const header = css`
   background: var(--slate-300);
   border-radius: 6px;
   padding: 8px 0;
-  margin: 0;
+  margin: 0 8px;
 `;
 
 type SectionProps = {

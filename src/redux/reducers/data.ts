@@ -2,19 +2,18 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { isEqual } from "lodash";
 
-
 export interface DataSliceState {
   graphemes: GraphemeData[];
   words: WordData[];
 }
 
-interface GraphemeData {
+export interface GraphemeData {
   id: number;
   sound: string;
   sure: boolean;
 }
 
-interface WordData {
+export interface WordData {
   word: number[];
   ctxs: string[];
   meaning: string;
@@ -25,6 +24,38 @@ export const dataSlice = createSlice({
   name: "data",
   initialState: {} as DataSliceState,
   reducers: {
+    setSound: (
+      state,
+      action: PayloadAction<{ sound: string; id: number }>
+    ): void => {
+      const grapheme = state.graphemes.find((g) => g.id === action.payload.id);
+      if (grapheme) {
+        grapheme.sound = action.payload.sound;
+      }
+    },
+    toggleGraphemeSure: (state, action: PayloadAction<{ id: number }>) => {
+      const grapheme = state.graphemes.find((g) => g.id === action.payload.id);
+      if (grapheme) {
+        grapheme.sure = !grapheme.sure;
+      }
+    },
+    setMeaning: (
+      state,
+      action: PayloadAction<{ word: number[]; meaning: string }>
+    ) => {
+      const word = state.words.find((w) =>
+        isEqual(w.word, action.payload.word)
+      );
+      if (word) {
+        word.meaning = action.payload.meaning;
+      }
+    },
+    toggleWordSure: (state, action: PayloadAction<{ word: number[] }>) => {
+      const word = state.words.find((w) => w.word === action.payload.word);
+      if (word) {
+        word.sure = !word.sure;
+      }
+    },
     addWord: (
       state,
       action: PayloadAction<{ word: number[]; ctx: string }>
@@ -58,5 +89,11 @@ export const dataSlice = createSlice({
   },
 });
 
-export const { addWord } = dataSlice.actions;
+export const {
+  setSound,
+  setMeaning,
+  toggleGraphemeSure,
+  toggleWordSure,
+  addWord,
+} = dataSlice.actions;
 export default dataSlice.reducer;

@@ -33,22 +33,29 @@ const initialState: RootState = {
       { id: 1093, sound: "", sure: false },
       { id: 5810, sound: "", sure: false },
     ],
-    words: [],
+    words: [
+      { word: [15, 5321, 287, 198, 2], meaning: "", ctxs: [], sure: false },
+      { word: [141], meaning: "", ctxs: [], sure: false },
+      { word: [109, 510, 512], meaning: "", ctxs: [], sure: false },
+      { word: [151, 1029], meaning: "", ctxs: [], sure: false },
+    ],
   },
 };
 
-const initialData = await storage.request(
-  readSingleton("corpus", { fields: ["state"] })
-);
+try {
+  const initialData = await storage.request(
+    readSingleton("corpus", { fields: ["state"] })
+  );
 
-if (
-  !isEmpty(initialData) &&
-  has(initialData, "state") &&
-  typeof initialData.state === "string" &&
-  !isEmpty(JSON.parse(initialData["state"]))
-) {
-  initialState.data = JSON.parse(initialData["state"]);
-}
+  if (
+    !isEmpty(initialData) &&
+    has(initialData, "state") &&
+    typeof initialData.state === "string" &&
+    !isEmpty(JSON.parse(initialData["state"]))
+  ) {
+    initialState.data = JSON.parse(initialData["state"]);
+  }
+} catch (e) {}
 
 const store = configureStore<RootState>({
   reducer: {
