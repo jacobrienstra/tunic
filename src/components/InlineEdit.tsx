@@ -17,6 +17,10 @@ function InlineEdit({ value, setValue }: InlineEditProps) {
     }
   };
 
+  const onClick = (event: React.MouseEvent<HTMLInputElement>) => {
+    event.stopPropagation();
+  };
+
   const onBlur = async (event: React.FocusEvent<HTMLInputElement>) => {
     await setValue(event.target.value);
   };
@@ -24,6 +28,7 @@ function InlineEdit({ value, setValue }: InlineEditProps) {
   return (
     <input
       aria-label="Field name"
+      onClick={onClick}
       onChange={onChange}
       onKeyDown={onKeyDown}
       onBlur={onBlur}
