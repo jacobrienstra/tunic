@@ -74,7 +74,7 @@ export const dataSlice = createSlice({
       else {
         state.words.push({
           word: action.payload.word,
-          ctxs: [],
+          ctxs: [action.payload.ctx],
           meaning: "",
           sure: false,
         });

@@ -6,13 +6,14 @@ type TileProps = {
   size?: number;
   align?: "center" | "start";
   active?: boolean;
-};
+} & React.HTMLProps<HTMLDivElement>;
 
 function Tile({
   size,
   children,
   align = "center",
   active = false,
+  ...rest
 }: PropsWithChildren<TileProps>) {
   const tile = css`
     padding: 8px;
@@ -33,7 +34,7 @@ function Tile({
   `;
 
   return (
-    <div css={tile} className={cx({ active })}>
+    <div css={tile} className={cx({ active })} {...rest}>
       {children}
     </div>
   );

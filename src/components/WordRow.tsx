@@ -3,6 +3,7 @@ import { WordData, setMeaning } from "../redux/reducers/data";
 import { useDispatch } from "react-redux";
 import Word from "./Word";
 import InlineEdit from "./InlineEdit";
+import { saveAction } from "../redux/store";
 
 interface WordRowProps {
   wordData: WordData;
@@ -38,7 +39,10 @@ function WordRow({ wordData }: WordRowProps) {
       <InlineEdit
         value={wordData.meaning}
         setValue={(val: string) =>
-          dispatch(setMeaning({ word: wordData.word, meaning: val }))
+          saveAction(dispatch, setMeaning, {
+            word: wordData.word,
+            meaning: val,
+          })
         }
       />
     </div>

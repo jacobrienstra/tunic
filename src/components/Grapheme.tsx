@@ -3,6 +3,7 @@ import Glyph from "./Glyph";
 import { GraphemeData, setSound } from "../redux/reducers/data";
 import InlineEdit from "./InlineEdit";
 import { useDispatch } from "react-redux";
+import { saveAction } from "../redux/store";
 
 interface GraphemeProps {
   glyph: GraphemeData;
@@ -35,8 +36,8 @@ function Grapheme({ glyph }: GraphemeProps) {
       </div>
       <InlineEdit
         value={glyph.sound}
-        setValue={(val: string) =>
-          dispatch(setSound({ id: glyph.id, sound: val }))
+        setValue={async (val: string) =>
+          await saveAction(dispatch, setSound, { id: glyph.id, sound: val })
         }
       />
     </div>

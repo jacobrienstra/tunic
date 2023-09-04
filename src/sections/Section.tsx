@@ -20,8 +20,9 @@ const header = css`
   justify-content: center;
   background: var(--slate-300);
   border-radius: 6px;
-  padding: 8px 0;
+  padding: 8px;
   margin: 0 8px;
+  flex: 0 0 auto;
 `;
 
 type SectionProps = {

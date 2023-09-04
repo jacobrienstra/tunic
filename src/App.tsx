@@ -1,8 +1,8 @@
 import { css } from "@emotion/react";
-import GlyphsSection from "./components/GlyphsSection";
-import ContextsSection from "./components/ContextsSection";
-import EntrySection from "./components/EntrySection";
-import WordsSection from "./components/WordsSection";
+import GlyphsSection from "./sections/GlyphsSection";
+import ContextsSection from "./sections/ContextsSection";
+import EntrySection from "./sections/EntrySection";
+import WordsSection from "./sections/WordsSection";
 
 const rootLayout = css`
   display: flex;

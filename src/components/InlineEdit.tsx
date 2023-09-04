@@ -2,7 +2,7 @@ import { useState } from "react";
 
 interface InlineEditProps {
   value: string;
-  setValue: (val: string) => void;
+  setValue: (val: string) => Promise<void>;
 }
 
 function InlineEdit({ value, setValue }: InlineEditProps) {
@@ -17,8 +17,8 @@ function InlineEdit({ value, setValue }: InlineEditProps) {
     }
   };
 
-  const onBlur = (event: React.FocusEvent<HTMLInputElement>) => {
-    setValue(event.target.value);
+  const onBlur = async (event: React.FocusEvent<HTMLInputElement>) => {
+    await setValue(event.target.value);
   };
 
   return (

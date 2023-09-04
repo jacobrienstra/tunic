@@ -1,12 +1,16 @@
+import { cx, css as cssClass } from "@emotion/css";
 import { css } from "@emotion/react";
 import { useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import GlyphTyper from "./GlyphTyper";
+import GlyphTyper from "../components/GlyphTyper";
 import Section from "./Section";
-import Word from "./Word";
+import Word from "../components/Word";
 import storage from "../storage";
 import { uploadFiles } from "@directus/sdk";
 import DownloadingIcon from "@mui/icons-material/Downloading";
+import { isEmpty } from "lodash";
+import { saveAction } from "../redux/store";
+import { addWord } from "../redux/reducers/data";
 
 const entrySectionWrapper = css`
   display: flex;
@@ -47,6 +51,10 @@ const wordWrapper = css`
   padding-top: 8px;
   flex: 1 1 auto;
   min-height: 30px;
+`;
+
+const submitButton = cssClass`
+  margin-bottom: 8px;
 `;
 
 const typerWrapper = css`
@@ -100,7 +108,16 @@ const loadingIcon = css`
   animation: rotation 1s infinite linear;
 `;
 
+const clearButton = cssClass`
+  color: var(--red-900);
+
+  &:hover {
+    background: var(--red-400);
+  }
+`;
+
 function EntrySection() {
+  const dispatch = useDispatch();
   const [text, setText] = useState<number[][]>([]);
   const [curWord, setCurWord] = useState<number[]>([]);
   const [curContext, setCurContext] = useState<string | null>(null);
@@ -202,6 +219,33 @@ function EntrySection() {
             setIsTyping(false);
           }}
         >
+          <button
+            className={cx({
+              disabled: isEmpty(text) || isEmpty(curContext),
+              [submitButton]: true,
+            })}
+            onClick={async () => {
+              if (
+                !isEmpty(text) &&
+                !isEmpty(curContext) &&
+                curContext != null
+              ) {
+                const submit = confirm("Submit Text with Context?");
+                if (submit) {
+                  for (let word of text) {
+                    await saveAction(dispatch, addWord, {
+                      word: word,
+                      ctx: curContext,
+                    });
+                  }
+                  setText([]);
+                  setCurContext(null);
+                }
+              }
+            }}
+          >
+            Submit Text
+          </button>
           <GlyphTyper
             emitGrapheme={addGraphemeToWord}
             emitWord={addWordToText}
@@ -212,6 +256,7 @@ function EntrySection() {
         <div css={imgSection}>
           <label htmlFor="fileInput">{curContext ?? "Add Context"}</label>
           <input
+            disabled={curContext != null}
             type="file"
             id="fileInput"
             ref={fileInput}
@@ -233,6 +278,22 @@ function EntrySection() {
               />
             ) : null}
           </div>
+          <button
+            className={cx({
+              disabled: isEmpty(curContext),
+              [clearButton]: true,
+            })}
+            onClick={() => {
+              if (curContext) {
+                const clear = confirm("Clear Context?");
+                if (clear) {
+                  setCurContext(null);
+                }
+              }
+            }}
+          >
+            Clear Context
+          </button>
         </div>
       </div>
     </Section>
