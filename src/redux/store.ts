@@ -19,9 +19,9 @@ export interface RootState {
 
 const initialState: RootState = {
   selection: {
-    filterLeftLine: "either",
-    filterUpper: null,
-    filterLower: null,
+    upperFilter: null,
+    lowerFilter: null,
+    leftLineFilter: "either",
     partial: true,
     exclusive: false,
     n: 2,

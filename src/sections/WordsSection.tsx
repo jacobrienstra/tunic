@@ -4,9 +4,11 @@ import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../redux/store";
 import Tile from "../components/Tile";
 import WordRow from "../components/WordRow";
-import { createSelector } from "@reduxjs/toolkit";
-import { isArray, isEqual } from "lodash";
-import { setSelectedWord } from "../redux/reducers/selection";
+import { isEqual } from "lodash";
+import {
+  selectFilteredWords,
+  setSelectedWord,
+} from "../redux/reducers/selection";
 
 const wordsGrid = css`
   padding: 8px;
@@ -21,24 +23,8 @@ const wordsGrid = css`
 
 function WordsSection() {
   const dispatch = useDispatch();
-  const selectWords = (state: RootState) => state.data.words;
-  const selectSelectedGrapheme = (state: RootState) =>
-    state.selection.selectedGrapheme;
   const selectSelectedWord = (state: RootState) => state.selection.selectedWord;
   const selectedWord = useSelector(selectSelectedWord);
-  const selectFilteredWords = createSelector(
-    [selectWords, selectSelectedGrapheme, selectSelectedWord],
-    (words, ngram, word) => {
-      if (ngram) {
-        if (!isArray(ngram)) {
-          const newWords = words.filter((w) => w.word.includes(ngram));
-
-          return newWords;
-        }
-      }
-      return words;
-    }
-  );
 
   const filteredWords = useSelector(selectFilteredWords);
 

@@ -4,6 +4,7 @@ import type { GraphemeData, WordData } from "./data";
 import { createSelector } from "@reduxjs/toolkit";
 import { ULVK, getLower, getUpper } from "../../glyph";
 import type { RootState } from "../store";
+import { isEqual } from "lodash";
 
 export type LeftLineStatus = "present" | "absent" | "either";
 export type Mode = "graphemes" | "ngrams";
@@ -44,6 +45,9 @@ export const selectionSlice = createSlice({
     setN: (state, action: PayloadAction<number>): void => {
       state.n = action.payload;
     },
+    setMode: (state, action: PayloadAction<Mode>): void => {
+      state.mode = action.payload;
+    },
     setSelectedGrapheme: (
       state,
       action: PayloadAction<null | number>
@@ -56,8 +60,8 @@ export const selectionSlice = createSlice({
     setSelectedWord: (state, action: PayloadAction<null | WordData>): void => {
       state.selectedWord = action.payload;
     },
-    setMode: (state, action: PayloadAction<Mode>): void => {
-      state.mode = action.payload;
+    setSelectedContext: (state, action: PayloadAction<null | string>): void => {
+      state.selectedContext = action.payload;
     },
   },
 });
@@ -70,6 +74,7 @@ const selectLeftLineFilter = (state: RootState) =>
 const selectPartial = (state: RootState) => state.selection.partial;
 const selectExclusive = (state: RootState) => state.selection.exclusive;
 const selectN = (state: RootState) => state.selection.n;
+const selectMode = (state: RootState) => state.selection.mode;
 
 const selectSelectedGrapheme = (state: RootState) =>
   state.selection.selectedGrapheme;
@@ -284,6 +289,43 @@ export const selectFilteredNGrams = createSelector(
   }
 );
 
+const wordContainsNGram = (word: number[], nGram: number[]): boolean => {
+  const n = nGram.length;
+  for (let i = 0; i < word.length - (n - 1); i++) {
+    let nGramSlice = word.slice(i, i + n);
+    if (isEqual(nGramSlice, nGram)) {
+      return true;
+    }
+  }
+  return false;
+};
+
+export const calcFilteredWords = (
+  {
+    selectedGrapheme,
+    selectedNGram,
+    mode,
+  }: Pick<SelectionSliceState, "selectedGrapheme" | "selectedNGram" | "mode">,
+  words: WordData[]
+): WordData[] => {
+  if (mode === "graphemes") {
+    return selectedGrapheme
+      ? words.filter((w) => w.word.includes(selectedGrapheme))
+      : words;
+  } else {
+    return selectedNGram
+      ? words.filter((w) => wordContainsNGram(w.word, selectedNGram))
+      : words;
+  }
+};
+
+export const selectFilteredWords = createSelector(
+  [selectSelectedGrapheme, selectSelectedNGram, selectMode, selectWords],
+  (selectedGrapheme, selectedNGram, mode, words) => {
+    return calcFilteredWords({ selectedGrapheme, selectedNGram, mode }, words);
+  }
+);
+
 export const {
   setUpperFilter,
   setLowerFilter,
@@ -294,6 +336,7 @@ export const {
   setSelectedGrapheme,
   setSelectedNGram,
   setSelectedWord,
+  setSelectedContext,
   setMode,
 } = selectionSlice.actions;
 

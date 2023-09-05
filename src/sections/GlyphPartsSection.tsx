@@ -60,10 +60,10 @@ function Filters() {
   const dispatch = useDispatch();
 
   const upperFilter = useSelector(
-    (state: RootState) => state.selection.filterUpper
+    (state: RootState) => state.selection.upperFilter
   );
   const lowerFilter = useSelector(
-    (state: RootState) => state.selection.filterLower
+    (state: RootState) => state.selection.lowerFilter
   );
 
   const selectGraphemes = (state: RootState) => state.data.graphemes;

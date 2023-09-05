@@ -102,25 +102,9 @@ function FilterOptions() {
       </div>
       <div css={filterOption}>
         <span>Logical Operator</span>
-        {exclusive ? (
-          <>
-            <CheckBoxIcon
-              fontSize="large"
-              css={toggleBox}
-              onClick={() => dispatch(toggleExclusive())}
-            />{" "}
-            <strong>AND</strong>
-          </>
-        ) : (
-          <>
-            <CheckBoxOutlineBlankIcon
-              fontSize="large"
-              css={toggleBox}
-              onClick={() => dispatch(toggleExclusive())}
-            />
-            <strong>OR</strong>
-          </>
-        )}
+        <button onClick={() => dispatch(toggleExclusive())}>
+          {exclusive ? <strong>AND</strong> : <strong>OR</strong>}
+        </button>
       </div>
     </div>
   );
