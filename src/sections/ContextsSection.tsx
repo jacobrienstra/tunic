@@ -3,6 +3,7 @@ import { RootState } from "../redux/store";
 import Section from "./Section";
 import { css } from "@emotion/react";
 import { useSelector } from "react-redux";
+import InnerImageZoom from "react-inner-image-zoom";
 
 const contextsWrapper = css`
   max-width: 25vw;
@@ -27,19 +28,21 @@ const contextImg = css`
 `;
 
 function ContextsSection() {
-  const selectCurWord = (state: RootState) => state.selection.word;
-  const curWord = useSelector(selectCurWord);
+  const selectSelectedWord = (state: RootState) => state.selection.selectedWord;
+  const selectedWord = useSelector(selectSelectedWord);
 
   return (
-    <Section title="Contexts" style={{ flex: "0 1 auto" }}>
+    <Section title="Contexts">
       <div css={contextsWrapper}>
-        {curWord?.ctxs.map((ctx) => (
+        {selectedWord?.ctxs.map((ctx) => (
           <div css={imgRow} key={ctx}>
             <div css={imgScrollWrapper}>
-              <img
+              <InnerImageZoom
+                hideHint
                 css={contextImg}
+                zoomScale={2}
                 src={`${import.meta.env.VITE_DIRECTUS_URL}/assets/${ctx}`}
-              ></img>
+              ></InnerImageZoom>
             </div>
           </div>
         ))}

@@ -6,7 +6,7 @@ import Tile from "../components/Tile";
 import WordRow from "../components/WordRow";
 import { createSelector } from "@reduxjs/toolkit";
 import { isArray, isEqual } from "lodash";
-import { setWord } from "../redux/reducers/selection";
+import { setSelectedWord } from "../redux/reducers/selection";
 
 const wordsGrid = css`
   padding: 8px;
@@ -22,11 +22,12 @@ const wordsGrid = css`
 function WordsSection() {
   const dispatch = useDispatch();
   const selectWords = (state: RootState) => state.data.words;
-  const selectNGram = (state: RootState) => state.selection.ngram;
-  const selectCurWord = (state: RootState) => state.selection.word;
-  const curWord = useSelector(selectCurWord);
+  const selectSelectedGrapheme = (state: RootState) =>
+    state.selection.selectedGrapheme;
+  const selectSelectedWord = (state: RootState) => state.selection.selectedWord;
+  const selectedWord = useSelector(selectSelectedWord);
   const selectFilteredWords = createSelector(
-    [selectWords, selectNGram, selectCurWord],
+    [selectWords, selectSelectedGrapheme, selectSelectedWord],
     (words, ngram, word) => {
       if (ngram) {
         if (!isArray(ngram)) {
@@ -42,18 +43,18 @@ function WordsSection() {
   const filteredWords = useSelector(selectFilteredWords);
 
   return (
-    <Section title="Words" style={{ flex: "0 1 auto" }}>
+    <Section title="Words">
       <div css={wordsGrid}>
         {filteredWords.map((w) => (
           <Tile
             align="start"
             key={w.word.toString()}
-            active={isEqual(curWord, w)}
+            active={isEqual(selectedWord, w)}
             onClick={() => {
-              if (!isEqual(curWord, w)) {
-                dispatch(setWord(w));
+              if (!isEqual(selectedWord, w)) {
+                dispatch(setSelectedWord(w));
               } else {
-                dispatch(setWord(null));
+                dispatch(setSelectedWord(null));
               }
             }}
           >

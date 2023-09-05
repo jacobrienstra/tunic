@@ -1,7 +1,7 @@
 import { css } from "@emotion/react";
 import Section from "./Section";
-import Filters from "./Filters";
-import NGrams from "./NGrams";
+import GlyphPartsSection from "./GlyphPartsSection";
+import FullGlyphsSection from "./FullGlyphsSection";
 
 const columnsWrapper = css`
   display: flex;
@@ -11,10 +11,10 @@ const columnsWrapper = css`
 
 function GlyphsSection() {
   return (
-    <Section title="Glyphs" style={{ flex: "1 1 25%" }}>
+    <Section title="Glyphs">
       <div css={columnsWrapper}>
-        <Filters />
-        <NGrams />
+        <GlyphPartsSection />
+        <FullGlyphsSection />
       </div>
     </Section>
   );

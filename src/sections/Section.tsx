@@ -7,10 +7,10 @@ const section = css`
   padding: 8px 0;
   align-items: stretch;
   align-content: center;
-
-  &:not(:last-child) {
+  height: 100%;
+  /* &:not(:last-child) {
     box-shadow: 10px 0px 15px -15px rgba(0, 0, 0, 0.5);
-  }
+  } */
 `;
 
 const header = css`

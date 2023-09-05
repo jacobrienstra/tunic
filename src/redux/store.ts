@@ -11,7 +11,6 @@ import storage from "../storage";
 import { readSingleton } from "@directus/sdk";
 import { has, isEmpty } from "lodash";
 import { updateSingleton } from "@directus/sdk";
-import { useDispatch } from "react-redux";
 
 export interface RootState {
   data: DataSliceState;
@@ -25,28 +24,16 @@ const initialState: RootState = {
     filterLower: null,
     partial: true,
     exclusive: false,
-    n: 1,
-    ngram: null,
-    word: null,
+    n: 2,
+    selectedGrapheme: null,
+    selectedNGram: null,
+    selectedWord: null,
+    selectedContext: null,
+    mode: "graphemes",
   },
   data: {
-    graphemes: [
-      // { id: 2001, sound: "", sure: false },
-      // { id: 1490, sound: "", sure: false },
-      // { id: 2093, sound: "", sure: false },
-      // { id: 187, sound: "", sure: false },
-      // { id: 1924, sound: "", sure: false },
-      // { id: 3432, sound: "", sure: false },
-      // { id: 7892, sound: "", sure: false },
-      // { id: 1093, sound: "", sure: false },
-      // { id: 5810, sound: "", sure: false },
-    ],
-    words: [
-      // { word: [15, 5321, 287, 198, 2], meaning: "", ctxs: [], sure: false },
-      // { word: [141], meaning: "", ctxs: [], sure: false },
-      // { word: [109, 510, 512], meaning: "", ctxs: [], sure: false },
-      // { word: [151, 1029], meaning: "", ctxs: [], sure: false },
-    ],
+    graphemes: [],
+    words: [],
   },
 };
 

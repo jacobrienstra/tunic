@@ -21,13 +21,7 @@ import {
   UBVK,
 } from "../glyph";
 
-const svgStyle = css`
-  &:focus,
-  &:focus-visible(),
-  &:focus-within {
-    outline: -webkit-focus-ring-color auto 5px;
-  }
-`;
+
 
 const stroke = css`
   cursor: pointer;
@@ -68,6 +62,15 @@ function GlyphTyper({
   width = 150,
 }: GlyphTyperProps) {
   const [val, setVal] = useState(0);
+
+  const svgStyle = css`
+    &:focus,
+    &:focus-visible(),
+    &:focus-within {
+      outline: -webkit-focus-ring-color auto 5px;
+    }
+    max-width: ${width}px;
+  `;
 
   const unusedLines = [];
   const usedLines = [];
