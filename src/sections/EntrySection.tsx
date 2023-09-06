@@ -1,7 +1,6 @@
 import { cx, css as cssClass } from "@emotion/css";
 import { css } from "@emotion/react";
 import { useRef, useState } from "react";
-import { useDispatch } from "react-redux";
 import GlyphTyper from "../components/GlyphTyper";
 import Section from "./Section";
 import Word from "../components/Word";
@@ -9,9 +8,8 @@ import storage from "../storage";
 import { uploadFiles } from "@directus/sdk";
 import DownloadingIcon from "@mui/icons-material/Downloading";
 import { isEmpty } from "lodash";
-import { saveAction } from "../redux/store";
-import store from "../redux/store";
-import { addWord, addWordSave } from "../redux/reducers/data";
+import { useAppDispatch } from "../redux/hooks";
+import { addWordSave } from "../redux/reducers/data";
 import { ReflexElement, ReflexContainer, ReflexSplitter } from "react-reflex";
 
 const textSection = css`
@@ -109,7 +107,7 @@ const clearButton = cssClass`
 `;
 
 function EntrySection() {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const [text, setText] = useState<number[][]>([]);
   const [curWord, setCurWord] = useState<number[]>([]);
   const [curContext, setCurContext] = useState<string | null>(null);
@@ -229,7 +227,7 @@ function EntrySection() {
                   const submit = confirm("Submit Text with Context?");
                   if (submit) {
                     for (let word of text) {
-                      store.dispatch(
+                      dispatch(
                         addWordSave({
                           word: word,
                           ctx: curContext,

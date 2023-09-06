@@ -1,6 +1,6 @@
 import { css } from "@emotion/react";
 import Section from "./Section";
-import { useDispatch, useSelector } from "react-redux";
+import { useAppDispatch, useAppSelector } from "../redux/hooks";
 import { RootState } from "../redux/store";
 import Tile from "../components/Tile";
 import WordRow from "../components/WordRow";
@@ -23,11 +23,11 @@ const wordsGrid = css`
 `;
 
 function WordsSection() {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const selectSelectedWord = (state: RootState) => state.selection.selectedWord;
-  const selectedWord = useSelector(selectSelectedWord);
+  const selectedWord = useAppSelector(selectSelectedWord);
 
-  const filteredWords = useSelector(selectFilteredWords);
+  const filteredWords = useAppSelector(selectFilteredWords);
 
   return (
     <Section title="Words">

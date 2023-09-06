@@ -5,23 +5,21 @@ import {
   configureStore,
 } from "@reduxjs/toolkit";
 import { dataReducer, selectionReducer } from "./reducers";
-import { DataSliceState } from "./reducers/data";
-import { SelectionSliceState } from "./reducers/selection";
+import type { LeftLineStatus, Mode } from "./reducers/selection";
 import storage from "../storage";
 import { readSingleton } from "@directus/sdk";
 import { has, isEmpty } from "lodash";
-import { updateSingleton } from "@directus/sdk";
 
-export interface RootState {
-  data: DataSliceState;
-  selection: SelectionSliceState;
-}
+// export interface RootState {
+//   data: DataSliceState;
+//   selection: SelectionSliceState;
+// }
 
-const initialState: RootState = {
+const initialState = {
   selection: {
     upperFilter: null,
     lowerFilter: null,
-    leftLineFilter: "either",
+    leftLineFilter: "either" as LeftLineStatus,
     partial: true,
     exclusive: false,
     n: 2,
@@ -29,7 +27,7 @@ const initialState: RootState = {
     selectedNGram: null,
     selectedWord: null,
     selectedContext: null,
-    mode: "graphemes",
+    mode: "graphemes" as Mode,
   },
   data: {
     graphemes: { ids: [], entities: {} },
@@ -51,7 +49,7 @@ try {
   }
 } catch (e) {}
 
-const store = configureStore<RootState>({
+const store = configureStore({
   reducer: {
     data: dataReducer,
     selection: selectionReducer,
@@ -69,5 +67,7 @@ const store = configureStore<RootState>({
 //     updateSingleton("corpus", { state: store.getState().data })
 //   );
 // };
+export type RootState = ReturnType<typeof store.getState>;
+export type AppDispatch = typeof store.dispatch;
 
 export default store;

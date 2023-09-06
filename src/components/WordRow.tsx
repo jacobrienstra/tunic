@@ -6,9 +6,9 @@ import {
 } from "../redux/reducers/data";
 import Word from "./Word";
 import InlineEdit from "./InlineEdit";
-import store from "../redux/store";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import CircleOutlinedIcon from "@mui/icons-material/CircleOutlined";
+import { useAppDispatch } from "../redux/hooks";
 
 interface WordRowProps {
   wordData: WordData;
@@ -45,6 +45,7 @@ const iconStyle = css`
 `;
 
 function WordRow({ wordData }: WordRowProps) {
+  const dispatch = useAppDispatch();
   return (
     <div css={wordRowWrapper}>
       <div css={wordWrapper}>
@@ -54,7 +55,7 @@ function WordRow({ wordData }: WordRowProps) {
             css={iconStyle}
             onClick={(event: React.MouseEvent) => {
               event.stopPropagation();
-              store.dispatch(toggleWordSureSave({ word: wordData.word }));
+              dispatch(toggleWordSureSave({ word: wordData.word }));
             }}
           />
         ) : (
@@ -62,7 +63,7 @@ function WordRow({ wordData }: WordRowProps) {
             css={iconStyle}
             onClick={(event: React.MouseEvent) => {
               event.stopPropagation();
-              store.dispatch(toggleWordSureSave({ word: wordData.word }));
+              dispatch(toggleWordSureSave({ word: wordData.word }));
             }}
           />
         )}
@@ -70,7 +71,7 @@ function WordRow({ wordData }: WordRowProps) {
       <InlineEdit
         value={wordData.meaning}
         setValue={(val: string) =>
-          store.dispatch(
+          dispatch(
             setMeaningSave({
               word: wordData.word,
               meaning: val,

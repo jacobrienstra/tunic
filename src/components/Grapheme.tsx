@@ -6,9 +6,9 @@ import {
   toggleGraphemeSureSave,
 } from "../redux/reducers/data";
 import InlineEdit from "./InlineEdit";
-import store from "../redux/store";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import CircleOutlinedIcon from "@mui/icons-material/CircleOutlined";
+import { useAppDispatch, useAppSelector } from "../redux/hooks";
 
 interface GraphemeProps {
   glyph: GraphemeData;

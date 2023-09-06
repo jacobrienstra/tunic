@@ -1,6 +1,6 @@
 import Tile from "../components/Tile";
 import Word from "../components/Word";
-import { useDispatch, useSelector } from "react-redux";
+import { useAppDispatch, useAppSelector } from "../redux/hooks";
 import {
   selectFilteredNGrams,
   setSelectedNGram,
@@ -12,12 +12,12 @@ interface NGramsProps {
   tileSize: number;
 }
 function NGrams({ tileSize }: NGramsProps) {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const selectSelectedNGram = (state: RootState) =>
     state.selection.selectedNGram;
 
-  const filteredNGrams = useSelector(selectFilteredNGrams);
-  const selectedNGram = useSelector(selectSelectedNGram);
+  const filteredNGrams = useAppSelector(selectFilteredNGrams);
+  const selectedNGram = useAppSelector(selectSelectedNGram);
 
   return (
     <>

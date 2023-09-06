@@ -8,7 +8,7 @@ import {
   togglePartialFilter,
 } from "../redux/reducers/selection";
 import { RootState } from "../redux/store";
-import { useDispatch, useSelector } from "react-redux";
+import { useAppDispatch, useAppSelector } from "../redux/hooks";
 
 const filterToggles = css`
   display: flex;
@@ -36,12 +36,12 @@ const toggleBox = css`
 `;
 
 function FilterOptions() {
-  const dispatch = useDispatch();
-  const leftLineFilter = useSelector(
+  const dispatch = useAppDispatch();
+  const leftLineFilter = useAppSelector(
     (state: RootState) => state.selection.leftLineFilter
   );
-  const partial = useSelector((state: RootState) => state.selection.partial);
-  const exclusive = useSelector(
+  const partial = useAppSelector((state: RootState) => state.selection.partial);
+  const exclusive = useAppSelector(
     (state: RootState) => state.selection.exclusive
   );
 

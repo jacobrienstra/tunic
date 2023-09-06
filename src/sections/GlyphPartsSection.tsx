@@ -1,7 +1,7 @@
 import { css } from "@emotion/react";
 
 import { RootState } from "../redux/store";
-import { useDispatch, useSelector } from "react-redux";
+import { useAppDispatch, useAppSelector } from "../redux/hooks";
 import { setLowerFilter, setUpperFilter } from "../redux/reducers/selection";
 import { getLower, getUpper } from "../glyph";
 import { uniq } from "lodash";
@@ -58,12 +58,12 @@ const glyphsGrid = css`
 `;
 
 function Filters() {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
 
-  const upperFilter = useSelector(
+  const upperFilter = useAppSelector(
     (state: RootState) => state.selection.upperFilter
   );
-  const lowerFilter = useSelector(
+  const lowerFilter = useAppSelector(
     (state: RootState) => state.selection.lowerFilter
   );
 
@@ -74,12 +74,12 @@ function Filters() {
       return uniq(graphemes.map((gid) => getUpper(gid as number)));
     }
   );
-  const upperGlyphs = useSelector(selectUpperGlyphs);
+  const upperGlyphs = useAppSelector(selectUpperGlyphs);
 
   const selectLowerGlyphs = createSelector([selectGraphemeIds], (graphemes) => {
     return uniq(graphemes.map((gid) => getLower(gid as number)));
   });
-  const lowerGlyphs = useSelector(selectLowerGlyphs);
+  const lowerGlyphs = useAppSelector(selectLowerGlyphs);
 
   return (
     <section css={glyphPartsSection}>

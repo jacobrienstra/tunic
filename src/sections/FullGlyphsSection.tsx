@@ -1,6 +1,6 @@
 import { css } from "@emotion/react";
 import { cx } from "@emotion/css";
-import { useDispatch, useSelector } from "react-redux";
+import { useAppDispatch, useAppSelector } from "../redux/hooks";
 import { RootState } from "../redux/store";
 import { setMode, setN } from "../redux/reducers/selection";
 import Graphemes from "./Graphemes";
@@ -44,12 +44,12 @@ const nGramSize = css`
 `;
 
 function FullGlyphsSection() {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
 
   const selectN = (state: RootState) => state.selection.n;
-  const selectedN = useSelector(selectN);
+  const selectedN = useAppSelector(selectN);
 
-  const mode = useSelector((state: RootState) => state.selection.mode);
+  const mode = useAppSelector((state: RootState) => state.selection.mode);
 
   const tileSize = 60;
   const ngramsGrid = css`

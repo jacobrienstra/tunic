@@ -5,7 +5,7 @@ import {
   selectFilteredGraphemes,
   setSelectedGrapheme,
 } from "../redux/reducers/selection";
-import { useDispatch, useSelector } from "react-redux";
+import { useAppDispatch, useAppSelector } from "../redux/hooks";
 import { GraphemeData } from "../redux/reducers/data";
 
 interface GraphemesProps {
@@ -13,12 +13,12 @@ interface GraphemesProps {
 }
 
 function Graphemes({ tileSize }: GraphemesProps) {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
 
   const selectSelectedGrapheme = (state: RootState) =>
     state.selection.selectedGrapheme;
-  const selectedGrapheme = useSelector(selectSelectedGrapheme);
-  const filteredGraphemes = useSelector(selectFilteredGraphemes);
+  const selectedGrapheme = useAppSelector(selectSelectedGrapheme);
+  const filteredGraphemes = useAppSelector(selectFilteredGraphemes);
 
   return (
     <>

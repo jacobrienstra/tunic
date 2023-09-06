@@ -1,5 +1,10 @@
 /* eslint-disable no-param-reassign */
-import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import {
+  Action,
+  createSlice,
+  PayloadAction,
+  ThunkAction,
+} from "@reduxjs/toolkit";
 import {
   selectAllWords,
   type GraphemeData,
@@ -57,15 +62,23 @@ export const selectionSlice = createSlice({
       state,
       action: PayloadAction<null | number>
     ): void => {
+      state.selectedContext = null;
       state.selectedGrapheme = action.payload;
     },
     setSelectedNGram: (state, action: PayloadAction<null | number[]>): void => {
+      state.selectedContext = null;
       state.selectedNGram = action.payload;
     },
     setSelectedWord: (state, action: PayloadAction<null | WordData>): void => {
       state.selectedWord = action.payload;
+      if (state.selectedContext) {
+        state.selectedContext = null;
+      }
     },
     setSelectedContext: (state, action: PayloadAction<null | string>): void => {
+      state.selectedWord = null;
+      state.selectedGrapheme = null;
+      state.selectedNGram = null;
       state.selectedContext = action.payload;
     },
   },
@@ -309,27 +322,48 @@ export const calcFilteredWords = (
   {
     selectedGrapheme,
     selectedNGram,
+    selectedContext,
     mode,
-  }: Pick<SelectionSliceState, "selectedGrapheme" | "selectedNGram" | "mode">,
+  }: Pick<
+    SelectionSliceState,
+    "selectedGrapheme" | "selectedNGram" | "selectedContext" | "mode"
+  >,
   words: WordData[]
 ): WordData[] => {
-  if (mode === "graphemes") {
-    return selectedGrapheme
-      ? words.filter((w) => w.word.includes(selectedGrapheme))
+  if (selectedContext) {
+    return selectedContext
+      ? words.filter((w) => w.ctxs.includes(selectedContext))
       : words;
   } else {
-    return selectedNGram
-      ? words.filter((w) => wordContainsNGram(w.word, selectedNGram))
-      : words;
+    if (mode === "graphemes") {
+      return selectedGrapheme
+        ? words.filter((w) => w.word.includes(selectedGrapheme))
+        : words;
+    } else {
+      return selectedNGram
+        ? words.filter((w) => wordContainsNGram(w.word, selectedNGram))
+        : words;
+    }
   }
 };
 
 export const selectFilteredWords = createSelector(
-  [selectSelectedGrapheme, selectSelectedNGram, selectMode, selectAllWords],
-  (selectedGrapheme, selectedNGram, mode, words) => {
-    return calcFilteredWords({ selectedGrapheme, selectedNGram, mode }, words);
+  [
+    selectSelectedGrapheme,
+    selectSelectedNGram,
+    selectSelectedContext,
+    selectMode,
+    selectAllWords,
+  ],
+  (selectedGrapheme, selectedNGram, selectedContext, mode, words) => {
+    return calcFilteredWords(
+      { selectedGrapheme, selectedNGram, selectedContext, mode },
+      words
+    );
   }
 );
+
+// type AppThunkAction = ThunkAction<void, RootState, unknown, Action<unknown>>;
 
 export const {
   setUpperFilter,
