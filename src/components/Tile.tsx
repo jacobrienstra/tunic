@@ -6,6 +6,7 @@ type TileProps = {
   size?: number;
   align?: "center" | "start";
   active?: boolean;
+  sure?: boolean;
 } & React.HTMLProps<HTMLDivElement>;
 
 function Tile({
@@ -13,6 +14,7 @@ function Tile({
   children,
   align = "center",
   active = false,
+  sure = false,
   ...rest
 }: PropsWithChildren<TileProps>) {
   const tile = css`
@@ -22,7 +24,7 @@ function Tile({
     cursor: pointer;
     align-items: ${align};
     min-width: ${size ? `${size}px` : "min-content"};
-    border: 1px dotted var(--slate-300);
+    border: ${"1px dotted var(--slate-300)"};
 
     &:hover {
       box-shadow: 2px 2px 5px 0px rgba(0, 0, 0, 0.5);

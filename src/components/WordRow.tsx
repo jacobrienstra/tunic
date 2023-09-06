@@ -1,9 +1,14 @@
 import { css } from "@emotion/react";
-import { WordData, setMeaning } from "../redux/reducers/data";
-import { useDispatch } from "react-redux";
+import {
+  WordData,
+  setMeaningSave,
+  toggleWordSureSave,
+} from "../redux/reducers/data";
 import Word from "./Word";
 import InlineEdit from "./InlineEdit";
-import { saveAction } from "../redux/store";
+import store from "../redux/store";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import CircleOutlinedIcon from "@mui/icons-material/CircleOutlined";
 
 interface WordRowProps {
   wordData: WordData;
@@ -27,22 +32,50 @@ const wordRowWrapper = css`
 const wordWrapper = css`
   margin: 0px;
   flex: 1 0 auto;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+`;
+
+const iconStyle = css`
+  align-self: start;
+  justify-self: end;
+  color: var(--green);
+  margin-left: 8px;
 `;
 
 function WordRow({ wordData }: WordRowProps) {
-  const dispatch = useDispatch();
   return (
     <div css={wordRowWrapper}>
       <div css={wordWrapper}>
         <Word word={wordData.word} />
+        {wordData.sure ? (
+          <CheckCircleIcon
+            css={iconStyle}
+            onClick={(event: React.MouseEvent) => {
+              event.stopPropagation();
+              store.dispatch(toggleWordSureSave({ word: wordData.word }));
+            }}
+          />
+        ) : (
+          <CircleOutlinedIcon
+            css={iconStyle}
+            onClick={(event: React.MouseEvent) => {
+              event.stopPropagation();
+              store.dispatch(toggleWordSureSave({ word: wordData.word }));
+            }}
+          />
+        )}
       </div>
       <InlineEdit
         value={wordData.meaning}
         setValue={(val: string) =>
-          saveAction(dispatch, setMeaning, {
-            word: wordData.word,
-            meaning: val,
-          })
+          store.dispatch(
+            setMeaningSave({
+              word: wordData.word,
+              meaning: val,
+            })
+          )
         }
       />
     </div>

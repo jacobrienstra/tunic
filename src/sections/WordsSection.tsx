@@ -9,6 +9,7 @@ import {
   selectFilteredWords,
   setSelectedWord,
 } from "../redux/reducers/selection";
+import { getWordId } from "../redux/reducers/data";
 
 const wordsGrid = css`
   padding: 8px;
@@ -34,7 +35,7 @@ function WordsSection() {
         {filteredWords.map((w) => (
           <Tile
             align="start"
-            key={w.word.toString()}
+            key={getWordId(w.word)}
             active={isEqual(selectedWord, w)}
             onClick={() => {
               if (!isEqual(selectedWord, w)) {

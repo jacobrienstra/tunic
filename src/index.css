@@ -12,6 +12,8 @@
   -moz-osx-font-smoothing: grayscale;
   -webkit-text-size-adjust: 100%;
 
+  --green: #618833;
+
   --red-400: #f87171;
   --red-500: #ef4444;
   --red-600: #dc2626;
@@ -38,7 +40,6 @@
   --slate-700: #334155;
   --slate-800: #1e293b;
   --slate-900: #0f172a;
-
 }
 
 

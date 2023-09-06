@@ -2,7 +2,7 @@ import { useState } from "react";
 
 interface InlineEditProps {
   value: string;
-  setValue: (val: string) => Promise<void>;
+  setValue: (val: string) => void;
 }
 
 function InlineEdit({ value, setValue }: InlineEditProps) {

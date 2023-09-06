@@ -1,9 +1,10 @@
-import { createSelector } from "@reduxjs/toolkit";
 import { RootState } from "../redux/store";
 import Section from "./Section";
 import { css } from "@emotion/react";
 import { useSelector } from "react-redux";
 import InnerImageZoom from "react-inner-image-zoom";
+import { createSelector } from "@reduxjs/toolkit";
+import { selectAllWords } from "../redux/reducers/data";
 
 const contextsWrapper = css`
   max-width: 25vw;
@@ -20,21 +21,30 @@ const imgScrollWrapper = css`
   max-width: 100%;
   overflow-x: scroll;
   height: 100%;
-  border-radius: 6px;
 `;
 
 const contextImg = css`
   max-height: 100%;
+  border-radius: 6px;
 `;
 
 function ContextsSection() {
   const selectSelectedWord = (state: RootState) => state.selection.selectedWord;
   const selectedWord = useSelector(selectSelectedWord);
+  const selectAllCtxs = createSelector([selectAllWords], (words) => {
+    return words.reduce((acc, word) => {
+      word.ctxs.forEach((ctx) => acc.add(ctx));
+      return acc;
+    }, new Set<string>());
+  });
+  const allCtxs = useSelector(selectAllCtxs);
+
+  const ctxs = selectedWord ? selectedWord.ctxs : Array.from(allCtxs);
 
   return (
     <Section title="Contexts">
       <div css={contextsWrapper}>
-        {selectedWord?.ctxs.map((ctx) => (
+        {ctxs.map((ctx) => (
           <div css={imgRow} key={ctx}>
             <div css={imgScrollWrapper}>
               <InnerImageZoom

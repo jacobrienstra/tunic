@@ -1,6 +1,11 @@
 /* eslint-disable no-param-reassign */
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import type { GraphemeData, WordData } from "./data";
+import {
+  selectAllWords,
+  type GraphemeData,
+  type WordData,
+  selectAllGraphemes,
+} from "./data";
 import { createSelector } from "@reduxjs/toolkit";
 import { ULVK, getLower, getUpper } from "../../glyph";
 import type { RootState } from "../store";
@@ -83,8 +88,8 @@ const selectSelectedWord = (state: RootState) => state.selection.selectedWord;
 const selectSelectedContext = (state: RootState) =>
   state.selection.selectedContext;
 
-const selectGraphemes = (state: RootState) => state.data.graphemes;
-const selectWords = (state: RootState) => state.data.words;
+// const selectGraphemes = (state: RootState) => state.data.graphemes;
+// const selectWords = (state: RootState) => state.data.words;
 
 const graphemeMatchesFilters = (
   g: number,
@@ -196,7 +201,7 @@ export const selectFilteredGraphemes = createSelector(
     selectLeftLineFilter,
     selectPartial,
     selectExclusive,
-    selectGraphemes,
+    selectAllGraphemes,
   ],
   (upperFilter, lowerFilter, leftLineFilter, partial, exclusive, graphemes) => {
     return calcFilteredGraphemes(
@@ -272,7 +277,7 @@ export const selectFilteredNGrams = createSelector(
     selectPartial,
     selectExclusive,
     selectN,
-    selectWords,
+    selectAllWords,
   ],
   (upperFilter, lowerFilter, leftLineFilter, partial, exclusive, n, words) => {
     return calcFilteredNGrams(
@@ -320,7 +325,7 @@ export const calcFilteredWords = (
 };
 
 export const selectFilteredWords = createSelector(
-  [selectSelectedGrapheme, selectSelectedNGram, selectMode, selectWords],
+  [selectSelectedGrapheme, selectSelectedNGram, selectMode, selectAllWords],
   (selectedGrapheme, selectedNGram, mode, words) => {
     return calcFilteredWords({ selectedGrapheme, selectedNGram, mode }, words);
   }

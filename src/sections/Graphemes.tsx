@@ -26,6 +26,7 @@ function Graphemes({ tileSize }: GraphemesProps) {
         <Tile
           size={tileSize}
           key={g.id}
+          sure={g.sure}
           active={selectedGrapheme === g.id}
           onClick={() => {
             if (selectedGrapheme !== g.id) {

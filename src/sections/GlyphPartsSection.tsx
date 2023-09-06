@@ -9,6 +9,7 @@ import Glyph from "../components/Glyph";
 import Tile from "../components/Tile";
 import { createSelector } from "@reduxjs/toolkit";
 import FilterOptions from "./FilterOptions";
+import { selectGraphemeIds } from "../redux/reducers/data";
 
 const tileSize = 35;
 
@@ -66,14 +67,17 @@ function Filters() {
     (state: RootState) => state.selection.lowerFilter
   );
 
-  const selectGraphemes = (state: RootState) => state.data.graphemes;
-  const selectUpperGlyphs = createSelector([selectGraphemes], (graphemes) => {
-    return uniq(graphemes.map((g) => getUpper(g.id)));
-  });
+  // const selectGraphemes = (state: RootState) => state.data.graphemes;
+  const selectUpperGlyphs = createSelector(
+    [selectGraphemeIds],
+    (graphemes): number[] => {
+      return uniq(graphemes.map((gid) => getUpper(gid as number)));
+    }
+  );
   const upperGlyphs = useSelector(selectUpperGlyphs);
 
-  const selectLowerGlyphs = createSelector([selectGraphemes], (graphemes) => {
-    return uniq(graphemes.map((g) => getLower(g.id)));
+  const selectLowerGlyphs = createSelector([selectGraphemeIds], (graphemes) => {
+    return uniq(graphemes.map((gid) => getLower(gid as number)));
   });
   const lowerGlyphs = useSelector(selectLowerGlyphs);
 

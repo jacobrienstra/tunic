@@ -32,8 +32,8 @@ const initialState: RootState = {
     mode: "graphemes",
   },
   data: {
-    graphemes: [],
-    words: [],
+    graphemes: { ids: [], entities: {} },
+    words: { ids: [], entities: {} },
   },
 };
 
@@ -59,15 +59,15 @@ const store = configureStore<RootState>({
   preloadedState: initialState,
 });
 
-export const saveAction = async (
-  dispatch: Dispatch<AnyAction>,
-  action: ActionCreatorWithPayload<any>,
-  argsObj: any
-) => {
-  dispatch(action(argsObj));
-  await storage.request(
-    updateSingleton("corpus", { state: store.getState().data })
-  );
-};
+// export const saveAction = async (
+//   dispatch: Dispatch<AnyAction>,
+//   action: ActionCreatorWithPayload<any>,
+//   argsObj: any
+// ) => {
+//   dispatch(action(argsObj));
+//   await storage.request(
+//     updateSingleton("corpus", { state: store.getState().data })
+//   );
+// };
 
 export default store;

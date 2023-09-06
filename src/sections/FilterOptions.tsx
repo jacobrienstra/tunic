@@ -38,7 +38,7 @@ const toggleBox = css`
 function FilterOptions() {
   const dispatch = useDispatch();
   const leftLineFilter = useSelector(
-    (state: RootState) => state.selection.filterLeftLine
+    (state: RootState) => state.selection.leftLineFilter
   );
   const partial = useSelector((state: RootState) => state.selection.partial);
   const exclusive = useSelector(

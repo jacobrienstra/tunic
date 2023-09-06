@@ -1,9 +1,14 @@
 import { css } from "@emotion/react";
 import Glyph from "./Glyph";
-import { GraphemeData, setSound } from "../redux/reducers/data";
+import {
+  GraphemeData,
+  setSoundSave,
+  toggleGraphemeSureSave,
+} from "../redux/reducers/data";
 import InlineEdit from "./InlineEdit";
-import { useDispatch } from "react-redux";
-import { saveAction } from "../redux/store";
+import store from "../redux/store";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import CircleOutlinedIcon from "@mui/icons-material/CircleOutlined";
 
 interface GraphemeProps {
   glyph: GraphemeData;
@@ -27,17 +32,38 @@ const glyphWrapper = css`
   flex: 1 0 auto;
 `;
 
+const iconStyle = css`
+  align-self: end;
+  color: var(--green);
+`;
+
 function Grapheme({ glyph }: GraphemeProps) {
-  const dispatch = useDispatch();
   return (
     <div css={graphemeWrapper}>
+      {glyph.sure ? (
+        <CheckCircleIcon
+          css={iconStyle}
+          onClick={(event: React.MouseEvent) => {
+            event.stopPropagation();
+            store.dispatch(toggleGraphemeSureSave({ id: glyph.id }));
+          }}
+        />
+      ) : (
+        <CircleOutlinedIcon
+          css={iconStyle}
+          onClick={(event: React.MouseEvent) => {
+            event.stopPropagation();
+            store.dispatch(toggleGraphemeSureSave({ id: glyph.id }));
+          }}
+        />
+      )}
       <div css={glyphWrapper}>
         <Glyph val={glyph.id} />
       </div>
       <InlineEdit
         value={glyph.sound}
-        setValue={async (val: string) =>
-          await saveAction(dispatch, setSound, { id: glyph.id, sound: val })
+        setValue={(val: string) =>
+          store.dispatch(setSoundSave({ id: glyph.id, sound: val }))
         }
       />
     </div>

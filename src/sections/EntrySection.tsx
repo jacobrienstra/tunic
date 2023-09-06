@@ -10,7 +10,8 @@ import { uploadFiles } from "@directus/sdk";
 import DownloadingIcon from "@mui/icons-material/Downloading";
 import { isEmpty } from "lodash";
 import { saveAction } from "../redux/store";
-import { addWord } from "../redux/reducers/data";
+import store from "../redux/store";
+import { addWord, addWordSave } from "../redux/reducers/data";
 import { ReflexElement, ReflexContainer, ReflexSplitter } from "react-reflex";
 
 const textSection = css`
@@ -40,7 +41,7 @@ const textWrapper = css`
 const wordWrapper = css`
   padding-top: 8px;
   flex: 1 1 auto;
-  min-height: 30px;
+  min-height: 40px;
 `;
 
 const submitButton = cssClass`
@@ -60,7 +61,7 @@ const imgSection = css`
   display: flex;
   flex-direction: column;
   align-items: center;
-  height: 100%;
+  /* height: 100%; */
   label {
     margin: 8px;
     flex: 0 0 auto;
@@ -188,7 +189,7 @@ function EntrySection() {
   return (
     <Section title="Entry">
       <ReflexContainer orientation={"horizontal"} windowResizeAware={true}>
-        <ReflexElement minSize={76} size={76} style={{ padding: "8px 12px" }}>
+        <ReflexElement minSize={86} size={86} style={{ padding: "8px 12px" }}>
           <div css={textSection}>
             <div css={textWrapper}>
               {text.map((w, i) => (
@@ -228,10 +229,12 @@ function EntrySection() {
                   const submit = confirm("Submit Text with Context?");
                   if (submit) {
                     for (let word of text) {
-                      await saveAction(dispatch, addWord, {
-                        word: word,
-                        ctx: curContext,
-                      });
+                      store.dispatch(
+                        addWordSave({
+                          word: word,
+                          ctx: curContext,
+                        })
+                      );
                     }
                     setText([]);
                     setCurContext(null);
