@@ -5,10 +5,15 @@ import InnerImageZoom from "react-inner-image-zoom";
 import { createSelector } from "@reduxjs/toolkit";
 import { selectAllWords } from "../redux/reducers/data";
 import Tile from "../components/Tile";
-import { setSelectedContext } from "../redux/reducers/selection";
+import {
+  setContextFilterDirection,
+  setSelectedContext,
+} from "../redux/reducers/selection";
+import { cx } from "@emotion/css";
+import KeyboardDoubleArrowLeftIcon from "@mui/icons-material/KeyboardDoubleArrowLeft";
 
 const contextsWrapper = css`
-  padding: 12px;
+  padding: 0 12px;
   overflow-y: scroll;
 `;
 
@@ -28,6 +33,22 @@ const contextImg = css`
   border-radius: 6px;
 `;
 
+const filterDirectionSection = css`
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: start;
+  align-content: center;
+  flex-wrap: wrap;
+  flex: 0 0 auto;
+  margin: 8px 0;
+
+  button {
+    font-size: 16px;
+    margin: 0 0 2px 2px;
+  }
+`;
+
 function ContextsSection() {
   const dispatch = useAppDispatch();
   const selectedWord = useAppSelector((state) => state.selection.selectedWord);
@@ -40,6 +61,10 @@ function ContextsSection() {
   const allCtxs = useAppSelector(selectAllCtxs);
   const ctxs = selectedWord ? selectedWord.ctxs : Array.from(allCtxs);
 
+  const contextFilterDirection = useAppSelector(
+    (state) => state.selection.contextFilterDirection
+  );
+
   const selectedContext = useAppSelector(
     (state) => state.selection.selectedContext
   );
@@ -47,6 +72,20 @@ function ContextsSection() {
   return (
     <Section title="Contexts">
       <div css={contextsWrapper}>
+        <div css={filterDirectionSection}>
+          <button
+            className={cx({ active: contextFilterDirection === "left" })}
+            onClick={() => dispatch(setContextFilterDirection("left"))}
+          >
+            <KeyboardDoubleArrowLeftIcon />
+          </button>
+          <button
+            className={cx({ active: contextFilterDirection === "off" })}
+            onClick={() => dispatch(setContextFilterDirection("off"))}
+          >
+            Off
+          </button>
+        </div>
         {ctxs.map((ctx) => (
           <Tile
             align="start"

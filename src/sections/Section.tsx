@@ -4,7 +4,6 @@ import { PropsWithChildren } from "react";
 const section = css`
   display: flex;
   flex-direction: column;
-  padding: 8px 0;
   align-items: stretch;
   align-content: center;
   height: 100%;

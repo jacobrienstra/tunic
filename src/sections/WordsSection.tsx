@@ -8,8 +8,12 @@ import { isEqual } from "lodash";
 import {
   selectFilteredWords,
   setSelectedWord,
+  setWordFilterDirection,
 } from "../redux/reducers/selection";
 import { getWordId } from "../redux/reducers/data";
+import { cx } from "@emotion/css";
+import KeyboardDoubleArrowLeftIcon from "@mui/icons-material/KeyboardDoubleArrowLeft";
+import KeyboardDoubleArrowRightIcon from "@mui/icons-material/KeyboardDoubleArrowRight";
 
 const wordsGrid = css`
   padding: 8px;
@@ -22,15 +26,54 @@ const wordsGrid = css`
   overflow-y: scroll;
 `;
 
+const filterDirectionSection = css`
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  align-content: center;
+  flex-wrap: wrap;
+  flex: 0 0 auto;
+  margin: 4px 0;
+
+  button {
+    font-size: 16px;
+    margin: 0 0 2px 2px;
+  }
+`;
+
 function WordsSection() {
   const dispatch = useAppDispatch();
   const selectSelectedWord = (state: RootState) => state.selection.selectedWord;
   const selectedWord = useAppSelector(selectSelectedWord);
 
   const filteredWords = useAppSelector(selectFilteredWords);
+  const wordFilterDirection = useAppSelector(
+    (state) => state.selection.wordFilterDirection
+  );
 
   return (
     <Section title="Words">
+      <div css={filterDirectionSection}>
+        <button
+          className={cx({ active: wordFilterDirection === "left" })}
+          onClick={() => dispatch(setWordFilterDirection("left"))}
+        >
+          <KeyboardDoubleArrowLeftIcon />
+        </button>
+        <button
+          className={cx({ active: wordFilterDirection === "off" })}
+          onClick={() => dispatch(setWordFilterDirection("off"))}
+        >
+          Off
+        </button>
+        <button
+          className={cx({ active: wordFilterDirection === "right" })}
+          onClick={() => dispatch(setWordFilterDirection("right"))}
+        >
+          <KeyboardDoubleArrowRightIcon />
+        </button>
+      </div>
       <div css={wordsGrid}>
         {filteredWords.map((w) => (
           <Tile

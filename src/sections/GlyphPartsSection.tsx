@@ -1,8 +1,12 @@
 import { css } from "@emotion/react";
-
+import KeyboardDoubleArrowRightIcon from "@mui/icons-material/KeyboardDoubleArrowRight";
 import { RootState } from "../redux/store";
 import { useAppDispatch, useAppSelector } from "../redux/hooks";
-import { setLowerFilter, setUpperFilter } from "../redux/reducers/selection";
+import {
+  setGlyphFilterDirection,
+  setLowerFilter,
+  setUpperFilter,
+} from "../redux/reducers/selection";
 import { getLower, getUpper } from "../glyph";
 import { uniq } from "lodash";
 import Glyph from "../components/Glyph";
@@ -10,6 +14,7 @@ import Tile from "../components/Tile";
 import { createSelector } from "@reduxjs/toolkit";
 import FilterOptions from "./FilterOptions";
 import { selectGraphemeIds } from "../redux/reducers/data";
+import { cx } from "@emotion/css";
 
 const tileSize = 35;
 
@@ -57,6 +62,22 @@ const glyphsGrid = css`
   overflow-y: scroll;
 `;
 
+const filterDirectionSection = css`
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: end;
+  align-content: center;
+  flex-wrap: wrap;
+  flex: 0 0 auto;
+  margin: 4px 0;
+
+  button {
+    font-size: 16px;
+    margin: 0 0 2px 2px;
+  }
+`;
+
 function Filters() {
   const dispatch = useAppDispatch();
 
@@ -81,8 +102,26 @@ function Filters() {
   });
   const lowerGlyphs = useAppSelector(selectLowerGlyphs);
 
+  const glyphFilterDirection = useAppSelector(
+    (state) => state.selection.glyphFilterDirection
+  );
+
   return (
     <section css={glyphPartsSection}>
+      <div css={filterDirectionSection}>
+        <button
+          className={cx({ active: glyphFilterDirection === "off" })}
+          onClick={() => dispatch(setGlyphFilterDirection("off"))}
+        >
+          Off
+        </button>
+        <button
+          className={cx({ active: glyphFilterDirection === "right" })}
+          onClick={() => dispatch(setGlyphFilterDirection("right"))}
+        >
+          <KeyboardDoubleArrowRightIcon />
+        </button>
+      </div>
       <FilterOptions />
       <div css={filterGlyphsWrapper}>
         <div css={filterGlyphsColumn}>

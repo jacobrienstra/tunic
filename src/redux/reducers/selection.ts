@@ -23,8 +23,10 @@ export interface SelectionSliceState {
   exclusive: boolean;
   n: number;
   mode: Mode;
+  glyphFilterDirection: FilterDirection;
   graphemeFilterDirection: FilterDirection;
   wordFilterDirection: FilterDirection;
+  contextFilterDirection: FilterDirection;
   selectedGrapheme: null | number;
   selectedNGram: null | number[];
   selectedWord: WordData | null;
@@ -55,6 +57,30 @@ export const selectionSlice = createSlice({
     },
     setMode: (state, action: PayloadAction<Mode>): void => {
       state.mode = action.payload;
+    },
+    setGlyphFilterDirection: (
+      state,
+      action: PayloadAction<FilterDirection>
+    ): void => {
+      state.glyphFilterDirection = action.payload;
+    },
+    setGraphemeFilterDirection: (
+      state,
+      action: PayloadAction<FilterDirection>
+    ): void => {
+      state.graphemeFilterDirection = action.payload;
+    },
+    setWordFilterDirection: (
+      state,
+      action: PayloadAction<FilterDirection>
+    ): void => {
+      state.wordFilterDirection = action.payload;
+    },
+    setContextFilterDirection: (
+      state,
+      action: PayloadAction<FilterDirection>
+    ): void => {
+      state.contextFilterDirection = action.payload;
     },
     setSelectedGrapheme: (
       state,
@@ -407,11 +433,15 @@ export const {
   togglePartialFilter,
   toggleExclusive,
   setN,
+  setMode,
+  setGlyphFilterDirection,
+  setGraphemeFilterDirection,
+  setWordFilterDirection,
+  setContextFilterDirection,
   setSelectedGrapheme,
   setSelectedNGram,
   setSelectedWord,
   setSelectedContext,
-  setMode,
 } = selectionSlice.actions;
 
 export default selectionSlice.reducer;
