@@ -1,7 +1,7 @@
 :root {
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-family: "Noto Serif", Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
   font-weight: 400;
-  font-size: 12px;
+  font-size: 16px;
 
 
   color: var(--slate-900);
@@ -61,6 +61,7 @@ input {
   background-color: transparent;
   border: 0;
   padding: 4px;
+  font-family: inherit;
   text-align: center;
   font-weight: 700;
   font-size: 1.1em;
@@ -93,7 +94,7 @@ h1 {
 }
 
 h3 {
-  font-size: 1.2em;
+  font-size: 1.1em;
   line-height: 1.1;
   margin: 4px 0;
   user-select: none;
@@ -101,9 +102,8 @@ h3 {
 }
 
 h4 {
-  font-size: 1.1em;
-  line-height: 1.1;
-  margin: 4px 0;
+  font-size: 1.2em;
+  margin: 2px 0;
   user-select: none;
 
 }
@@ -112,7 +112,7 @@ button, label {
   border-radius: 8px;
   border: 1px solid transparent;
   padding: 0.4em .8em;
-  font-size: 1em;
+  font-size: 12px;
   font-weight: 500;
   font-family: inherit;
   cursor: pointer;

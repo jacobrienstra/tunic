@@ -1,24 +1,20 @@
 /* eslint-disable no-param-reassign */
-import {
-  Action,
-  createSlice,
-  PayloadAction,
-  ThunkAction,
-} from "@reduxjs/toolkit";
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import {
   selectAllWords,
   type GraphemeData,
   type WordData,
   selectAllGraphemes,
+  getWordId,
 } from "./data";
 import { createSelector } from "@reduxjs/toolkit";
 import { ULVK, getLower, getUpper } from "../../glyph";
 import type { RootState } from "../store";
-import { isEqual } from "lodash";
+import { has, isEmpty, isEqual, uniqWith } from "lodash";
 
 export type LeftLineStatus = "present" | "absent" | "either";
 export type Mode = "graphemes" | "ngrams";
-
+export type FilterDirection = "off" | "left" | "right";
 export interface SelectionSliceState {
   leftLineFilter: LeftLineStatus;
   upperFilter: number | null;
@@ -26,11 +22,13 @@ export interface SelectionSliceState {
   partial: boolean;
   exclusive: boolean;
   n: number;
+  mode: Mode;
+  graphemeFilterDirection: FilterDirection;
+  wordFilterDirection: FilterDirection;
   selectedGrapheme: null | number;
   selectedNGram: null | number[];
   selectedWord: WordData | null;
   selectedContext: string | null;
-  mode: Mode;
 }
 
 export const selectionSlice = createSlice({
@@ -134,7 +132,7 @@ const graphemeMatchesFilters = (
       matchesLower = (getLower(g) | lowerFilter) === getLower(g);
     } else {
       // exact match
-      matchesLower = getLower(g) === upperFilter;
+      matchesLower = getLower(g) === lowerFilter;
     }
   }
   let leftLinePass = true;
@@ -204,7 +202,17 @@ export const calcFilteredGraphemes = (
       exclusive
     );
   });
-  return filteredGraphemes;
+  return filteredGraphemes.sort((a, b) => {
+    if (isEmpty(a.sound) && isEmpty(b.sound)) {
+      return 0;
+    } else if (isEmpty(a.sound)) {
+      return 1;
+    } else if (isEmpty(b.sound)) {
+      return -1;
+    } else {
+      return a.sound.localeCompare(b.sound);
+    }
+  });
 };
 
 export const selectFilteredGraphemes = createSelector(
@@ -249,7 +257,9 @@ export const calcFilteredNGrams = (
   >,
   words: WordData[]
 ): number[][] => {
-  const filteredNGrams = new Set<number[]>();
+  const filteredNGrams = {} as {
+    [id: string]: { count: number; ngram: number[] };
+  };
   for (let w of words) {
     for (let i = 0; i < w.word.length - (n - 1); i++) {
       const nGramSlice = w.word.slice(i, i + n);
@@ -275,11 +285,24 @@ export const calcFilteredNGrams = (
         exclusive
       );
       if (nGramMatches) {
-        filteredNGrams.add(nGramSlice);
+        const id = getWordId(nGramSlice);
+        if (!has(filteredNGrams, id)) {
+          filteredNGrams[id] = { count: 1, ngram: nGramSlice };
+        } else {
+          filteredNGrams[id].count++;
+        }
       }
     }
   }
-  return [...filteredNGrams];
+  return Object.values(filteredNGrams)
+    .map((ng) => {
+      return ng.ngram;
+    })
+    .sort((a, b) => {
+      return (
+        filteredNGrams[getWordId(b)].count - filteredNGrams[getWordId(a)].count
+      );
+    });
 };
 
 export const selectFilteredNGrams = createSelector(
@@ -330,21 +353,33 @@ export const calcFilteredWords = (
   >,
   words: WordData[]
 ): WordData[] => {
+  let filteredWords = words;
   if (selectedContext) {
-    return selectedContext
-      ? words.filter((w) => w.ctxs.includes(selectedContext))
-      : words;
+    filteredWords = words.filter((w) => w.ctxs.includes(selectedContext));
   } else {
     if (mode === "graphemes") {
-      return selectedGrapheme
-        ? words.filter((w) => w.word.includes(selectedGrapheme))
-        : words;
+      if (selectedGrapheme) {
+        filteredWords = words.filter((w) => w.word.includes(selectedGrapheme));
+      }
     } else {
-      return selectedNGram
-        ? words.filter((w) => wordContainsNGram(w.word, selectedNGram))
-        : words;
+      if (selectedNGram) {
+        filteredWords = words.filter((w) =>
+          wordContainsNGram(w.word, selectedNGram)
+        );
+      }
     }
   }
+  return filteredWords.sort((a, b) => {
+    if (isEmpty(a.meaning) && isEmpty(b.meaning)) {
+      return 0;
+    } else if (isEmpty(a.meaning)) {
+      return 1;
+    } else if (isEmpty(b.meaning)) {
+      return -1;
+    } else {
+      return a.meaning.localeCompare(b.meaning);
+    }
+  });
 };
 
 export const selectFilteredWords = createSelector(

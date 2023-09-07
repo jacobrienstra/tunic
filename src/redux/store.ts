@@ -5,15 +5,14 @@ import {
   configureStore,
 } from "@reduxjs/toolkit";
 import { dataReducer, selectionReducer } from "./reducers";
-import type { LeftLineStatus, Mode } from "./reducers/selection";
+import type {
+  FilterDirection,
+  LeftLineStatus,
+  Mode,
+} from "./reducers/selection";
 import storage from "../storage";
 import { readSingleton } from "@directus/sdk";
 import { has, isEmpty } from "lodash";
-
-// export interface RootState {
-//   data: DataSliceState;
-//   selection: SelectionSliceState;
-// }
 
 const initialState = {
   selection: {
@@ -23,11 +22,13 @@ const initialState = {
     partial: true,
     exclusive: false,
     n: 2,
+    mode: "graphemes" as Mode,
+    graphemeFilterDirection: "right" as FilterDirection,
+    wordFilterDirection: "right" as FilterDirection,
     selectedGrapheme: null,
     selectedNGram: null,
     selectedWord: null,
     selectedContext: null,
-    mode: "graphemes" as Mode,
   },
   data: {
     graphemes: { ids: [], entities: {} },

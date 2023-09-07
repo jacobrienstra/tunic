@@ -8,7 +8,7 @@ import Word from "./Word";
 import InlineEdit from "./InlineEdit";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import CircleOutlinedIcon from "@mui/icons-material/CircleOutlined";
-import { useAppDispatch } from "../redux/hooks";
+import { useAppDispatch, useAppSelector } from "../redux/hooks";
 
 interface WordRowProps {
   wordData: WordData;
@@ -37,6 +37,10 @@ const wordWrapper = css`
   justify-content: space-between;
 `;
 
+const wordGuess = css`
+  color: var(--cyan-600);
+`;
+
 const iconStyle = css`
   align-self: start;
   justify-self: end;
@@ -46,6 +50,8 @@ const iconStyle = css`
 
 function WordRow({ wordData }: WordRowProps) {
   const dispatch = useAppDispatch();
+  const graphemes = useAppSelector((state) => state.data.graphemes.entities);
+
   return (
     <div css={wordRowWrapper}>
       <div css={wordWrapper}>
@@ -67,6 +73,15 @@ function WordRow({ wordData }: WordRowProps) {
             }}
           />
         )}
+      </div>
+      <div css={wordGuess}>
+        {wordData.word.map((val) => {
+          let sound = graphemes[val].sound;
+          if (sound === "" || sound === undefined) {
+            return "??";
+          }
+          return sound.replace("?", "");
+        })}
       </div>
       <InlineEdit
         value={wordData.meaning}

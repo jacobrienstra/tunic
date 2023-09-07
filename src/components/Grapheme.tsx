@@ -38,6 +38,7 @@ const iconStyle = css`
 `;
 
 function Grapheme({ glyph }: GraphemeProps) {
+  const dispatch = useAppDispatch();
   return (
     <div css={graphemeWrapper}>
       {glyph.sure ? (
@@ -45,7 +46,7 @@ function Grapheme({ glyph }: GraphemeProps) {
           css={iconStyle}
           onClick={(event: React.MouseEvent) => {
             event.stopPropagation();
-            store.dispatch(toggleGraphemeSureSave({ id: glyph.id }));
+            dispatch(toggleGraphemeSureSave({ id: glyph.id }));
           }}
         />
       ) : (
@@ -53,7 +54,7 @@ function Grapheme({ glyph }: GraphemeProps) {
           css={iconStyle}
           onClick={(event: React.MouseEvent) => {
             event.stopPropagation();
-            store.dispatch(toggleGraphemeSureSave({ id: glyph.id }));
+            dispatch(toggleGraphemeSureSave({ id: glyph.id }));
           }}
         />
       )}
@@ -63,7 +64,7 @@ function Grapheme({ glyph }: GraphemeProps) {
       <InlineEdit
         value={glyph.sound}
         setValue={(val: string) =>
-          store.dispatch(setSoundSave({ id: glyph.id, sound: val }))
+          dispatch(setSoundSave({ id: glyph.id, sound: val }))
         }
       />
     </div>

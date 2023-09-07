@@ -50,8 +50,9 @@ function ContextsSection() {
         {ctxs.map((ctx) => (
           <Tile
             align="start"
+            key={ctx}
             active={selectedContext === ctx}
-            onClick={() => {
+            onClick={(event: React.MouseEvent) => {
               if (selectedContext !== ctx) {
                 dispatch(setSelectedContext(ctx));
               } else {
@@ -59,7 +60,10 @@ function ContextsSection() {
               }
             }}
           >
-            <div css={imgRow} key={ctx}>
+            <div
+              css={imgRow}
+              onClick={(event: React.MouseEvent) => event.stopPropagation()}
+            >
               <div css={imgScrollWrapper}>
                 <InnerImageZoom
                   hideHint

@@ -6,7 +6,7 @@ const wordStyle = css`
   flex-direction: row;
   /* padding: 8px; */
   svg:not(:first-of-type) {
-    /* margin-left: -1.7px; */
+    margin-left: -1.7%;
   }
 
   svg:not(:last-child) {
@@ -22,8 +22,8 @@ interface WordProps {
 function Word({ word, width = 20 }: WordProps) {
   return (
     <div css={wordStyle}>
-      {word.map((w) => (
-        <Glyph val={w} width={width} key={w} />
+      {word.map((w, i) => (
+        <Glyph val={w} width={width} key={w.toString() + "_" + i.toString()} />
       ))}
     </div>
   );

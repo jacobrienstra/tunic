@@ -12,6 +12,7 @@ import { updateSingleton } from "@directus/sdk";
 
 const graphemesAdapter = createEntityAdapter<GraphemeData>({
   selectId: (graphemeData): number => graphemeData.id,
+  // sortComparer: (a, b) => a.sound.localeCompare(b.sound),
 });
 
 export const getWordId = (word: number[]): string => {
@@ -22,6 +23,7 @@ export const getWordId = (word: number[]): string => {
 
 const wordsAdapter = createEntityAdapter<WordData>({
   selectId: (wordData) => getWordId(wordData.word),
+  // sortComparer: (a, b) => a.meaning.localeCompare(b.meaning),
 });
 
 export const {

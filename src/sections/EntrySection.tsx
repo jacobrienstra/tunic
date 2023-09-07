@@ -23,7 +23,7 @@ const textSection = css`
 
 const textWrapper = css`
   flex: 1 1 auto;
-  min-height: 30px;
+  min-height: 40px;
   align-self: stretch;
   display: flex;
   flex-direction: row;
@@ -37,9 +37,9 @@ const textWrapper = css`
 `;
 
 const wordWrapper = css`
-  padding-top: 8px;
+  padding: 8px 0;
   flex: 1 1 auto;
-  min-height: 40px;
+  min-height: 65px;
 `;
 
 const submitButton = cssClass`
@@ -187,7 +187,7 @@ function EntrySection() {
   return (
     <Section title="Entry">
       <ReflexContainer orientation={"horizontal"} windowResizeAware={true}>
-        <ReflexElement minSize={86} size={86} style={{ padding: "8px 12px" }}>
+        <ReflexElement minSize={121} size={121} style={{ padding: "8px 12px" }}>
           <div css={textSection}>
             <div css={textWrapper}>
               {text.map((w, i) => (

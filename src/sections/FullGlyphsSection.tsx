@@ -24,6 +24,7 @@ const headerSwitcher = css`
   flex-direction: row;
   flex: 0 0 auto;
   padding: 8px;
+  font-size: 12px;
 
   button:not(:last-child) {
     margin-right: 8px;
@@ -51,7 +52,7 @@ function FullGlyphsSection() {
 
   const mode = useAppSelector((state: RootState) => state.selection.mode);
 
-  const tileSize = 60;
+  const tileSize = mode === "graphemes" ? 60 : (selectedN + 1) * 20;
   const ngramsGrid = css`
     padding: 4px;
     margin-top: 8px;

@@ -71,13 +71,13 @@ function Filters() {
   const selectUpperGlyphs = createSelector(
     [selectGraphemeIds],
     (graphemes): number[] => {
-      return uniq(graphemes.map((gid) => getUpper(gid as number)));
+      return uniq(graphemes.map((gid) => getUpper(gid as number))).sort();
     }
   );
   const upperGlyphs = useAppSelector(selectUpperGlyphs);
 
   const selectLowerGlyphs = createSelector([selectGraphemeIds], (graphemes) => {
-    return uniq(graphemes.map((gid) => getLower(gid as number)));
+    return uniq(graphemes.map((gid) => getLower(gid as number))).sort();
   });
   const lowerGlyphs = useAppSelector(selectLowerGlyphs);
 

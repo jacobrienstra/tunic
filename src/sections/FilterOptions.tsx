@@ -15,6 +15,7 @@ const filterToggles = css`
   flex-direction: column;
   align-items: start;
   flex: 0 0 auto;
+  font-size: 12px;
 `;
 
 const filterOption = css`
@@ -56,9 +57,9 @@ function FilterOptions() {
         >
           Yes
           {leftLineFilter === "present" ? (
-            <CheckBoxIcon />
+            <CheckBoxIcon fontSize="small" />
           ) : (
-            <CheckBoxOutlineBlankIcon />
+            <CheckBoxOutlineBlankIcon fontSize="small" />
           )}
         </button>
         <button
@@ -67,9 +68,9 @@ function FilterOptions() {
         >
           No
           {leftLineFilter === "absent" ? (
-            <CheckBoxIcon />
+            <CheckBoxIcon fontSize="small" />
           ) : (
-            <CheckBoxOutlineBlankIcon />
+            <CheckBoxOutlineBlankIcon fontSize="small" />
           )}
         </button>
         <button
@@ -78,9 +79,9 @@ function FilterOptions() {
         >
           Either
           {leftLineFilter === "either" ? (
-            <CheckBoxIcon />
+            <CheckBoxIcon fontSize="small" />
           ) : (
-            <CheckBoxOutlineBlankIcon />
+            <CheckBoxOutlineBlankIcon fontSize="small" />
           )}
         </button>
       </div>

@@ -1,5 +1,7 @@
 export const W = 173.2050807569;
 export const halfW = 86.60254037845;
+export const H = 310;
+export const midH = 135;
 
 export const LTLK = 1 << 0; // 1
 export const LTRK = 1 << 1; // 2
@@ -18,22 +20,22 @@ export const UBVK = 1 << 11; // 2048
 export const ULVK = 1 << 12; // 4096
 export const LLVK = 1 << 12; // 4096
 
-export const LTL = {x1: 0, y1: 200, x2: halfW, y2: 150};
-export const LTR = {x1: halfW, y1: 150, x2: W, y2: 200}
-export const LBL = {x1: 0, y1: 200, x2: halfW, y2: 250};
-export const LBR = {x1: halfW, y1: 250, x2: W, y2: 200}
-export const LMV = {x1: halfW, y1: 150, x2: halfW, y2: 250}
-export const LBC = {cx: halfW, cy: 260, r: 10};
+export const LTL = { x1: 0, y1: 220, x2: halfW, y2: 170 };
+export const LTR = { x1: halfW, y1: 170, x2: W, y2: 220 };
+export const LBL = { x1: 0, y1: 220, x2: halfW, y2: 270 };
+export const LBR = { x1: halfW, y1: 270, x2: W, y2: 220 };
+export const LMV = { x1: halfW, y1: 170, x2: halfW, y2: 270 };
+export const LBC = { cx: halfW, cy: 284, r: 14 };
 
-export const UTL = {x1: 0, y1: 50, x2: halfW, y2: 0};
-export const UTR = {x1: halfW, y1: 0, x2: W, y2: 50};
-export const UBL = {x1: 0, y1: 50, x2: halfW, y2: 100};
-export const UBR = {x1: halfW, y1: 100, x2: W, y2: 50};
-export const UMV = {x1: halfW, y1: 0, x2: halfW, y2: 100};
-export const UBV = {x1: halfW, y1: 100, x2: halfW, y2: 125};
+export const UTL = { x1: 0, y1: 50, x2: halfW, y2: 0 };
+export const UTR = { x1: halfW, y1: 0, x2: W, y2: 50 };
+export const UBL = { x1: 0, y1: 50, x2: halfW, y2: 100 };
+export const UBR = { x1: halfW, y1: 100, x2: W, y2: 50 };
+export const UMV = { x1: halfW, y1: 0, x2: halfW, y2: 100 };
+export const UBV = { x1: halfW, y1: 100, x2: halfW, y2: 135 };
 
-export const ULV = {x1:0, y1: 50, x2: 0, y2: 125};
-export const LLV = {x1:0, y1: 200, x2: 0, y2: 150};
+export const ULV = { x1: 0, y1: 50, x2: 0, y2: 135 };
+export const LLV = { x1: 0, y1: 220, x2: 0, y2: 170 };
 
 export const glyphStrokes = {
   [LTLK]: LTL,

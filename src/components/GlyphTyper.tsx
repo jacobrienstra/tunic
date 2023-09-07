@@ -19,9 +19,9 @@ import {
   UBRK,
   UMVK,
   UBVK,
+  H,
+  midH,
 } from "../glyph";
-
-
 
 const stroke = css`
   cursor: pointer;
@@ -171,7 +171,7 @@ function GlyphTyper({
       width={width ?? "100%"}
       xmlns="http://www.w3.org/2000/svg"
       xmlnsXlink="http://www.w3.org/1999/xlink"
-      viewBox={`-5 -5 ${W + 10} 280`}
+      viewBox={`-5 -5 ${W + 10} ${H}`}
       tabIndex={0}
       onKeyDown={handleKeyDown}
       ref={svgRef}
@@ -207,8 +207,8 @@ function GlyphTyper({
         strokeLinejoin="round"
         x1="0"
         x2={W}
-        y1="125"
-        y2="125"
+        y1={midH}
+        y2={midH}
       />
       ;
       {usedLines.map((l) => (

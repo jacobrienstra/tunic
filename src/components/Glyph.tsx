@@ -1,4 +1,4 @@
-import { glyphStrokes, W, ULV, LLV, LBC } from "../glyph";
+import { glyphStrokes, W, ULV, LLV, LBC, H, midH } from "../glyph";
 
 type GlyphProps = {
   val: number;
@@ -25,7 +25,7 @@ function Glyph({ width, val }: GlyphProps) {
       width={width ?? "100%"}
       xmlns="http://www.w3.org/2000/svg"
       xmlnsXlink="http://www.w3.org/1999/xlink"
-      viewBox={`-5 -5 ${W + 10} 280`}
+      viewBox={`-5 -5 ${W + 10} ${H}`}
     >
       {lines.map((l) => {
         return (
@@ -52,8 +52,8 @@ function Glyph({ width, val }: GlyphProps) {
         strokeLinejoin="round"
         x1="0"
         x2={W}
-        y1="125"
-        y2="125"
+        y1={midH}
+        y2={midH}
       />
     </svg>
   );
