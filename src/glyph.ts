@@ -1,7 +1,13 @@
+import { GraphemeData } from "./redux/reducers/data";
+
 export const W = 173.2050807569;
 export const halfW = 86.60254037845;
 export const H = 310;
 export const midH = 135;
+
+export const vowelMask = 0b1000011001100;
+export const consonantMask = 0b0111100010011;
+export const reverseSyllableMask = 32;
 
 export const LTLK = 1 << 0; // 1
 export const LTRK = 1 << 1; // 2
@@ -51,14 +57,42 @@ export const glyphStrokes = {
   [UBVK]: UBV,
 };
 
-export function getCombo(upper: number, lower: number, leftLine: boolean = false) {
-  return (((upper & 63) << 6) | (lower & 63)) | (leftLine ? 1 << 12 : 0);
+export function getCombo(
+  vowel: number,
+  consonant: number,
+  reverseSyllable: boolean = false
+) {
+  return (
+    (vowel & vowelMask) |
+    (consonant & consonantMask) |
+    (reverseSyllable ? 32 : 0)
+  );
 }
 
-export function getUpper(val: number) {
-  return val & (63 << 6);
+export function getVowel(val: number) {
+  return val & vowelMask;
 }
 
-export function getLower(val: number) {
-  return val & 63;
+export function getConsonant(val: number) {
+  return val & consonantMask;
 }
+
+export const getGraphemeSoundGuess = (
+  val: number,
+  graphemes: { [id: string]: GraphemeData }
+): string => {
+  let vowelGuess = graphemes[getVowel(val)]?.sound ?? "?";
+  if (!getVowel(val) && vowelGuess === "?") {
+    vowelGuess = "";
+  }
+  let consonantGuess = graphemes[getConsonant(val)]?.sound ?? "?";
+  if (!getConsonant(val) && consonantGuess === "?") {
+    consonantGuess = "";
+  }
+  const guess =
+    (val | reverseSyllableMask) === val
+      ? `${vowelGuess}${consonantGuess}`
+      : `${consonantGuess}${vowelGuess}`;
+
+  return guess;
+};

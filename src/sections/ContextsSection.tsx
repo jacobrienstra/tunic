@@ -57,6 +57,8 @@ function ContextsSection() {
   const dispatch = useAppDispatch();
   const selectedWord = useAppSelector(selectSelectedWord);
   const wordFilterDireciton = useAppSelector(selectWordFilterDirection);
+  const selectedContext = useAppSelector(selectSelectedContext);
+
   const selectAllCtxs = createSelector([selectAllWords], (words) => {
     return words.reduce((acc, word) => {
       word.ctxs.forEach((ctx) => acc.add(ctx));
@@ -67,10 +69,13 @@ function ContextsSection() {
   const ctxs =
     selectedWord && wordFilterDireciton === "right"
       ? selectedWord.ctxs
-      : Array.from(allCtxs);
+      : Array.from(allCtxs).sort((a, b) => {
+          if (a === selectedContext) return -1;
+          if (b === selectedContext) return 1;
+          else return a.localeCompare(b);
+        });
 
   const contextFilterDirection = useAppSelector(selectContextFilterDirection);
-  const selectedContext = useAppSelector(selectSelectedContext);
 
   return (
     <Section title="Contexts">

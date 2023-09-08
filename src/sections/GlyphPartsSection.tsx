@@ -3,19 +3,20 @@ import KeyboardDoubleArrowRightIcon from "@mui/icons-material/KeyboardDoubleArro
 import { useAppDispatch, useAppSelector } from "../redux/hooks";
 import {
   selectGlyphFilterDirection,
-  selectLowerFilter,
-  selectLowerGlyphs,
-  selectUpperFilter,
-  selectUpperGlyphs,
+  selectConsonantFilter,
+  selectConsonantGlyphs,
+  selectVowelFilter,
+  selectVowelGlyphs,
   setGlyphFilterDirection,
-  setLowerFilter,
-  setUpperFilter,
+  setConsonantFilter,
+  setVowelFilter,
 } from "../redux/reducers/selection";
 
 import Glyph from "../components/Glyph";
 import Tile from "../components/Tile";
 import FilterOptions from "./FilterOptions";
 import { cx } from "@emotion/css";
+import { getGraphemeSoundGuess } from "../glyph";
 
 const tileSize = 35;
 
@@ -79,16 +80,23 @@ const filterDirectionSection = css`
   }
 `;
 
+const soundGuess = css`
+  color: var(--cyan-600);
+  text-align: center;
+`;
+
 function Filters() {
   const dispatch = useAppDispatch();
 
-  const upperFilter = useAppSelector(selectUpperFilter);
-  const lowerFilter = useAppSelector(selectLowerFilter);
+  const vowelFilter = useAppSelector(selectVowelFilter);
+  const consonantFilter = useAppSelector(selectConsonantFilter);
 
-  const upperGlyphs = useAppSelector(selectUpperGlyphs);
-  const lowerGlyphs = useAppSelector(selectLowerGlyphs);
+  const vowelGlyphs = useAppSelector(selectVowelGlyphs);
+  const consonantGlyphs = useAppSelector(selectConsonantGlyphs);
 
   const glyphFilterDirection = useAppSelector(selectGlyphFilterDirection);
+
+  const graphemes = useAppSelector((state) => state.data.graphemes.entities);
 
   return (
     <section css={glyphPartsSection}>
@@ -109,42 +117,48 @@ function Filters() {
       <FilterOptions />
       <div css={filterGlyphsWrapper}>
         <div css={filterGlyphsColumn}>
-          <h4 css={filterGlyphsHeader}>Above</h4>
+          <h4 css={filterGlyphsHeader}>Vowels</h4>
           <div
             css={glyphsGrid}
             style={{ borderRight: "2px solid var(--slate-500)" }}
           >
-            {upperGlyphs.map((val) => (
+            {vowelGlyphs.map((val) => (
               <Tile
                 size={tileSize}
                 key={val}
-                active={upperFilter === val}
+                active={vowelFilter === val}
                 onClick={() => {
-                  if (upperFilter !== val) {
-                    dispatch(setUpperFilter(val));
-                  } else dispatch(setUpperFilter(null));
+                  if (vowelFilter !== val) {
+                    dispatch(setVowelFilter(val));
+                  } else dispatch(setVowelFilter(null));
                 }}
               >
                 <Glyph val={val} />
+                <div css={soundGuess}>
+                  {getGraphemeSoundGuess(val, graphemes)}
+                </div>
               </Tile>
             ))}
           </div>
         </div>
         <div css={filterGlyphsColumn}>
-          <h4 css={filterGlyphsHeader}>Below</h4>
+          <h4 css={filterGlyphsHeader}>Consonants</h4>
           <div css={glyphsGrid}>
-            {lowerGlyphs.map((val) => (
+            {consonantGlyphs.map((val) => (
               <Tile
                 size={tileSize}
                 key={val}
-                active={lowerFilter === val}
+                active={consonantFilter === val}
                 onClick={() => {
-                  if (lowerFilter !== val) {
-                    dispatch(setLowerFilter(val));
-                  } else dispatch(setLowerFilter(null));
+                  if (consonantFilter !== val) {
+                    dispatch(setConsonantFilter(val));
+                  } else dispatch(setConsonantFilter(null));
                 }}
               >
                 <Glyph val={val} />
+                <div css={soundGuess}>
+                  {getGraphemeSoundGuess(val, graphemes)}
+                </div>
               </Tile>
             ))}
           </div>

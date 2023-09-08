@@ -4,13 +4,12 @@ import CheckBoxIcon from "@mui/icons-material/CheckBox";
 import { cx } from "@emotion/css";
 import {
   selectExclusive,
-  selectLeftLineFilter,
+  selectReverseSyllableFilter,
   selectPartial,
-  setLeftLineFilter,
+  setReverseSyllableFilter,
   toggleExclusive,
   togglePartialFilter,
 } from "../redux/reducers/selection";
-import { RootState } from "../redux/store";
 import { useAppDispatch, useAppSelector } from "../redux/hooks";
 
 const filterToggles = css`
@@ -41,7 +40,7 @@ const toggleBox = css`
 
 function FilterOptions() {
   const dispatch = useAppDispatch();
-  const leftLineFilter = useAppSelector(selectLeftLineFilter);
+  const reverseSyllableFilter = useAppSelector(selectReverseSyllableFilter);
   const partial = useAppSelector(selectPartial);
   const exclusive = useAppSelector(selectExclusive);
 
@@ -49,35 +48,35 @@ function FilterOptions() {
     <div css={filterToggles}>
       <h4>Filter By</h4>
       <div css={filterOption}>
-        <span>Left Line Present?</span>
+        <span>Syllabled Reversed?</span>
         <button
-          className={cx({ active: leftLineFilter === "present" })}
-          onClick={() => dispatch(setLeftLineFilter("present"))}
+          className={cx({ active: reverseSyllableFilter === "present" })}
+          onClick={() => dispatch(setReverseSyllableFilter("present"))}
         >
           Yes
-          {leftLineFilter === "present" ? (
+          {reverseSyllableFilter === "present" ? (
             <CheckBoxIcon fontSize="small" />
           ) : (
             <CheckBoxOutlineBlankIcon fontSize="small" />
           )}
         </button>
         <button
-          className={cx({ active: leftLineFilter === "absent" })}
-          onClick={() => dispatch(setLeftLineFilter("absent"))}
+          className={cx({ active: reverseSyllableFilter === "absent" })}
+          onClick={() => dispatch(setReverseSyllableFilter("absent"))}
         >
           No
-          {leftLineFilter === "absent" ? (
+          {reverseSyllableFilter === "absent" ? (
             <CheckBoxIcon fontSize="small" />
           ) : (
             <CheckBoxOutlineBlankIcon fontSize="small" />
           )}
         </button>
         <button
-          className={cx({ active: leftLineFilter === "either" })}
-          onClick={() => dispatch(setLeftLineFilter("either"))}
+          className={cx({ active: reverseSyllableFilter === "either" })}
+          onClick={() => dispatch(setReverseSyllableFilter("either"))}
         >
           Either
-          {leftLineFilter === "either" ? (
+          {reverseSyllableFilter === "either" ? (
             <CheckBoxIcon fontSize="small" />
           ) : (
             <CheckBoxOutlineBlankIcon fontSize="small" />

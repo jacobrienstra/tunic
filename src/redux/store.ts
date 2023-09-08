@@ -7,7 +7,7 @@ import {
 import { dataReducer, selectionReducer } from "./reducers";
 import type {
   FilterDirection,
-  LeftLineStatus,
+  ReverseSyllableStatus,
   Mode,
 } from "./reducers/selection";
 import storage from "../storage";
@@ -16,11 +16,11 @@ import { has, isEmpty } from "lodash";
 
 const initialState = {
   selection: {
-    upperFilter: null,
-    lowerFilter: null,
-    leftLineFilter: "either" as LeftLineStatus,
-    partial: true,
-    exclusive: false,
+    vowelFilter: null,
+    consonantFilter: null,
+    reverseSyllableFilter: "either" as ReverseSyllableStatus,
+    partial: false,
+    exclusive: true,
     n: 2,
     mode: "graphemes" as Mode,
     glyphFilterDirection: "right" as FilterDirection,

@@ -9,6 +9,7 @@ import InlineEdit from "./InlineEdit";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import CircleOutlinedIcon from "@mui/icons-material/CircleOutlined";
 import { useAppDispatch, useAppSelector } from "../redux/hooks";
+import { getGraphemeSoundGuess } from "../glyph";
 
 interface WordRowProps {
   wordData: WordData;
@@ -78,7 +79,7 @@ function WordRow({ wordData }: WordRowProps) {
         {wordData.word.map((val) => {
           let sound = graphemes[val].sound;
           if (sound === "" || sound === undefined) {
-            return "??";
+            return getGraphemeSoundGuess(graphemes[val].id, graphemes);
           }
           return sound.replace("?", "");
         })}

@@ -9,17 +9,17 @@ import {
   selectAllWords,
 } from "./data";
 import { createSelector } from "@reduxjs/toolkit";
-import { ULVK, getLower, getUpper } from "../../glyph";
+import { getConsonant, getVowel, reverseSyllableMask } from "../../glyph";
 import type { RootState } from "../store";
 import { has, isEmpty, isEqual, uniq } from "lodash";
 
-export type LeftLineStatus = "present" | "absent" | "either";
+export type ReverseSyllableStatus = "present" | "absent" | "either";
 export type Mode = "graphemes" | "ngrams";
 export type FilterDirection = "off" | "left" | "right";
 export interface SelectionSliceState {
-  leftLineFilter: LeftLineStatus;
-  upperFilter: number | null;
-  lowerFilter: number | null;
+  reverseSyllableFilter: ReverseSyllableStatus;
+  vowelFilter: number | null;
+  consonantFilter: number | null;
   partial: boolean;
   exclusive: boolean;
   n: number;
@@ -38,14 +38,17 @@ export const selectionSlice = createSlice({
   name: "selection",
   initialState: {} as SelectionSliceState,
   reducers: {
-    setUpperFilter: (state, action: PayloadAction<number | null>): void => {
-      state.upperFilter = action.payload;
+    setVowelFilter: (state, action: PayloadAction<number | null>): void => {
+      state.vowelFilter = action.payload;
     },
-    setLowerFilter: (state, action: PayloadAction<number | null>): void => {
-      state.lowerFilter = action.payload;
+    setConsonantFilter: (state, action: PayloadAction<number | null>): void => {
+      state.consonantFilter = action.payload;
     },
-    setLeftLineFilter: (state, action: PayloadAction<LeftLineStatus>): void => {
-      state.leftLineFilter = action.payload;
+    setReverseSyllableFilter: (
+      state,
+      action: PayloadAction<ReverseSyllableStatus>
+    ): void => {
+      state.reverseSyllableFilter = action.payload;
     },
     togglePartialFilter: (state): void => {
       state.partial = !state.partial;
@@ -144,12 +147,12 @@ export const selectionSlice = createSlice({
   },
 });
 
-export const selectUpperFilter = (state: RootState) =>
-  state.selection.upperFilter;
-export const selectLowerFilter = (state: RootState) =>
-  state.selection.lowerFilter;
-export const selectLeftLineFilter = (state: RootState) =>
-  state.selection.leftLineFilter;
+export const selectVowelFilter = (state: RootState) =>
+  state.selection.vowelFilter;
+export const selectConsonantFilter = (state: RootState) =>
+  state.selection.consonantFilter;
+export const selectReverseSyllableFilter = (state: RootState) =>
+  state.selection.reverseSyllableFilter;
 
 export const selectPartial = (state: RootState) => state.selection.partial;
 export const selectExclusive = (state: RootState) => state.selection.exclusive;
@@ -176,164 +179,192 @@ export const selectContextFilterDirection = (state: RootState) =>
 
 const graphemeMatchesFilters = (
   g: number,
-  upperFilter: number | null,
-  lowerFilter: number | null,
-  leftLineFilter: LeftLineStatus,
+  vowelFilter: number | null,
+  consonantFilter: number | null,
+  reverseSyllableFilter: ReverseSyllableStatus,
   partial: boolean
 ): {
-  matchesUpper: boolean;
-  matchesLower: boolean;
-  leftLinePass: boolean;
+  matchesVowel: boolean;
+  matchesConsonant: boolean;
+  reverseSyllablePass: boolean;
 } => {
-  let matchesUpper = true;
-  let matchesLower = true;
-  if (upperFilter != null) {
-    matchesUpper = false;
+  let matchesVowel = true;
+  let matchesConsonant = true;
+  if (vowelFilter != null) {
+    matchesVowel = false;
     if (partial) {
       // contains glyph (partial match)
-      matchesUpper = (getUpper(g) | upperFilter) === getUpper(g);
+      matchesVowel = (getVowel(g) | vowelFilter) === getVowel(g);
     } else {
       // exact match
-      matchesUpper = getUpper(g) === upperFilter;
+      matchesVowel = getVowel(g) === vowelFilter;
     }
   }
-  if (lowerFilter != null) {
-    matchesLower = false;
+  if (consonantFilter != null) {
+    matchesConsonant = false;
     if (partial) {
       // contains glyph (partial match)
-      matchesLower = (getLower(g) | lowerFilter) === getLower(g);
+      matchesConsonant =
+        (getConsonant(g) | consonantFilter) === getConsonant(g);
     } else {
       // exact match
-      matchesLower = getLower(g) === lowerFilter;
+      matchesConsonant = getConsonant(g) === consonantFilter;
     }
   }
-  let leftLinePass = true;
-  if (leftLineFilter === "present") {
-    leftLinePass = (g | ULVK) === g;
-  } else if (leftLineFilter === "absent") {
-    leftLinePass = (g | ULVK) !== g;
+  let reverseSyllablePass = true;
+  if (reverseSyllableFilter === "present") {
+    reverseSyllablePass = (g | reverseSyllableMask) === g;
+  } else if (reverseSyllableFilter === "absent") {
+    reverseSyllablePass = (g | reverseSyllableMask) !== g;
   }
-  return { matchesUpper, matchesLower, leftLinePass };
+  return { matchesVowel, matchesConsonant, reverseSyllablePass };
 };
 
 const getTotalPassValue = (
-  upperFilter: number | null,
-  lowerFilter: number | null,
-  matchesUpper: boolean,
-  matchesLower: boolean,
-  leftLinePass: boolean,
+  vowelFilter: number | null,
+  consonantFilter: number | null,
+  matchesVowel: boolean,
+  matchesConsonant: boolean,
+  reverseSyllablePass: boolean,
   exclusive: boolean
 ): boolean => {
-  let upperLowerCombinedPass = false;
-  if (upperFilter === null && lowerFilter === null) {
-    upperLowerCombinedPass = true;
+  let vowelConsonantCombinedPass = false;
+  if (vowelFilter === null && consonantFilter === null) {
+    vowelConsonantCombinedPass = true;
   } else {
-    if (upperFilter === null) {
-      upperLowerCombinedPass = matchesLower;
-    } else if (lowerFilter === null) {
-      upperLowerCombinedPass = matchesUpper;
+    if (vowelFilter === null) {
+      vowelConsonantCombinedPass = matchesConsonant;
+    } else if (consonantFilter === null) {
+      vowelConsonantCombinedPass = matchesVowel;
       // neither are null
     } else {
       if (exclusive) {
-        upperLowerCombinedPass = matchesUpper && matchesLower;
+        vowelConsonantCombinedPass = matchesVowel && matchesConsonant;
       } else {
-        upperLowerCombinedPass = matchesUpper || matchesLower;
+        vowelConsonantCombinedPass = matchesVowel || matchesConsonant;
       }
     }
   }
-  return leftLinePass && upperLowerCombinedPass;
+  return reverseSyllablePass && vowelConsonantCombinedPass;
 };
 
-export const selectUpperGlyphs = createSelector(
+export const selectVowelGlyphs = createSelector(
   [
     selectGraphemeIds,
     selectGraphemeFilterDirection,
     selectSelectedGrapheme,
     selectPartial,
+    selectVowelFilter,
   ],
-  (graphemes, graphemeFilterDirection, selectedGrapheme, partial): number[] => {
-    const allUpperGlyphs = uniq(
-      graphemes.map((gid) => getUpper(gid as number))
-    ).sort();
+  (
+    graphemes,
+    graphemeFilterDirection,
+    selectedGrapheme,
+    partial,
+    vowelFilter
+  ): number[] => {
+    const allVowelGlyphs = uniq(
+      graphemes.map((gid) => getVowel(gid as number))
+    ).sort((a, b) => {
+      // if (a === vowelFilter) return -1;
+      // if (b === vowelFilter) return 1;
+      // else
+      return a - b;
+    });
     if (graphemeFilterDirection === "left" && selectedGrapheme != null) {
-      return allUpperGlyphs.filter((g) => {
+      return allVowelGlyphs.filter((g) => {
         if (partial) {
           return (
-            (g | getUpper(selectedGrapheme)) === getUpper(selectedGrapheme)
+            (g | getVowel(selectedGrapheme)) === getVowel(selectedGrapheme)
           );
         } else {
-          return g === getUpper(selectedGrapheme);
+          return g === getVowel(selectedGrapheme);
         }
       });
-    } else return allUpperGlyphs;
+    } else return allVowelGlyphs;
   }
 );
 
-export const selectLowerGlyphs = createSelector(
+export const selectConsonantGlyphs = createSelector(
   [
     selectGraphemeIds,
     selectGraphemeFilterDirection,
     selectSelectedGrapheme,
     selectPartial,
+    selectConsonantFilter,
   ],
-  (graphemes, graphemeFilterDirection, selectedGrapheme, partial) => {
-    const allLowerGlyphs = uniq(
-      graphemes.map((gid) => getLower(gid as number))
-    ).sort();
+  (
+    graphemes,
+    graphemeFilterDirection,
+    selectedGrapheme,
+    partial,
+    consonantFilter
+  ) => {
+    const allConsonantGlyphs = uniq(
+      graphemes.map((gid) => getConsonant(gid as number))
+    ).sort((a, b) => {
+      // if (a === consonantFilter) return -1;
+      // if (b === consonantFilter) return 1;
+      // else
+      return a - b;
+    });
     if (graphemeFilterDirection === "left" && selectedGrapheme != null) {
-      return allLowerGlyphs.filter((g) => {
+      return allConsonantGlyphs.filter((g) => {
         if (partial) {
           return (
-            (g | getLower(selectedGrapheme)) === getLower(selectedGrapheme)
+            (g | getConsonant(selectedGrapheme)) ===
+            getConsonant(selectedGrapheme)
           );
         } else {
-          return g === getLower(selectedGrapheme);
+          return g === getConsonant(selectedGrapheme);
         }
       });
-    } else return allLowerGlyphs;
+    } else return allConsonantGlyphs;
   }
 );
 
 export const calcFilteredGraphemes = (
   {
-    upperFilter,
-    lowerFilter,
-    leftLineFilter,
+    vowelFilter,
+    consonantFilter,
+    reverseSyllableFilter,
     partial,
     exclusive,
     selectedWord,
     glyphFilterDirection,
     wordFilterDirection,
+    selectedGrapheme,
   }: Pick<
     SelectionSliceState,
-    | "upperFilter"
-    | "lowerFilter"
-    | "leftLineFilter"
+    | "vowelFilter"
+    | "consonantFilter"
+    | "reverseSyllableFilter"
     | "partial"
     | "exclusive"
     | "selectedWord"
     | "glyphFilterDirection"
     | "wordFilterDirection"
+    | "selectedGrapheme"
   >,
   graphemes: GraphemeData[]
 ): GraphemeData[] => {
   let filteredGraphemes = graphemes;
   if (glyphFilterDirection === "right") {
     filteredGraphemes = graphemes.filter((gd) => {
-      const { matchesUpper, matchesLower, leftLinePass } =
+      const { matchesVowel, matchesConsonant, reverseSyllablePass } =
         graphemeMatchesFilters(
           gd.id,
-          upperFilter,
-          lowerFilter,
-          leftLineFilter,
+          vowelFilter,
+          consonantFilter,
+          reverseSyllableFilter,
           partial
         );
       return getTotalPassValue(
-        upperFilter,
-        lowerFilter,
-        matchesUpper,
-        matchesLower,
-        leftLinePass,
+        vowelFilter,
+        consonantFilter,
+        matchesVowel,
+        matchesConsonant,
+        reverseSyllablePass,
         exclusive
       );
     });
@@ -342,52 +373,58 @@ export const calcFilteredGraphemes = (
       selectedWord.word.includes(gd.id)
     );
   }
-  return filteredGraphemes.sort((a, b) => {
-    if (isEmpty(a.sound) && isEmpty(b.sound)) {
-      return 0;
-    } else if (isEmpty(a.sound)) {
-      return 1;
-    } else if (isEmpty(b.sound)) {
-      return -1;
-    } else {
-      return a.sound.localeCompare(b.sound);
-    }
-  });
+  return filteredGraphemes;
+  // .sort((a, b) => {
+  //   // if (a.id === selectedGrapheme) return -1;
+  //   // if (b.id === selectedGrapheme) return 1;
+  //   if (isEmpty(a.sound) && isEmpty(b.sound)) {
+  //     return 0;
+  //   } else if (isEmpty(a.sound)) {
+  //     return 1;
+  //   } else if (isEmpty(b.sound)) {
+  //     return -1;
+  //   } else {
+  //     return -1;
+  //   }
+  // });
 };
 
 export const selectFilteredGraphemes = createSelector(
   [
-    selectUpperFilter,
-    selectLowerFilter,
-    selectLeftLineFilter,
+    selectVowelFilter,
+    selectConsonantFilter,
+    selectReverseSyllableFilter,
     selectPartial,
     selectExclusive,
     selectSelectedWord,
     selectGlyphFilterDirection,
     selectWordFilterDirection,
+    selectSelectedGrapheme,
     selectAllGraphemes,
   ],
   (
-    upperFilter,
-    lowerFilter,
-    leftLineFilter,
+    vowelFilter,
+    consonantFilter,
+    reverseSyllableFilter,
     partial,
     exclusive,
     selectedWord,
     glyphFilterDirection,
     wordFilterDirection,
+    selectedGrapheme,
     graphemes
   ) => {
     return calcFilteredGraphemes(
       {
-        upperFilter,
-        lowerFilter,
-        leftLineFilter,
+        vowelFilter,
+        consonantFilter,
+        reverseSyllableFilter,
         partial,
         exclusive,
         selectedWord,
         glyphFilterDirection,
         wordFilterDirection,
+        selectedGrapheme,
       },
       graphemes
     );
@@ -396,26 +433,28 @@ export const selectFilteredGraphemes = createSelector(
 
 export const calcFilteredNGrams = (
   {
-    upperFilter,
-    lowerFilter,
-    leftLineFilter,
+    vowelFilter,
+    consonantFilter,
+    reverseSyllableFilter,
     partial,
     exclusive,
     n,
     selectedWord,
     glyphFilterDirection,
     wordFilterDirection,
+    selectedNGram,
   }: Pick<
     SelectionSliceState,
-    | "upperFilter"
-    | "lowerFilter"
-    | "leftLineFilter"
+    | "vowelFilter"
+    | "consonantFilter"
+    | "reverseSyllableFilter"
     | "partial"
     | "exclusive"
     | "n"
     | "selectedWord"
     | "glyphFilterDirection"
     | "wordFilterDirection"
+    | "selectedNGram"
   >,
   words: WordData[]
 ): number[][] => {
@@ -431,21 +470,23 @@ export const calcFilteredNGrams = (
         const results = nGramSlice.map((g) => {
           return graphemeMatchesFilters(
             g,
-            upperFilter,
-            lowerFilter,
-            leftLineFilter,
+            vowelFilter,
+            consonantFilter,
+            reverseSyllableFilter,
             partial
           );
         });
-        let leftLinePassExists = results.some((r) => r.leftLinePass);
-        let lowerMatchExists = results.some((r) => r.matchesLower);
-        let upperMatchExists = results.some((r) => r.matchesUpper);
+        let reverseSyllablePassExists = results.some(
+          (r) => r.reverseSyllablePass
+        );
+        let consonantMatchExists = results.some((r) => r.matchesConsonant);
+        let vowelMatchExists = results.some((r) => r.matchesVowel);
         nGramMatches = getTotalPassValue(
-          upperFilter,
-          lowerFilter,
-          upperMatchExists,
-          lowerMatchExists,
-          leftLinePassExists,
+          vowelFilter,
+          consonantFilter,
+          vowelMatchExists,
+          consonantMatchExists,
+          reverseSyllablePassExists,
           exclusive
         );
       } else if (wordFilterDirection === "left" && selectedWord != null) {
@@ -462,53 +503,57 @@ export const calcFilteredNGrams = (
     }
   }
 
-  return Object.values(filteredNGrams)
-    .map((ng) => {
-      return ng.ngram;
-    })
-    .sort((a, b) => {
-      return (
-        filteredNGrams[getWordId(b)].count - filteredNGrams[getWordId(a)].count
-      );
-    });
+  return Object.values(filteredNGrams).map((ng) => {
+    return ng.ngram;
+  });
+  // .sort((a, b) => {
+  //   // if (a === selectedNGram) return -1;
+  //   // if (b === selectedNGram) return 1;
+  //   return (
+  //     filteredNGrams[getWordId(b)].count - filteredNGrams[getWordId(a)].count
+  //   );
+  // });
 };
 
 export const selectFilteredNGrams = createSelector(
   [
-    selectUpperFilter,
-    selectLowerFilter,
-    selectLeftLineFilter,
+    selectVowelFilter,
+    selectConsonantFilter,
+    selectReverseSyllableFilter,
     selectPartial,
     selectExclusive,
     selectN,
     selectSelectedWord,
     selectGlyphFilterDirection,
     selectWordFilterDirection,
+    selectSelectedNGram,
     selectAllWords,
   ],
   (
-    upperFilter,
-    lowerFilter,
-    leftLineFilter,
+    vowelFilter,
+    consonantFilter,
+    reverseSyllableFilter,
     partial,
     exclusive,
     n,
     selectedWord,
     glyphFilterDirection,
     wordFilterDirection,
+    selectedNGram,
     words
   ) => {
     return calcFilteredNGrams(
       {
-        upperFilter,
-        lowerFilter,
-        leftLineFilter,
+        vowelFilter,
+        consonantFilter,
+        reverseSyllableFilter,
         partial,
         exclusive,
         n,
         selectedWord,
         glyphFilterDirection,
         wordFilterDirection,
+        selectedNGram,
       },
       words
     );
@@ -534,6 +579,7 @@ export const calcFilteredWords = (
     mode,
     graphemeFilterDirection,
     contextFilterDirection,
+    selectedWord,
   }: Pick<
     SelectionSliceState,
     | "selectedGrapheme"
@@ -542,6 +588,7 @@ export const calcFilteredWords = (
     | "mode"
     | "graphemeFilterDirection"
     | "contextFilterDirection"
+    | "selectedWord"
   >,
   words: WordData[]
 ): WordData[] => {
@@ -557,17 +604,20 @@ export const calcFilteredWords = (
       );
     }
   }
-  return filteredWords.sort((a, b) => {
-    if (isEmpty(a.meaning) && isEmpty(b.meaning)) {
-      return 0;
-    } else if (isEmpty(a.meaning)) {
-      return 1;
-    } else if (isEmpty(b.meaning)) {
-      return -1;
-    } else {
-      return a.meaning.localeCompare(b.meaning);
-    }
-  });
+  return filteredWords;
+  // .sort((a, b) => {
+  // if (a === selectedWord) return -1;
+  // if (b === selectedWord) return 1;
+  // if (isEmpty(a.meaning) && isEmpty(b.meaning)) {
+  //   return 0;
+  // } else if (isEmpty(a.meaning)) {
+  //   return 1;
+  // } else if (isEmpty(b.meaning)) {
+  //   return -1;
+  // } else {
+  //   return -1;
+  // }
+  // });
 };
 
 export const selectFilteredWords = createSelector(
@@ -578,6 +628,7 @@ export const selectFilteredWords = createSelector(
     selectMode,
     selectGraphemeFilterDirection,
     selectContextFilterDirection,
+    selectSelectedWord,
     selectAllWords,
   ],
   (
@@ -587,6 +638,7 @@ export const selectFilteredWords = createSelector(
     mode,
     graphemeFilterDirection,
     contextFilterDirection,
+    selectedWord,
     words
   ) => {
     return calcFilteredWords(
@@ -597,6 +649,7 @@ export const selectFilteredWords = createSelector(
         mode,
         graphemeFilterDirection,
         contextFilterDirection,
+        selectedWord,
       },
       words
     );
@@ -606,9 +659,9 @@ export const selectFilteredWords = createSelector(
 // type AppThunkAction = ThunkAction<void, RootState, unknown, Action<unknown>>;
 
 export const {
-  setUpperFilter,
-  setLowerFilter,
-  setLeftLineFilter,
+  setVowelFilter,
+  setConsonantFilter,
+  setReverseSyllableFilter,
   togglePartialFilter,
   toggleExclusive,
   setN,

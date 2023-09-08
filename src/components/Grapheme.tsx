@@ -9,6 +9,12 @@ import InlineEdit from "./InlineEdit";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import CircleOutlinedIcon from "@mui/icons-material/CircleOutlined";
 import { useAppDispatch, useAppSelector } from "../redux/hooks";
+import {
+  getConsonant,
+  getGraphemeSoundGuess,
+  getVowel,
+  reverseSyllableMask,
+} from "../glyph";
 
 interface GraphemeProps {
   glyph: GraphemeData;
@@ -37,7 +43,13 @@ const iconStyle = css`
   color: var(--green);
 `;
 
+const soundGuess = css`
+  color: var(--cyan-600);
+  text-align: center;
+`;
+
 function Grapheme({ glyph }: GraphemeProps) {
+  const graphemes = useAppSelector((state) => state.data.graphemes.entities);
   const dispatch = useAppDispatch();
   return (
     <div css={graphemeWrapper}>
@@ -61,6 +73,7 @@ function Grapheme({ glyph }: GraphemeProps) {
       <div css={glyphWrapper}>
         <Glyph val={glyph.id} />
       </div>
+      <div css={soundGuess}>{getGraphemeSoundGuess(glyph.id, graphemes)}</div>
       <InlineEdit
         value={glyph.sound}
         setValue={(val: string) =>
