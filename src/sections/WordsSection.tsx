@@ -1,12 +1,13 @@
 import { css } from "@emotion/react";
 import Section from "./Section";
 import { useAppDispatch, useAppSelector } from "../redux/hooks";
-import { RootState } from "../redux/store";
 import Tile from "../components/Tile";
 import WordRow from "../components/WordRow";
 import { isEqual } from "lodash";
 import {
   selectFilteredWords,
+  selectSelectedWord,
+  selectWordFilterDirection,
   setSelectedWord,
   setWordFilterDirection,
 } from "../redux/reducers/selection";
@@ -44,13 +45,10 @@ const filterDirectionSection = css`
 
 function WordsSection() {
   const dispatch = useAppDispatch();
-  const selectSelectedWord = (state: RootState) => state.selection.selectedWord;
   const selectedWord = useAppSelector(selectSelectedWord);
 
   const filteredWords = useAppSelector(selectFilteredWords);
-  const wordFilterDirection = useAppSelector(
-    (state) => state.selection.wordFilterDirection
-  );
+  const wordFilterDirection = useAppSelector(selectWordFilterDirection);
 
   return (
     <Section title="Words">

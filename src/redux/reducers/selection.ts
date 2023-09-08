@@ -1,16 +1,17 @@
 /* eslint-disable no-param-reassign */
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import {
-  selectAllWords,
   type GraphemeData,
   type WordData,
-  selectAllGraphemes,
   getWordId,
+  selectGraphemeIds,
+  selectAllGraphemes,
+  selectAllWords,
 } from "./data";
 import { createSelector } from "@reduxjs/toolkit";
 import { ULVK, getLower, getUpper } from "../../glyph";
 import type { RootState } from "../store";
-import { has, isEmpty, isEqual, uniqWith } from "lodash";
+import { has, isEmpty, isEqual, uniq } from "lodash";
 
 export type LeftLineStatus = "present" | "absent" | "either";
 export type Mode = "graphemes" | "ngrams";
@@ -63,70 +64,115 @@ export const selectionSlice = createSlice({
       action: PayloadAction<FilterDirection>
     ): void => {
       state.glyphFilterDirection = action.payload;
+      if (action.payload === "right") {
+        if (state.graphemeFilterDirection === "left") {
+          state.graphemeFilterDirection = "off";
+        } else if (state.wordFilterDirection === "left") {
+          state.wordFilterDirection = "off";
+        }
+      }
     },
     setGraphemeFilterDirection: (
       state,
       action: PayloadAction<FilterDirection>
     ): void => {
       state.graphemeFilterDirection = action.payload;
+      if (action.payload === "left" && state.glyphFilterDirection === "right") {
+        state.glyphFilterDirection = "off";
+      }
+      if (action.payload === "right" && state.wordFilterDirection === "left") {
+        state.wordFilterDirection = "off";
+      }
     },
     setWordFilterDirection: (
       state,
       action: PayloadAction<FilterDirection>
     ): void => {
       state.wordFilterDirection = action.payload;
+      if (action.payload === "left") {
+        if (state.graphemeFilterDirection === "right") {
+          state.graphemeFilterDirection = "off";
+        }
+        if (state.glyphFilterDirection === "right") {
+          state.glyphFilterDirection = "off";
+        }
+      }
+      if (
+        action.payload === "right" &&
+        state.contextFilterDirection === "left"
+      ) {
+        state.contextFilterDirection = "off";
+      }
     },
     setContextFilterDirection: (
       state,
       action: PayloadAction<FilterDirection>
     ): void => {
       state.contextFilterDirection = action.payload;
+      if (action.payload === "left") {
+        if (state.wordFilterDirection === "right") {
+          state.wordFilterDirection = "off";
+        }
+        if (state.graphemeFilterDirection === "right") {
+          state.graphemeFilterDirection = "off";
+        }
+      }
     },
     setSelectedGrapheme: (
       state,
       action: PayloadAction<null | number>
     ): void => {
-      state.selectedContext = null;
+      // state.selectedContext = null;
       state.selectedGrapheme = action.payload;
     },
     setSelectedNGram: (state, action: PayloadAction<null | number[]>): void => {
-      state.selectedContext = null;
+      // state.selectedContext = null;
       state.selectedNGram = action.payload;
     },
     setSelectedWord: (state, action: PayloadAction<null | WordData>): void => {
       state.selectedWord = action.payload;
-      if (state.selectedContext) {
-        state.selectedContext = null;
-      }
+      // if (state.selectedContext) {
+      //   state.selectedContext = null;
+      // }
     },
     setSelectedContext: (state, action: PayloadAction<null | string>): void => {
-      state.selectedWord = null;
-      state.selectedGrapheme = null;
-      state.selectedNGram = null;
+      // state.selectedWord = null;
+      // state.selectedGrapheme = null;
+      // state.selectedNGram = null;
       state.selectedContext = action.payload;
     },
   },
 });
 
-const selectUpperFilter = (state: RootState) => state.selection.upperFilter;
-const selectLowerFilter = (state: RootState) => state.selection.lowerFilter;
-const selectLeftLineFilter = (state: RootState) =>
+export const selectUpperFilter = (state: RootState) =>
+  state.selection.upperFilter;
+export const selectLowerFilter = (state: RootState) =>
+  state.selection.lowerFilter;
+export const selectLeftLineFilter = (state: RootState) =>
   state.selection.leftLineFilter;
 
-const selectPartial = (state: RootState) => state.selection.partial;
-const selectExclusive = (state: RootState) => state.selection.exclusive;
-const selectN = (state: RootState) => state.selection.n;
-const selectMode = (state: RootState) => state.selection.mode;
+export const selectPartial = (state: RootState) => state.selection.partial;
+export const selectExclusive = (state: RootState) => state.selection.exclusive;
+export const selectN = (state: RootState) => state.selection.n;
+export const selectMode = (state: RootState) => state.selection.mode;
 
-const selectSelectedGrapheme = (state: RootState) =>
+export const selectSelectedGrapheme = (state: RootState) =>
   state.selection.selectedGrapheme;
-const selectSelectedNGram = (state: RootState) => state.selection.selectedNGram;
-const selectSelectedWord = (state: RootState) => state.selection.selectedWord;
-const selectSelectedContext = (state: RootState) =>
+export const selectSelectedNGram = (state: RootState) =>
+  state.selection.selectedNGram;
+export const selectSelectedWord = (state: RootState) =>
+  state.selection.selectedWord;
+export const selectSelectedContext = (state: RootState) =>
   state.selection.selectedContext;
 
-// const selectGraphemes = (state: RootState) => state.data.graphemes;
-// const selectWords = (state: RootState) => state.data.words;
+export const selectGlyphFilterDirection = (state: RootState) =>
+  state.selection.glyphFilterDirection;
+export const selectGraphemeFilterDirection = (state: RootState) =>
+  state.selection.graphemeFilterDirection;
+export const selectWordFilterDirection = (state: RootState) =>
+  state.selection.wordFilterDirection;
+export const selectContextFilterDirection = (state: RootState) =>
+  state.selection.contextFilterDirection;
 
 const graphemeMatchesFilters = (
   g: number,
@@ -198,6 +244,56 @@ const getTotalPassValue = (
   return leftLinePass && upperLowerCombinedPass;
 };
 
+export const selectUpperGlyphs = createSelector(
+  [
+    selectGraphemeIds,
+    selectGraphemeFilterDirection,
+    selectSelectedGrapheme,
+    selectPartial,
+  ],
+  (graphemes, graphemeFilterDirection, selectedGrapheme, partial): number[] => {
+    const allUpperGlyphs = uniq(
+      graphemes.map((gid) => getUpper(gid as number))
+    ).sort();
+    if (graphemeFilterDirection === "left" && selectedGrapheme != null) {
+      return allUpperGlyphs.filter((g) => {
+        if (partial) {
+          return (
+            (g | getUpper(selectedGrapheme)) === getUpper(selectedGrapheme)
+          );
+        } else {
+          return g === getUpper(selectedGrapheme);
+        }
+      });
+    } else return allUpperGlyphs;
+  }
+);
+
+export const selectLowerGlyphs = createSelector(
+  [
+    selectGraphemeIds,
+    selectGraphemeFilterDirection,
+    selectSelectedGrapheme,
+    selectPartial,
+  ],
+  (graphemes, graphemeFilterDirection, selectedGrapheme, partial) => {
+    const allLowerGlyphs = uniq(
+      graphemes.map((gid) => getLower(gid as number))
+    ).sort();
+    if (graphemeFilterDirection === "left" && selectedGrapheme != null) {
+      return allLowerGlyphs.filter((g) => {
+        if (partial) {
+          return (
+            (g | getLower(selectedGrapheme)) === getLower(selectedGrapheme)
+          );
+        } else {
+          return g === getLower(selectedGrapheme);
+        }
+      });
+    } else return allLowerGlyphs;
+  }
+);
+
 export const calcFilteredGraphemes = (
   {
     upperFilter,
@@ -205,29 +301,47 @@ export const calcFilteredGraphemes = (
     leftLineFilter,
     partial,
     exclusive,
+    selectedWord,
+    glyphFilterDirection,
+    wordFilterDirection,
   }: Pick<
     SelectionSliceState,
-    "upperFilter" | "lowerFilter" | "leftLineFilter" | "partial" | "exclusive"
+    | "upperFilter"
+    | "lowerFilter"
+    | "leftLineFilter"
+    | "partial"
+    | "exclusive"
+    | "selectedWord"
+    | "glyphFilterDirection"
+    | "wordFilterDirection"
   >,
   graphemes: GraphemeData[]
 ): GraphemeData[] => {
-  const filteredGraphemes = graphemes.filter((gd) => {
-    const { matchesUpper, matchesLower, leftLinePass } = graphemeMatchesFilters(
-      gd.id,
-      upperFilter,
-      lowerFilter,
-      leftLineFilter,
-      partial
+  let filteredGraphemes = graphemes;
+  if (glyphFilterDirection === "right") {
+    filteredGraphemes = graphemes.filter((gd) => {
+      const { matchesUpper, matchesLower, leftLinePass } =
+        graphemeMatchesFilters(
+          gd.id,
+          upperFilter,
+          lowerFilter,
+          leftLineFilter,
+          partial
+        );
+      return getTotalPassValue(
+        upperFilter,
+        lowerFilter,
+        matchesUpper,
+        matchesLower,
+        leftLinePass,
+        exclusive
+      );
+    });
+  } else if (wordFilterDirection === "left" && selectedWord != null) {
+    filteredGraphemes = graphemes.filter((gd) =>
+      selectedWord.word.includes(gd.id)
     );
-    return getTotalPassValue(
-      upperFilter,
-      lowerFilter,
-      matchesUpper,
-      matchesLower,
-      leftLinePass,
-      exclusive
-    );
-  });
+  }
   return filteredGraphemes.sort((a, b) => {
     if (isEmpty(a.sound) && isEmpty(b.sound)) {
       return 0;
@@ -248,9 +362,22 @@ export const selectFilteredGraphemes = createSelector(
     selectLeftLineFilter,
     selectPartial,
     selectExclusive,
+    selectSelectedWord,
+    selectGlyphFilterDirection,
+    selectWordFilterDirection,
     selectAllGraphemes,
   ],
-  (upperFilter, lowerFilter, leftLineFilter, partial, exclusive, graphemes) => {
+  (
+    upperFilter,
+    lowerFilter,
+    leftLineFilter,
+    partial,
+    exclusive,
+    selectedWord,
+    glyphFilterDirection,
+    wordFilterDirection,
+    graphemes
+  ) => {
     return calcFilteredGraphemes(
       {
         upperFilter,
@@ -258,6 +385,9 @@ export const selectFilteredGraphemes = createSelector(
         leftLineFilter,
         partial,
         exclusive,
+        selectedWord,
+        glyphFilterDirection,
+        wordFilterDirection,
       },
       graphemes
     );
@@ -272,6 +402,9 @@ export const calcFilteredNGrams = (
     partial,
     exclusive,
     n,
+    selectedWord,
+    glyphFilterDirection,
+    wordFilterDirection,
   }: Pick<
     SelectionSliceState,
     | "upperFilter"
@@ -280,36 +413,44 @@ export const calcFilteredNGrams = (
     | "partial"
     | "exclusive"
     | "n"
+    | "selectedWord"
+    | "glyphFilterDirection"
+    | "wordFilterDirection"
   >,
   words: WordData[]
 ): number[][] => {
   const filteredNGrams = {} as {
     [id: string]: { count: number; ngram: number[] };
   };
+
   for (let w of words) {
     for (let i = 0; i < w.word.length - (n - 1); i++) {
       const nGramSlice = w.word.slice(i, i + n);
-      let nGramMatches = false;
-      const results = nGramSlice.map((g) => {
-        return graphemeMatchesFilters(
-          g,
+      let nGramMatches = true;
+      if (glyphFilterDirection === "right") {
+        const results = nGramSlice.map((g) => {
+          return graphemeMatchesFilters(
+            g,
+            upperFilter,
+            lowerFilter,
+            leftLineFilter,
+            partial
+          );
+        });
+        let leftLinePassExists = results.some((r) => r.leftLinePass);
+        let lowerMatchExists = results.some((r) => r.matchesLower);
+        let upperMatchExists = results.some((r) => r.matchesUpper);
+        nGramMatches = getTotalPassValue(
           upperFilter,
           lowerFilter,
-          leftLineFilter,
-          partial
+          upperMatchExists,
+          lowerMatchExists,
+          leftLinePassExists,
+          exclusive
         );
-      });
-      let leftLinePassExists = results.some((r) => r.leftLinePass);
-      let lowerMatchExists = results.some((r) => r.matchesLower);
-      let upperMatchExists = results.some((r) => r.matchesUpper);
-      nGramMatches = getTotalPassValue(
-        upperFilter,
-        lowerFilter,
-        upperMatchExists,
-        lowerMatchExists,
-        leftLinePassExists,
-        exclusive
-      );
+      } else if (wordFilterDirection === "left" && selectedWord != null) {
+        nGramMatches = wordContainsNGram(selectedWord.word, nGramSlice);
+      }
       if (nGramMatches) {
         const id = getWordId(nGramSlice);
         if (!has(filteredNGrams, id)) {
@@ -320,6 +461,7 @@ export const calcFilteredNGrams = (
       }
     }
   }
+
   return Object.values(filteredNGrams)
     .map((ng) => {
       return ng.ngram;
@@ -339,9 +481,23 @@ export const selectFilteredNGrams = createSelector(
     selectPartial,
     selectExclusive,
     selectN,
+    selectSelectedWord,
+    selectGlyphFilterDirection,
+    selectWordFilterDirection,
     selectAllWords,
   ],
-  (upperFilter, lowerFilter, leftLineFilter, partial, exclusive, n, words) => {
+  (
+    upperFilter,
+    lowerFilter,
+    leftLineFilter,
+    partial,
+    exclusive,
+    n,
+    selectedWord,
+    glyphFilterDirection,
+    wordFilterDirection,
+    words
+  ) => {
     return calcFilteredNGrams(
       {
         upperFilter,
@@ -350,6 +506,9 @@ export const selectFilteredNGrams = createSelector(
         partial,
         exclusive,
         n,
+        selectedWord,
+        glyphFilterDirection,
+        wordFilterDirection,
       },
       words
     );
@@ -373,26 +532,29 @@ export const calcFilteredWords = (
     selectedNGram,
     selectedContext,
     mode,
+    graphemeFilterDirection,
+    contextFilterDirection,
   }: Pick<
     SelectionSliceState,
-    "selectedGrapheme" | "selectedNGram" | "selectedContext" | "mode"
+    | "selectedGrapheme"
+    | "selectedNGram"
+    | "selectedContext"
+    | "mode"
+    | "graphemeFilterDirection"
+    | "contextFilterDirection"
   >,
   words: WordData[]
 ): WordData[] => {
   let filteredWords = words;
-  if (selectedContext) {
+  if (contextFilterDirection === "left" && selectedContext) {
     filteredWords = words.filter((w) => w.ctxs.includes(selectedContext));
-  } else {
-    if (mode === "graphemes") {
-      if (selectedGrapheme) {
-        filteredWords = words.filter((w) => w.word.includes(selectedGrapheme));
-      }
-    } else {
-      if (selectedNGram) {
-        filteredWords = words.filter((w) =>
-          wordContainsNGram(w.word, selectedNGram)
-        );
-      }
+  } else if (graphemeFilterDirection === "right") {
+    if (mode === "graphemes" && selectedGrapheme) {
+      filteredWords = words.filter((w) => w.word.includes(selectedGrapheme));
+    } else if (mode === "ngrams" && selectedNGram) {
+      filteredWords = words.filter((w) =>
+        wordContainsNGram(w.word, selectedNGram)
+      );
     }
   }
   return filteredWords.sort((a, b) => {
@@ -414,11 +576,28 @@ export const selectFilteredWords = createSelector(
     selectSelectedNGram,
     selectSelectedContext,
     selectMode,
+    selectGraphemeFilterDirection,
+    selectContextFilterDirection,
     selectAllWords,
   ],
-  (selectedGrapheme, selectedNGram, selectedContext, mode, words) => {
+  (
+    selectedGrapheme,
+    selectedNGram,
+    selectedContext,
+    mode,
+    graphemeFilterDirection,
+    contextFilterDirection,
+    words
+  ) => {
     return calcFilteredWords(
-      { selectedGrapheme, selectedNGram, selectedContext, mode },
+      {
+        selectedGrapheme,
+        selectedNGram,
+        selectedContext,
+        mode,
+        graphemeFilterDirection,
+        contextFilterDirection,
+      },
       words
     );
   }
@@ -443,5 +622,7 @@ export const {
   setSelectedWord,
   setSelectedContext,
 } = selectionSlice.actions;
+
+
 
 export default selectionSlice.reducer;

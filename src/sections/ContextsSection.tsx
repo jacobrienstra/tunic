@@ -6,6 +6,10 @@ import { createSelector } from "@reduxjs/toolkit";
 import { selectAllWords } from "../redux/reducers/data";
 import Tile from "../components/Tile";
 import {
+  selectContextFilterDirection,
+  selectSelectedContext,
+  selectSelectedWord,
+  selectWordFilterDirection,
   setContextFilterDirection,
   setSelectedContext,
 } from "../redux/reducers/selection";
@@ -51,7 +55,8 @@ const filterDirectionSection = css`
 
 function ContextsSection() {
   const dispatch = useAppDispatch();
-  const selectedWord = useAppSelector((state) => state.selection.selectedWord);
+  const selectedWord = useAppSelector(selectSelectedWord);
+  const wordFilterDireciton = useAppSelector(selectWordFilterDirection);
   const selectAllCtxs = createSelector([selectAllWords], (words) => {
     return words.reduce((acc, word) => {
       word.ctxs.forEach((ctx) => acc.add(ctx));
@@ -59,15 +64,13 @@ function ContextsSection() {
     }, new Set<string>());
   });
   const allCtxs = useAppSelector(selectAllCtxs);
-  const ctxs = selectedWord ? selectedWord.ctxs : Array.from(allCtxs);
+  const ctxs =
+    selectedWord && wordFilterDireciton === "right"
+      ? selectedWord.ctxs
+      : Array.from(allCtxs);
 
-  const contextFilterDirection = useAppSelector(
-    (state) => state.selection.contextFilterDirection
-  );
-
-  const selectedContext = useAppSelector(
-    (state) => state.selection.selectedContext
-  );
+  const contextFilterDirection = useAppSelector(selectContextFilterDirection);
+  const selectedContext = useAppSelector(selectSelectedContext);
 
   return (
     <Section title="Contexts">

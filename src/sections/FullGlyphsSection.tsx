@@ -3,6 +3,9 @@ import { cx } from "@emotion/css";
 import { useAppDispatch, useAppSelector } from "../redux/hooks";
 import { RootState } from "../redux/store";
 import {
+  selectGraphemeFilterDirection,
+  selectMode,
+  selectN,
   setGraphemeFilterDirection,
   setMode,
   setN,
@@ -69,14 +72,10 @@ const filterDirectionSection = css`
 function FullGlyphsSection() {
   const dispatch = useAppDispatch();
 
-  const selectN = (state: RootState) => state.selection.n;
   const selectedN = useAppSelector(selectN);
+  const mode = useAppSelector(selectMode);
 
-  const mode = useAppSelector((state: RootState) => state.selection.mode);
-
-  const graphemeFilterDirection = useAppSelector(
-    (state) => state.selection.graphemeFilterDirection
-  );
+  const graphemeFilterDirection = useAppSelector(selectGraphemeFilterDirection);
   const tileSize = mode === "graphemes" ? 60 : (selectedN + 1) * 20;
   const ngramsGrid = css`
     padding: 4px;

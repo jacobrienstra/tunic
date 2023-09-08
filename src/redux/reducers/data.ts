@@ -92,11 +92,11 @@ export const dataSlice = createSlice({
     },
     addWord: (
       state,
-      action: PayloadAction<{ word: number[]; ctx: string }>
+      action: PayloadAction<{ word: number[]; ctx?: string }>
     ): void => {
       const matchedWord = state.words.entities[getWordId(action.payload.word)];
       // If we already have the word stored
-      if (matchedWord) {
+      if (matchedWord && action.payload.ctx) {
         // Add the context, if not already present
         if (!matchedWord.ctxs.includes(action.payload.ctx)) {
           matchedWord.ctxs.push(action.payload.ctx);
@@ -106,7 +106,7 @@ export const dataSlice = createSlice({
       else {
         wordsAdapter.addOne(state.words, {
           word: action.payload.word,
-          ctxs: [action.payload.ctx],
+          ctxs: action.payload.ctx ? [action.payload.ctx] : [],
           meaning: "",
           sure: false,
         });
@@ -167,7 +167,7 @@ export const setSoundSave = createAsyncThunk<
 
 export const addWordSave = createAsyncThunk<
   void,
-  { word: number[]; ctx: string },
+  { word: number[]; ctx?: string },
   { state: RootState; dispatch: Dispatch }
 >("data/addWordSave", async (args, thunkAPI) => {
   thunkAPI.dispatch(addWord(args));

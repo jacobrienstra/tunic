@@ -1,19 +1,20 @@
 import { css } from "@emotion/react";
 import KeyboardDoubleArrowRightIcon from "@mui/icons-material/KeyboardDoubleArrowRight";
-import { RootState } from "../redux/store";
 import { useAppDispatch, useAppSelector } from "../redux/hooks";
 import {
+  selectGlyphFilterDirection,
+  selectLowerFilter,
+  selectLowerGlyphs,
+  selectUpperFilter,
+  selectUpperGlyphs,
   setGlyphFilterDirection,
   setLowerFilter,
   setUpperFilter,
 } from "../redux/reducers/selection";
-import { getLower, getUpper } from "../glyph";
-import { uniq } from "lodash";
+
 import Glyph from "../components/Glyph";
 import Tile from "../components/Tile";
-import { createSelector } from "@reduxjs/toolkit";
 import FilterOptions from "./FilterOptions";
-import { selectGraphemeIds } from "../redux/reducers/data";
 import { cx } from "@emotion/css";
 
 const tileSize = 35;
@@ -81,30 +82,13 @@ const filterDirectionSection = css`
 function Filters() {
   const dispatch = useAppDispatch();
 
-  const upperFilter = useAppSelector(
-    (state: RootState) => state.selection.upperFilter
-  );
-  const lowerFilter = useAppSelector(
-    (state: RootState) => state.selection.lowerFilter
-  );
+  const upperFilter = useAppSelector(selectUpperFilter);
+  const lowerFilter = useAppSelector(selectLowerFilter);
 
-  // const selectGraphemes = (state: RootState) => state.data.graphemes;
-  const selectUpperGlyphs = createSelector(
-    [selectGraphemeIds],
-    (graphemes): number[] => {
-      return uniq(graphemes.map((gid) => getUpper(gid as number))).sort();
-    }
-  );
   const upperGlyphs = useAppSelector(selectUpperGlyphs);
-
-  const selectLowerGlyphs = createSelector([selectGraphemeIds], (graphemes) => {
-    return uniq(graphemes.map((gid) => getLower(gid as number))).sort();
-  });
   const lowerGlyphs = useAppSelector(selectLowerGlyphs);
 
-  const glyphFilterDirection = useAppSelector(
-    (state) => state.selection.glyphFilterDirection
-  );
+  const glyphFilterDirection = useAppSelector(selectGlyphFilterDirection);
 
   return (
     <section css={glyphPartsSection}>

@@ -205,9 +205,9 @@ function EntrySection() {
             tabIndex={0}
             css={typerWrapper}
             onFocus={() => {
-              if (curContext != null) {
-                setIsTyping(true);
-              }
+              // if (curContext != null) {
+              setIsTyping(true);
+              // }
             }}
             onBlur={() => {
               setIsTyping(false);
@@ -215,24 +215,32 @@ function EntrySection() {
           >
             <button
               className={cx({
-                disabled: isEmpty(text) || isEmpty(curContext),
+                disabled: isEmpty(text),
                 [submitButton]: true,
               })}
               onClick={async () => {
                 if (
-                  !isEmpty(text) &&
-                  !isEmpty(curContext) &&
-                  curContext != null
+                  !isEmpty(text)
+                  // !isEmpty(curContext) &&
+                  // curContext != null
                 ) {
                   const submit = confirm("Submit Text with Context?");
                   if (submit) {
                     for (let word of text) {
-                      dispatch(
-                        addWordSave({
-                          word: word,
-                          ctx: curContext,
-                        })
-                      );
+                      if (curContext) {
+                        dispatch(
+                          addWordSave({
+                            word: word,
+                            ctx: curContext,
+                          })
+                        );
+                      } else {
+                        dispatch(
+                          addWordSave({
+                            word: word,
+                          })
+                        );
+                      }
                     }
                     setText([]);
                     setCurContext(null);

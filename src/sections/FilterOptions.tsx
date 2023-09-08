@@ -3,6 +3,9 @@ import CheckBoxOutlineBlankIcon from "@mui/icons-material/CheckBoxOutlineBlank";
 import CheckBoxIcon from "@mui/icons-material/CheckBox";
 import { cx } from "@emotion/css";
 import {
+  selectExclusive,
+  selectLeftLineFilter,
+  selectPartial,
   setLeftLineFilter,
   toggleExclusive,
   togglePartialFilter,
@@ -38,13 +41,9 @@ const toggleBox = css`
 
 function FilterOptions() {
   const dispatch = useAppDispatch();
-  const leftLineFilter = useAppSelector(
-    (state: RootState) => state.selection.leftLineFilter
-  );
-  const partial = useAppSelector((state: RootState) => state.selection.partial);
-  const exclusive = useAppSelector(
-    (state: RootState) => state.selection.exclusive
-  );
+  const leftLineFilter = useAppSelector(selectLeftLineFilter);
+  const partial = useAppSelector(selectPartial);
+  const exclusive = useAppSelector(selectExclusive);
 
   return (
     <div css={filterToggles}>

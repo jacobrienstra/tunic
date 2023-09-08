@@ -2,12 +2,12 @@ import { css } from "@emotion/react";
 import Tile from "../components/Tile";
 import Word from "../components/Word";
 import { useAppDispatch, useAppSelector } from "../redux/hooks";
-import { getWordId, selectAllGraphemes } from "../redux/reducers/data";
+import { getWordId } from "../redux/reducers/data";
 import {
   selectFilteredNGrams,
+  selectSelectedNGram,
   setSelectedNGram,
 } from "../redux/reducers/selection";
-import { RootState } from "../redux/store";
 import { isEqual } from "lodash";
 
 const wordGuess = css`
@@ -19,8 +19,6 @@ interface NGramsProps {
 }
 function NGrams({ tileSize }: NGramsProps) {
   const dispatch = useAppDispatch();
-  const selectSelectedNGram = (state: RootState) =>
-    state.selection.selectedNGram;
 
   const graphemes = useAppSelector((state) => state.data.graphemes.entities);
   const filteredNGrams = useAppSelector(selectFilteredNGrams);
