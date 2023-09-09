@@ -5,6 +5,7 @@ import {
   SelectionSliceState,
 } from "./redux/reducers/selection";
 import {
+  ContextData,
   ContextWordJunction,
   GraphemeData,
   WordData,
@@ -113,7 +114,9 @@ const getTotalPassValue = (
   return reverseSyllablePass && vowelConsonantCombinedPass;
 };
 
-export const selectVowelGlyphs = (selectGraphemes: () => GraphemeData[] | undefined) =>
+export const selectVowelGlyphs = (
+  selectGraphemes: () => GraphemeData[] | undefined
+) =>
   createSelector(
     [
       selectGraphemeFilterDirection,
@@ -155,11 +158,10 @@ export const selectVowelGlyphs = (selectGraphemes: () => GraphemeData[] | undefi
           } else if (mode === "graphemes" && selectedGrapheme) {
             if (partial) {
               return (
-                (g | getVowel(selectedGrapheme.id)) ===
-                getVowel(selectedGrapheme.id)
+                (g | getVowel(selectedGrapheme)) === getVowel(selectedGrapheme)
               );
             } else {
-              return g === getVowel(selectedGrapheme.id);
+              return g === getVowel(selectedGrapheme);
             }
           } else return true;
         });
@@ -211,11 +213,11 @@ export const selectConsonantGlyphs = (
           } else if (mode === "graphemes" && selectedGrapheme) {
             if (partial) {
               return (
-                (g | getConsonant(selectedGrapheme.id)) ===
-                getConsonant(selectedGrapheme.id)
+                (g | getConsonant(selectedGrapheme)) ===
+                getConsonant(selectedGrapheme)
               );
             } else {
-              return g === getConsonant(selectedGrapheme.id);
+              return g === getConsonant(selectedGrapheme);
             }
           } else return true;
         });
@@ -246,7 +248,8 @@ export const calcFilteredGraphemes = (
     | "wordFilterDirection"
     | "selectedGrapheme"
   >,
-  graphemes: GraphemeData[]
+  graphemes: GraphemeData[],
+  words: WordData[]
 ): GraphemeData[] => {
   let filteredGraphemes = graphemes;
   if (glyphFilterDirection === "right") {
@@ -270,7 +273,7 @@ export const calcFilteredGraphemes = (
     });
   } else if (wordFilterDirection === "left" && selectedWord != null) {
     filteredGraphemes = graphemes.filter((gd) =>
-      selectedWord.word.includes(gd.id)
+      words.find((w) => w.id === selectedWord)?.word.includes(gd.id)
     );
   }
   return filteredGraphemes;
@@ -290,7 +293,8 @@ export const calcFilteredGraphemes = (
 };
 
 export const selectFilteredGraphemes = (
-  selectGraphemes: () => GraphemeData[] | undefined
+  selectGraphemes: () => GraphemeData[] | undefined,
+  selectWords: () => WordData[] | undefined
 ) =>
   createSelector(
     [
@@ -304,6 +308,7 @@ export const selectFilteredGraphemes = (
       selectWordFilterDirection,
       selectSelectedGrapheme,
       selectGraphemes,
+      selectWords,
     ],
     (
       vowelFilter,
@@ -315,9 +320,10 @@ export const selectFilteredGraphemes = (
       glyphFilterDirection,
       wordFilterDirection,
       selectedGrapheme,
-      graphemes
+      graphemes,
+      words
     ) => {
-      if (!graphemes) return [];
+      if (!graphemes || !words) return [];
       return calcFilteredGraphemes(
         {
           vowelFilter,
@@ -330,7 +336,8 @@ export const selectFilteredGraphemes = (
           wordFilterDirection,
           selectedGrapheme,
         },
-        graphemes
+        graphemes,
+        words
       );
     }
   );
@@ -394,7 +401,9 @@ export const calcFilteredNGrams = (
           exclusive
         );
       } else if (wordFilterDirection === "left" && selectedWord != null) {
-        nGramMatches = wordContainsNGram(selectedWord.word, nGramSlice);
+        const selectedWordData = words.find((w) => w.id === selectedWord);
+        if (selectedWordData)
+          nGramMatches = wordContainsNGram(selectedWordData?.word, nGramSlice);
       }
       if (nGramMatches) {
         const id = nGramSlice.join("_");
@@ -507,7 +516,7 @@ export const calcFilteredWords = (
       return filteredWords;
     }
     const filteredJunctions = junctions
-      .filter((j) => j.contexts_id === selectedContext.id)
+      .filter((j) => j.contexts_id === selectedContext)
       .sort((a, b) => a.order - b.order);
     filteredWords = filteredJunctions.reduce((acc, j) => {
       const word = words.find((w) => w.id === j.words_id);
@@ -516,7 +525,7 @@ export const calcFilteredWords = (
     }, [] as WordData[]);
   } else if (graphemeFilterDirection === "right") {
     if (mode === "graphemes" && selectedGrapheme) {
-      filteredWords = words.filter((w) => w.word.includes(selectedGrapheme.id));
+      filteredWords = words.filter((w) => w.word.includes(selectedGrapheme));
     } else if (mode === "ngrams" && selectedNGram) {
       filteredWords = words.filter((w) =>
         wordContainsNGram(w.word, selectedNGram)
@@ -582,3 +591,6 @@ export const selectFilteredWords = (
       );
     }
   );
+
+const emptyContexts = [] as ContextData[];
+

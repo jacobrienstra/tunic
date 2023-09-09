@@ -15,7 +15,7 @@ const wordStyle = css`
 `;
 
 interface WordProps {
-  word: number[];
+  word: string[] | number[];
   width?: number;
 }
 
@@ -23,7 +23,7 @@ function Word({ word, width = 20 }: WordProps) {
   return (
     <div css={wordStyle}>
       {word.map((w, i) => (
-        <Glyph val={w} width={width} key={w.toString() + "_" + i.toString()} />
+        <Glyph val={w} width={width} key={[w, i].join("_")} />
       ))}
     </div>
   );

@@ -1,4 +1,4 @@
-import { GraphemeData, useGetGraphemeByIdQuery } from "./redux/services/data";
+import { GraphemeData } from "./redux/services/data";
 
 export const W = 173.2050807569;
 export const halfW = 86.60254037845;
@@ -81,11 +81,12 @@ export const getGraphemeSoundGuess = (
   val: number,
   graphemes?: GraphemeData[]
 ): string => {
-  let vowelGuess = graphemes?.find((g) => g.id === val)?.sound ?? "?";
+  let vowelGuess = graphemes?.find((g) => g.id === getVowel(val))?.sound ?? "?";
   if (!getVowel(val) && vowelGuess === "?") {
     vowelGuess = "";
   }
-  let consonantGuess = graphemes?.find((g) => g.id === val)?.sound ?? "?";
+  let consonantGuess =
+    graphemes?.find((g) => g.id === getConsonant(val))?.sound ?? "?";
   if (!getConsonant(val) && consonantGuess === "?") {
     consonantGuess = "";
   }

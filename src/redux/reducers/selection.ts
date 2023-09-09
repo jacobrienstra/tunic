@@ -21,10 +21,10 @@ export interface SelectionSliceState {
   graphemeFilterDirection: FilterDirection;
   wordFilterDirection: FilterDirection;
   contextFilterDirection: FilterDirection;
-  selectedGrapheme: null | GraphemeData;
+  selectedGrapheme: null | number;
   selectedNGram: null | number[];
-  selectedWord: WordData | null;
-  selectedContext: ContextData | null;
+  selectedWord: number | null;
+  selectedContext: number | null;
 }
 
 export const selectionSlice = createSlice({
@@ -121,20 +121,17 @@ export const selectionSlice = createSlice({
     },
     setSelectedGrapheme: (
       state,
-      action: PayloadAction<null | GraphemeData>
+      action: PayloadAction<null | number>
     ): void => {
       state.selectedGrapheme = action.payload;
     },
     setSelectedNGram: (state, action: PayloadAction<null | number[]>): void => {
       state.selectedNGram = action.payload;
     },
-    setSelectedWord: (state, action: PayloadAction<null | WordData>): void => {
+    setSelectedWord: (state, action: PayloadAction<null | number>): void => {
       state.selectedWord = action.payload;
     },
-    setSelectedContext: (
-      state,
-      action: PayloadAction<null | ContextData>
-    ): void => {
+    setSelectedContext: (state, action: PayloadAction<null | number>): void => {
       state.selectedContext = action.payload;
     },
   },

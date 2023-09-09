@@ -1,11 +1,12 @@
 import { glyphStrokes, W, ULV, LLV, LBC, H, midH } from "../glyph";
 
 type GlyphProps = {
-  val: number;
+  val: number | string;
   width?: number;
 };
 
 function Glyph({ width, val }: GlyphProps) {
+  if (typeof val === "string") val = parseInt(val);
   const lines: { x1: number; x2: number; y1: number; y2: number; k: number }[] =
     [];
 

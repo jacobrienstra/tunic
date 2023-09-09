@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 type InlineEditProps = {
   value: string;
@@ -13,6 +13,10 @@ function InlineEdit({
   textarea = false,
   className,
 }: InlineEditProps) {
+  useEffect(() => {
+    setEditingValue(value);
+  }, [value]);
+
   const [editingValue, setEditingValue] = useState(value);
 
   const onChange = (event: React.ChangeEvent<HTMLElement>) =>

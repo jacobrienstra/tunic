@@ -19,7 +19,7 @@ import Tile from "../components/Tile";
 import FilterOptions from "./FilterOptions";
 import { cx } from "@emotion/css";
 import { getGraphemeSoundGuess } from "../glyph";
-import { useGetGraphemesQuery } from "../redux/services/data";
+import { useGetGraphemesQuery, useGetWordsQuery } from "../redux/services/data";
 
 const tileSize = 35;
 

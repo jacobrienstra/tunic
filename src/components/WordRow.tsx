@@ -1,7 +1,6 @@
 import { css } from "@emotion/react";
 import {
   WordData,
-  useGetGraphemeByIdQuery,
   useGetGraphemesQuery,
   useUpdateWordMutation,
 } from "../redux/services/data";
@@ -50,13 +49,16 @@ function WordRow({ wordData }: WordRowProps) {
         <Word word={wordData.word} />
       </div>
       <div css={wordGuess}>
-        {wordData.word.map((val) => {
-          let sound = useGetGraphemeByIdQuery(val).data?.sound;
-          if (sound === "" || sound === undefined) {
-            return getGraphemeSoundGuess(val, graphemes);
-          }
-          return sound.replace("?", "");
-        })}
+        {wordData.word
+          .map((val) => {
+            const ival = parseInt(val);
+            let sound = graphemes?.find((g) => g.id === ival)?.sound;
+            if (sound === "" || sound === undefined) {
+              sound = getGraphemeSoundGuess(ival, graphemes);
+            }
+            return sound.replace("?", "");
+          })
+          .join("")}
       </div>
       <InlineEdit
         value={wordData.meaning}

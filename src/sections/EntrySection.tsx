@@ -5,7 +5,10 @@ import GlyphTyper from "../components/GlyphTyper";
 import Section from "./Section";
 import Word from "../components/Word";
 import {
+  ContextData,
   sdk,
+  useGetContextWordJunctionsQuery,
+  useGetContextsQuery,
   useGetGraphemesQuery,
   useGetWordsQuery,
   useUpdateContextMutation,
@@ -143,7 +146,15 @@ function EntrySection() {
   const [curWord, setCurWord] = useState<number[]>([]);
   const [curImageId, setCurImageId] = useState<string | null>(null);
 
-  const selectedContext = useAppSelector(selectSelectedContext);
+  const selectedContextId = useAppSelector(selectSelectedContext);
+
+  const { data: selectedContext } = useGetContextsQuery(undefined, {
+    selectFromResult: ({ data }) => ({
+      data:
+        data?.find((ctx) => ctx.id === selectedContextId) ??
+        ({} as ContextData),
+    }),
+  });
 
   const [uploading, setUploading] = useState(false);
 
@@ -155,30 +166,54 @@ function EntrySection() {
   const [addWord] = useAddWordMutation();
   const [updateContext] = useUpdateContextMutation();
   const { data: graphemes } = useGetGraphemesQuery();
+  const { data: junctions } = useGetContextWordJunctionsQuery();
+  const { data: words } = useGetWordsQuery();
 
   const setValueFn = (val: string) => {
-    if (selectedContext != null && selectedContext.id) {
+    if (selectedContext != null && selectedContext?.id) {
       return updateContext({ id: selectedContext!.id, text: val });
     } else {
       return () => {};
     }
   };
 
-  const { data: words } = useGetWordsQuery();
   const addGraphemeToWord = (val: number) => {
     setCurWord(curWord.concat([val]));
   };
 
-  const translation = text
-    .map((w) => {
-      let existingWord = words?.find((word) => isEqual(word.word, w));
-      if (existingWord && !isEmpty(existingWord.meaning)) {
-        return existingWord.meaning;
-      } else {
-        return w.map((val) => getGraphemeSoundGuess(val, graphemes)).join("");
-      }
-    })
-    .join(" ");
+  const translation =
+    mode === "enter"
+      ? text
+          .map((w) => {
+            let existingWord = words?.find((word) =>
+              isEqual(word.word.join(","), w.join(","))
+            );
+            if (existingWord && !isEmpty(existingWord.meaning)) {
+              return existingWord.meaning;
+            } else {
+              return w
+                .map((val) => getGraphemeSoundGuess(val, graphemes))
+                .join("");
+            }
+          })
+          .join(" ")
+      : junctions && selectedContext
+      ? junctions
+          ?.filter((j) => j.contexts_id === selectedContext?.id)
+          .sort((a, b) => a.order - b.order)
+          .map((j) => words?.find((word) => word.id === j.words_id))
+          .map((w) => {
+            if (!w) return "???";
+            else if (!isEmpty(w.meaning)) {
+              return w.meaning;
+            } else {
+              return w.word
+                .map((val) => getGraphemeSoundGuess(parseInt(val), graphemes))
+                .join("");
+            }
+          })
+          .join(" ")
+      : "";
 
   const addWordToText = () => {
     if (curWord.length > 0) {
@@ -222,7 +257,7 @@ function EntrySection() {
       formData.append("file", file);
       try {
         const response = await sdk.request(uploadFiles(formData));
-        setCurImageId(response.filename_disk);
+        setCurImageId(response.id);
       } catch ({ errors }: any) {
         setError(
           errors
@@ -278,16 +313,19 @@ function EntrySection() {
               <div css={translationStyle}>{translation}</div>
             </>
           ) : (
-            <InlineEdit
-              textarea
-              css={textEditor}
-              value={
-                selectedContext && !isEmpty(selectedContext.text)
-                  ? selectedContext.text
-                  : translation
-              }
-              setValue={setValueFn}
-            />
+            <>
+              <div css={translationStyle}>{translation}</div>
+              <InlineEdit
+                textarea
+                css={textEditor}
+                value={
+                  selectedContext && !isEmpty(selectedContext.text)
+                    ? selectedContext.text
+                    : translation ?? ""
+                }
+                setValue={setValueFn}
+              />
+            </>
           )}
         </ReflexElement>
         <ReflexSplitter />
@@ -317,15 +355,16 @@ function EntrySection() {
                 ) {
                   const submit = confirm("Submit Text with Context?");
                   if (submit) {
-                    for (let word of text) {
+                    for (let i = 0; i < text.length; i++) {
                       if (curImageId) {
-                        addWord({
-                          word: word,
+                        await addWord({
+                          word: text[i],
                           ctxImageId: curImageId,
+                          order: i,
                         });
                       } else {
-                        addWord({
-                          word: word,
+                        await addWord({
+                          word: text[i],
                         });
                       }
                     }

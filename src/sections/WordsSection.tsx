@@ -89,10 +89,10 @@ function WordsSection() {
           <Tile
             align="start"
             key={w.id}
-            active={selectedWord?.id === w.id}
+            active={selectedWord === w.id}
             onClick={() => {
-              if (selectedWord?.id !== w.id) {
-                dispatch(setSelectedWord(w));
+              if (selectedWord !== w.id) {
+                dispatch(setSelectedWord(w.id));
               } else {
                 dispatch(setSelectedWord(null));
               }
