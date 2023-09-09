@@ -21,7 +21,7 @@ function NGrams({ tileSize }: NGramsProps) {
   const dispatch = useAppDispatch();
 
   const { data: words } = useGetWordsQuery();
-  const filteredNGrams = useAppSelector(selectFilteredNGrams(words));
+  const filteredNGrams = useAppSelector(selectFilteredNGrams(() => words));
   const selectedNGram = useAppSelector(selectSelectedNGram);
 
   return (

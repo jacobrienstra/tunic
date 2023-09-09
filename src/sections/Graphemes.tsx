@@ -15,7 +15,9 @@ function Graphemes({ tileSize }: GraphemesProps) {
   const { data: graphemes } = useGetGraphemesQuery();
 
   const selectedGrapheme = useAppSelector(selectSelectedGrapheme);
-  const filteredGraphemes = useAppSelector(selectFilteredGraphemes(graphemes));
+  const filteredGraphemes = useAppSelector(
+    selectFilteredGraphemes(() => graphemes)
+  );
 
   return (
     <>

@@ -2,6 +2,7 @@ import { css } from "@emotion/react";
 import {
   WordData,
   useGetGraphemeByIdQuery,
+  useGetGraphemesQuery,
   useUpdateWordMutation,
 } from "../redux/services/data";
 import Word from "./Word";
@@ -42,6 +43,7 @@ const wordGuess = css`
 
 function WordRow({ wordData }: WordRowProps) {
   const [updateWord] = useUpdateWordMutation();
+  const { data: graphemes } = useGetGraphemesQuery();
   return (
     <div css={wordRowWrapper}>
       <div css={wordWrapper}>
@@ -51,7 +53,7 @@ function WordRow({ wordData }: WordRowProps) {
         {wordData.word.map((val) => {
           let sound = useGetGraphemeByIdQuery(val).data?.sound;
           if (sound === "" || sound === undefined) {
-            return getGraphemeSoundGuess(val);
+            return getGraphemeSoundGuess(val, graphemes);
           }
           return sound.replace("?", "");
         })}

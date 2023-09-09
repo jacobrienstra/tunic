@@ -1,12 +1,18 @@
 import { useState } from "react";
 
-interface InlineEditProps {
+type InlineEditProps = {
   value: string;
   setValue: (val: string) => void;
   textarea?: boolean;
-}
+  className?: string;
+};
 
-function InlineEdit({ value, setValue, textarea = false }: InlineEditProps) {
+function InlineEdit({
+  value,
+  setValue,
+  textarea = false,
+  className,
+}: InlineEditProps) {
   const [editingValue, setEditingValue] = useState(value);
 
   const onChange = (event: React.ChangeEvent<HTMLElement>) =>
@@ -38,6 +44,7 @@ function InlineEdit({ value, setValue, textarea = false }: InlineEditProps) {
       onKeyDown={onKeyDown}
       onBlur={onBlur}
       value={editingValue}
+      className={className}
     />
   );
 }

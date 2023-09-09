@@ -6,6 +6,7 @@ import Section from "./Section";
 import Word from "../components/Word";
 import {
   sdk,
+  useGetGraphemesQuery,
   useGetWordsQuery,
   useUpdateContextMutation,
 } from "../redux/services/data";
@@ -129,6 +130,11 @@ const headerSwitcher = css`
   }
 `;
 
+const textEditor = css`
+  width: 100%;
+  height: 100%;
+`;
+
 type EntryMode = "enter" | "edit";
 
 function EntrySection() {
@@ -148,6 +154,7 @@ function EntrySection() {
 
   const [addWord] = useAddWordMutation();
   const [updateContext] = useUpdateContextMutation();
+  const { data: graphemes } = useGetGraphemesQuery();
 
   const setValueFn = (val: string) => {
     if (selectedContext != null && selectedContext.id) {
@@ -168,7 +175,7 @@ function EntrySection() {
       if (existingWord && !isEmpty(existingWord.meaning)) {
         return existingWord.meaning;
       } else {
-        return w.map((val) => getGraphemeSoundGuess(val)).join("");
+        return w.map((val) => getGraphemeSoundGuess(val, graphemes)).join("");
       }
     })
     .join(" ");
@@ -271,17 +278,16 @@ function EntrySection() {
               <div css={translationStyle}>{translation}</div>
             </>
           ) : (
-            <div>
-              <InlineEdit
-                textarea
-                value={
-                  selectedContext && !isEmpty(selectedContext.text)
-                    ? selectedContext.text
-                    : translation
-                }
-                setValue={setValueFn}
-              />
-            </div>
+            <InlineEdit
+              textarea
+              css={textEditor}
+              value={
+                selectedContext && !isEmpty(selectedContext.text)
+                  ? selectedContext.text
+                  : translation
+              }
+              setValue={setValueFn}
+            />
           )}
         </ReflexElement>
         <ReflexSplitter />

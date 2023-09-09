@@ -2,6 +2,7 @@ import { css } from "@emotion/react";
 import Glyph from "./Glyph";
 import {
   GraphemeData,
+  useGetGraphemesQuery,
   useUpdateGraphemeMutation,
 } from "../redux/services/data";
 import InlineEdit from "./InlineEdit";
@@ -36,12 +37,13 @@ const soundGuess = css`
 
 function Grapheme({ glyph }: GraphemeProps) {
   const [updateGrapheme] = useUpdateGraphemeMutation();
+  const { data: graphemes } = useGetGraphemesQuery();
   return (
     <div css={graphemeWrapper}>
       <div css={glyphWrapper}>
         <Glyph val={glyph.id} />
       </div>
-      <div css={soundGuess}>{getGraphemeSoundGuess(glyph.id)}</div>
+      <div css={soundGuess}>{getGraphemeSoundGuess(glyph.id, graphemes)}</div>
       <InlineEdit
         value={glyph.sound ?? ""}
         setValue={(val: string) => updateGrapheme({ id: glyph.id, sound: val })}

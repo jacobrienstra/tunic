@@ -77,12 +77,15 @@ export function getConsonant(val: number) {
   return val & consonantMask;
 }
 
-export const getGraphemeSoundGuess = (val: number): string => {
-  let vowelGuess = useGetGraphemeByIdQuery(val).data?.sound ?? "?";
+export const getGraphemeSoundGuess = (
+  val: number,
+  graphemes?: GraphemeData[]
+): string => {
+  let vowelGuess = graphemes?.find((g) => g.id === val)?.sound ?? "?";
   if (!getVowel(val) && vowelGuess === "?") {
     vowelGuess = "";
   }
-  let consonantGuess = useGetGraphemeByIdQuery(val).data?.sound ?? "?";
+  let consonantGuess = graphemes?.find((g) => g.id === val)?.sound ?? "?";
   if (!getConsonant(val) && consonantGuess === "?") {
     consonantGuess = "";
   }

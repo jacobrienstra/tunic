@@ -54,7 +54,12 @@ function WordsSection() {
   const { data: words } = useGetWordsQuery();
   const { data: junctions } = useGetContextWordJunctionsQuery();
 
-  const filteredWords = useAppSelector(selectFilteredWords(words, junctions));
+  const filteredWords = useAppSelector(
+    selectFilteredWords(
+      () => words,
+      () => junctions
+    )
+  );
   const wordFilterDirection = useAppSelector(selectWordFilterDirection);
 
   return (

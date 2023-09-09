@@ -95,8 +95,10 @@ function Filters() {
   const vowelFilter = useAppSelector(selectVowelFilter);
   const consonantFilter = useAppSelector(selectConsonantFilter);
 
-  const vowelGlyphs = useAppSelector(selectVowelGlyphs(graphemes));
-  const consonantGlyphs = useAppSelector(selectConsonantGlyphs(graphemes));
+  const vowelGlyphs = useAppSelector(selectVowelGlyphs(() => graphemes));
+  const consonantGlyphs = useAppSelector(
+    selectConsonantGlyphs(() => graphemes)
+  );
 
   const glyphFilterDirection = useAppSelector(selectGlyphFilterDirection);
 
@@ -136,7 +138,9 @@ function Filters() {
                 }}
               >
                 <Glyph val={val} />
-                <div css={soundGuess}>{getGraphemeSoundGuess(val)}</div>
+                <div css={soundGuess}>
+                  {getGraphemeSoundGuess(val, graphemes)}
+                </div>
               </Tile>
             ))}
           </div>
@@ -156,7 +160,9 @@ function Filters() {
                 }}
               >
                 <Glyph val={val} />
-                <div css={soundGuess}>{getGraphemeSoundGuess(val)}</div>
+                <div css={soundGuess}>
+                  {getGraphemeSoundGuess(val, graphemes)}
+                </div>
               </Tile>
             ))}
           </div>

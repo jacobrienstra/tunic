@@ -113,7 +113,7 @@ const getTotalPassValue = (
   return reverseSyllablePass && vowelConsonantCombinedPass;
 };
 
-export const selectVowelGlyphs = (graphemes?: GraphemeData[]) =>
+export const selectVowelGlyphs = (selectGraphemes: () => GraphemeData[] | undefined) =>
   createSelector(
     [
       selectGraphemeFilterDirection,
@@ -122,6 +122,7 @@ export const selectVowelGlyphs = (graphemes?: GraphemeData[]) =>
       selectPartial,
       selectMode,
       selectVowelFilter,
+      selectGraphemes,
     ],
     (
       graphemeFilterDirection,
@@ -129,7 +130,8 @@ export const selectVowelGlyphs = (graphemes?: GraphemeData[]) =>
       selectedNGram,
       partial,
       mode,
-      vowelFilter
+      vowelFilter,
+      graphemes
     ): number[] => {
       if (!graphemes) return [];
       const allVowelGlyphs = uniq(
@@ -165,7 +167,9 @@ export const selectVowelGlyphs = (graphemes?: GraphemeData[]) =>
     }
   );
 
-export const selectConsonantGlyphs = (graphemes?: GraphemeData[]) =>
+export const selectConsonantGlyphs = (
+  selectGraphemes: () => GraphemeData[] | undefined
+) =>
   createSelector(
     [
       selectGraphemeFilterDirection,
@@ -174,6 +178,7 @@ export const selectConsonantGlyphs = (graphemes?: GraphemeData[]) =>
       selectPartial,
       selectMode,
       selectConsonantFilter,
+      selectGraphemes,
     ],
     (
       graphemeFilterDirection,
@@ -181,7 +186,8 @@ export const selectConsonantGlyphs = (graphemes?: GraphemeData[]) =>
       selectedNGram,
       partial,
       mode,
-      consonantFilter
+      consonantFilter,
+      graphemes
     ): number[] => {
       if (!graphemes) return [];
       const allConsonantGlyphs = uniq(
@@ -283,7 +289,9 @@ export const calcFilteredGraphemes = (
   // });
 };
 
-export const selectFilteredGraphemes = (graphemes?: GraphemeData[]) =>
+export const selectFilteredGraphemes = (
+  selectGraphemes: () => GraphemeData[] | undefined
+) =>
   createSelector(
     [
       selectVowelFilter,
@@ -295,6 +303,7 @@ export const selectFilteredGraphemes = (graphemes?: GraphemeData[]) =>
       selectGlyphFilterDirection,
       selectWordFilterDirection,
       selectSelectedGrapheme,
+      selectGraphemes,
     ],
     (
       vowelFilter,
@@ -305,7 +314,8 @@ export const selectFilteredGraphemes = (graphemes?: GraphemeData[]) =>
       selectedWord,
       glyphFilterDirection,
       wordFilterDirection,
-      selectedGrapheme
+      selectedGrapheme,
+      graphemes
     ) => {
       if (!graphemes) return [];
       return calcFilteredGraphemes(
@@ -409,7 +419,9 @@ export const calcFilteredNGrams = (
   // });
 };
 
-export const selectFilteredNGrams = (words?: WordData[]) =>
+export const selectFilteredNGrams = (
+  selectWords: () => WordData[] | undefined
+) =>
   createSelector(
     [
       selectVowelFilter,
@@ -422,6 +434,7 @@ export const selectFilteredNGrams = (words?: WordData[]) =>
       selectGlyphFilterDirection,
       selectWordFilterDirection,
       selectSelectedNGram,
+      selectWords,
     ],
     (
       vowelFilter,
@@ -433,7 +446,8 @@ export const selectFilteredNGrams = (words?: WordData[]) =>
       selectedWord,
       glyphFilterDirection,
       wordFilterDirection,
-      selectedNGram
+      selectedNGram,
+      words
     ) => {
       if (!words) return [];
       return calcFilteredNGrams(
@@ -526,8 +540,8 @@ export const calcFilteredWords = (
 };
 
 export const selectFilteredWords = (
-  words?: WordData[],
-  junctions?: ContextWordJunction[]
+  selectWords: () => WordData[] | undefined,
+  selectJunctions: () => ContextWordJunction[] | undefined
 ) =>
   createSelector(
     [
@@ -538,6 +552,8 @@ export const selectFilteredWords = (
       selectGraphemeFilterDirection,
       selectContextFilterDirection,
       selectSelectedWord,
+      selectWords,
+      selectJunctions,
     ],
     (
       selectedGrapheme,
@@ -546,7 +562,9 @@ export const selectFilteredWords = (
       mode,
       graphemeFilterDirection,
       contextFilterDirection,
-      selectedWord
+      selectedWord,
+      words,
+      junctions
     ) => {
       if (!words) return [];
       return calcFilteredWords(
