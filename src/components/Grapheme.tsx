@@ -2,19 +2,10 @@ import { css } from "@emotion/react";
 import Glyph from "./Glyph";
 import {
   GraphemeData,
-  setSoundSave,
-  toggleGraphemeSureSave,
-} from "../redux/reducers/data";
+  useUpdateGraphemeMutation,
+} from "../redux/services/data";
 import InlineEdit from "./InlineEdit";
-import CheckCircleIcon from "@mui/icons-material/CheckCircle";
-import CircleOutlinedIcon from "@mui/icons-material/CircleOutlined";
-import { useAppDispatch, useAppSelector } from "../redux/hooks";
-import {
-  getConsonant,
-  getGraphemeSoundGuess,
-  getVowel,
-  reverseSyllableMask,
-} from "../glyph";
+import { getGraphemeSoundGuess } from "../glyph";
 
 interface GraphemeProps {
   glyph: GraphemeData;
@@ -38,47 +29,22 @@ const glyphWrapper = css`
   flex: 1 0 auto;
 `;
 
-const iconStyle = css`
-  align-self: end;
-  color: var(--green);
-`;
-
 const soundGuess = css`
   color: var(--cyan-600);
   text-align: center;
 `;
 
 function Grapheme({ glyph }: GraphemeProps) {
-  const graphemes = useAppSelector((state) => state.data.graphemes.entities);
-  const dispatch = useAppDispatch();
+  const [updateGrapheme] = useUpdateGraphemeMutation();
   return (
     <div css={graphemeWrapper}>
-      {glyph.sure ? (
-        <CheckCircleIcon
-          css={iconStyle}
-          onClick={(event: React.MouseEvent) => {
-            event.stopPropagation();
-            dispatch(toggleGraphemeSureSave({ id: glyph.id }));
-          }}
-        />
-      ) : (
-        <CircleOutlinedIcon
-          css={iconStyle}
-          onClick={(event: React.MouseEvent) => {
-            event.stopPropagation();
-            dispatch(toggleGraphemeSureSave({ id: glyph.id }));
-          }}
-        />
-      )}
       <div css={glyphWrapper}>
         <Glyph val={glyph.id} />
       </div>
-      <div css={soundGuess}>{getGraphemeSoundGuess(glyph.id, graphemes)}</div>
+      <div css={soundGuess}>{getGraphemeSoundGuess(glyph.id)}</div>
       <InlineEdit
-        value={glyph.sound}
-        setValue={(val: string) =>
-          dispatch(setSoundSave({ id: glyph.id, sound: val }))
-        }
+        value={glyph.sound ?? ""}
+        setValue={(val: string) => updateGrapheme({ id: glyph.id, sound: val })}
       />
     </div>
   );

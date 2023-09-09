@@ -3,13 +3,15 @@ import CheckBoxOutlineBlankIcon from "@mui/icons-material/CheckBoxOutlineBlank";
 import CheckBoxIcon from "@mui/icons-material/CheckBox";
 import { cx } from "@emotion/css";
 import {
-  selectExclusive,
-  selectReverseSyllableFilter,
-  selectPartial,
   setReverseSyllableFilter,
   toggleExclusive,
   togglePartialFilter,
 } from "../redux/reducers/selection";
+import {
+  selectExclusive,
+  selectReverseSyllableFilter,
+  selectPartial,
+} from "../selectors";
 import { useAppDispatch, useAppSelector } from "../redux/hooks";
 
 const filterToggles = css`

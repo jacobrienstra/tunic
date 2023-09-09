@@ -3,24 +3,28 @@ import Section from "./Section";
 import { useAppDispatch, useAppSelector } from "../redux/hooks";
 import Tile from "../components/Tile";
 import WordRow from "../components/WordRow";
-import { isEqual } from "lodash";
+import {
+  setSelectedWord,
+  setWordFilterDirection,
+} from "../redux/reducers/selection";
 import {
   selectFilteredWords,
   selectSelectedWord,
   selectWordFilterDirection,
-  setSelectedWord,
-  setWordFilterDirection,
-} from "../redux/reducers/selection";
-import { getWordId } from "../redux/reducers/data";
+} from "../selectors";
 import { cx } from "@emotion/css";
 import KeyboardDoubleArrowLeftIcon from "@mui/icons-material/KeyboardDoubleArrowLeft";
 import KeyboardDoubleArrowRightIcon from "@mui/icons-material/KeyboardDoubleArrowRight";
+import {
+  useGetContextWordJunctionsQuery,
+  useGetWordsQuery,
+} from "../redux/services/data";
 
 const wordsGrid = css`
   padding: 8px;
   margin-top: 8px;
   display: grid;
-  grid-template-columns: minmax(80px, min-content);
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
   grid-auto-rows: min-content;
   flex: 0 1 auto;
   width: 100%;
@@ -47,7 +51,10 @@ function WordsSection() {
   const dispatch = useAppDispatch();
   const selectedWord = useAppSelector(selectSelectedWord);
 
-  const filteredWords = useAppSelector(selectFilteredWords);
+  const { data: words } = useGetWordsQuery();
+  const { data: junctions } = useGetContextWordJunctionsQuery();
+
+  const filteredWords = useAppSelector(selectFilteredWords(words, junctions));
   const wordFilterDirection = useAppSelector(selectWordFilterDirection);
 
   return (
@@ -76,10 +83,10 @@ function WordsSection() {
         {filteredWords.map((w) => (
           <Tile
             align="start"
-            key={getWordId(w.word)}
-            active={isEqual(selectedWord, w)}
+            key={w.id}
+            active={selectedWord?.id === w.id}
             onClick={() => {
-              if (!isEqual(selectedWord, w)) {
+              if (selectedWord?.id !== w.id) {
                 dispatch(setSelectedWord(w));
               } else {
                 dispatch(setSelectedWord(null));

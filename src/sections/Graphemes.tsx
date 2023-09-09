@@ -1,12 +1,9 @@
 import Grapheme from "../components/Grapheme";
 import Tile from "../components/Tile";
-import {
-  selectFilteredGraphemes,
-  selectSelectedGrapheme,
-  setSelectedGrapheme,
-} from "../redux/reducers/selection";
+import { setSelectedGrapheme } from "../redux/reducers/selection";
+import { selectFilteredGraphemes, selectSelectedGrapheme } from "../selectors";
 import { useAppDispatch, useAppSelector } from "../redux/hooks";
-import { GraphemeData } from "../redux/reducers/data";
+import { GraphemeData, useGetGraphemesQuery } from "../redux/services/data";
 
 interface GraphemesProps {
   tileSize: number;
@@ -15,8 +12,10 @@ interface GraphemesProps {
 function Graphemes({ tileSize }: GraphemesProps) {
   const dispatch = useAppDispatch();
 
+  const { data: graphemes } = useGetGraphemesQuery();
+
   const selectedGrapheme = useAppSelector(selectSelectedGrapheme);
-  const filteredGraphemes = useAppSelector(selectFilteredGraphemes);
+  const filteredGraphemes = useAppSelector(selectFilteredGraphemes(graphemes));
 
   return (
     <>
@@ -24,11 +23,10 @@ function Graphemes({ tileSize }: GraphemesProps) {
         <Tile
           size={tileSize}
           key={g.id}
-          sure={g.sure}
-          active={selectedGrapheme === g.id}
+          active={selectedGrapheme?.id === g.id}
           onClick={() => {
-            if (selectedGrapheme !== g.id) {
-              dispatch(setSelectedGrapheme(g.id));
+            if (selectedGrapheme?.id !== g.id) {
+              dispatch(setSelectedGrapheme(g));
             } else {
               dispatch(setSelectedGrapheme(null));
             }

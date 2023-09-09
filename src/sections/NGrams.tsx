@@ -2,13 +2,13 @@ import { css } from "@emotion/react";
 import Tile from "../components/Tile";
 import Word from "../components/Word";
 import { useAppDispatch, useAppSelector } from "../redux/hooks";
-import { getWordId } from "../redux/reducers/data";
-import {
-  selectFilteredNGrams,
-  selectSelectedNGram,
-  setSelectedNGram,
-} from "../redux/reducers/selection";
+import { setSelectedNGram } from "../redux/reducers/selection";
+import { selectFilteredNGrams, selectSelectedNGram } from "../selectors";
 import { isEqual } from "lodash";
+import {
+  useGetGraphemeByIdQuery,
+  useGetWordsQuery,
+} from "../redux/services/data";
 
 const wordGuess = css`
   color: var(--cyan-600);
@@ -20,8 +20,8 @@ interface NGramsProps {
 function NGrams({ tileSize }: NGramsProps) {
   const dispatch = useAppDispatch();
 
-  const graphemes = useAppSelector((state) => state.data.graphemes.entities);
-  const filteredNGrams = useAppSelector(selectFilteredNGrams);
+  const { data: words } = useGetWordsQuery();
+  const filteredNGrams = useAppSelector(selectFilteredNGrams(words));
   const selectedNGram = useAppSelector(selectSelectedNGram);
 
   return (
@@ -29,7 +29,7 @@ function NGrams({ tileSize }: NGramsProps) {
       {filteredNGrams.map((ng) => (
         <Tile
           size={tileSize}
-          key={getWordId(ng)}
+          key={ng.join("_")}
           active={isEqual(selectedNGram, ng)}
           onClick={() => {
             if (!isEqual(selectedNGram, ng)) {
@@ -42,7 +42,7 @@ function NGrams({ tileSize }: NGramsProps) {
           <Word word={ng} />
           <div css={wordGuess}>
             {ng.map((val) => {
-              let sound = graphemes[val].sound;
+              let sound = useGetGraphemeByIdQuery(val).data?.sound;
               if (sound === "" || sound === undefined) {
                 return "??";
               }

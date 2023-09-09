@@ -20,19 +20,19 @@ function App() {
       windowResizeAware={true}
       css={rootLayout}
     >
-      <ReflexElement minSize={450} style={{ overflow: "hidden" }}>
+      <ReflexElement style={{ overflow: "hidden" }}>
         <GlyphsSection />
       </ReflexElement>
-      <ReflexSplitter />
-      <ReflexElement minSize={200} style={{ overflow: "hidden" }}>
+      <ReflexSplitter propagate />
+      <ReflexElement style={{ overflow: "hidden" }}>
         <WordsSection />
       </ReflexElement>
       <ReflexSplitter propagate />
-      <ReflexElement minSize={250} style={{ overflow: "hidden" }}>
+      <ReflexElement style={{ overflow: "hidden" }}>
         <ContextsSection />
       </ReflexElement>
       <ReflexSplitter propagate />
-      <ReflexElement minSize={250} style={{ overflow: "hidden" }}>
+      <ReflexElement style={{ overflow: "hidden" }}>
         <EntrySection />
       </ReflexElement>
     </ReflexContainer>

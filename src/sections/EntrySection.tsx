@@ -4,13 +4,20 @@ import { useRef, useState } from "react";
 import GlyphTyper from "../components/GlyphTyper";
 import Section from "./Section";
 import Word from "../components/Word";
-import storage from "../storage";
+import {
+  sdk,
+  useGetWordsQuery,
+  useUpdateContextMutation,
+} from "../redux/services/data";
 import { uploadFiles } from "@directus/sdk";
 import DownloadingIcon from "@mui/icons-material/Downloading";
-import { isEmpty } from "lodash";
-import { useAppDispatch } from "../redux/hooks";
-import { addWordSave } from "../redux/reducers/data";
+import { isEmpty, isEqual } from "lodash";
 import { ReflexElement, ReflexContainer, ReflexSplitter } from "react-reflex";
+import { getGraphemeSoundGuess } from "../glyph";
+import { useAddWordMutation } from "../redux/services/data";
+import { useAppSelector } from "../redux/hooks";
+import { selectSelectedContext } from "../selectors";
+import InlineEdit from "../components/InlineEdit";
 
 const textSection = css`
   display: flex;
@@ -77,7 +84,7 @@ const imgScrollWrapper = css`
 `;
 
 const contextImg = css`
-  max-height: 100%;
+  width: 200%;
 `;
 
 const errorSection = css`
@@ -106,11 +113,31 @@ const clearButton = cssClass`
   }
 `;
 
+const translationStyle = css`
+  color: var(--cyan-600);
+`;
+
+const headerSwitcher = css`
+  display: flex;
+  flex-direction: row;
+  flex: 0 0 auto;
+  padding: 8px;
+  font-size: 12px;
+
+  button:not(:last-child) {
+    margin-right: 8px;
+  }
+`;
+
+type EntryMode = "enter" | "edit";
+
 function EntrySection() {
-  const dispatch = useAppDispatch();
+  const [mode, setMode] = useState<EntryMode>("enter");
   const [text, setText] = useState<number[][]>([]);
   const [curWord, setCurWord] = useState<number[]>([]);
-  const [curContext, setCurContext] = useState<string | null>(null);
+  const [curImageId, setCurImageId] = useState<string | null>(null);
+
+  const selectedContext = useAppSelector(selectSelectedContext);
 
   const [uploading, setUploading] = useState(false);
 
@@ -119,9 +146,32 @@ function EntrySection() {
 
   const fileInput = useRef<HTMLInputElement>(null);
 
+  const [addWord] = useAddWordMutation();
+  const [updateContext] = useUpdateContextMutation();
+
+  const setValueFn = (val: string) => {
+    if (selectedContext != null && selectedContext.id) {
+      return updateContext({ id: selectedContext!.id, text: val });
+    } else {
+      return () => {};
+    }
+  };
+
+  const { data: words } = useGetWordsQuery();
   const addGraphemeToWord = (val: number) => {
     setCurWord(curWord.concat([val]));
   };
+
+  const translation = text
+    .map((w) => {
+      let existingWord = words?.find((word) => isEqual(word.word, w));
+      if (existingWord && !isEmpty(existingWord.meaning)) {
+        return existingWord.meaning;
+      } else {
+        return w.map((val) => getGraphemeSoundGuess(val)).join("");
+      }
+    })
+    .join(" ");
 
   const addWordToText = () => {
     if (curWord.length > 0) {
@@ -164,8 +214,8 @@ function EntrySection() {
       const formData = new FormData();
       formData.append("file", file);
       try {
-        const response = await storage.request(uploadFiles(formData));
-        setCurContext(response.filename_disk);
+        const response = await sdk.request(uploadFiles(formData));
+        setCurImageId(response.filename_disk);
       } catch ({ errors }: any) {
         setError(
           errors
@@ -186,18 +236,53 @@ function EntrySection() {
 
   return (
     <Section title="Entry">
+      <div css={headerSwitcher}>
+        <button
+          className={cx({ active: mode === "enter" })}
+          onClick={() => {
+            setMode("enter");
+          }}
+        >
+          Enter
+        </button>
+        <button
+          className={cx({ active: mode === "edit" })}
+          onClick={() => {
+            setMode("edit");
+          }}
+        >
+          Edit
+        </button>
+      </div>
       <ReflexContainer orientation={"horizontal"} windowResizeAware={true}>
         <ReflexElement minSize={121} size={121} style={{ padding: "8px 12px" }}>
-          <div css={textSection}>
-            <div css={textWrapper}>
-              {text.map((w, i) => (
-                <Word word={w} key={i} />
-              ))}
+          {mode === "enter" ? (
+            <>
+              <div css={textSection}>
+                <div css={textWrapper}>
+                  {text.map((w, i) => (
+                    <Word word={w} key={i} />
+                  ))}
+                </div>
+                <div css={wordWrapper}>
+                  <Word word={curWord} width={30} />
+                </div>
+              </div>
+              <div css={translationStyle}>{translation}</div>
+            </>
+          ) : (
+            <div>
+              <InlineEdit
+                textarea
+                value={
+                  selectedContext && !isEmpty(selectedContext.text)
+                    ? selectedContext.text
+                    : translation
+                }
+                setValue={setValueFn}
+              />
             </div>
-            <div css={wordWrapper}>
-              <Word word={curWord} width={30} />
-            </div>
-          </div>
+          )}
         </ReflexElement>
         <ReflexSplitter />
         <ReflexElement minSize={200} maxSize={280} size={250}>
@@ -227,23 +312,19 @@ function EntrySection() {
                   const submit = confirm("Submit Text with Context?");
                   if (submit) {
                     for (let word of text) {
-                      if (curContext) {
-                        dispatch(
-                          addWordSave({
-                            word: word,
-                            ctx: curContext,
-                          })
-                        );
+                      if (curImageId) {
+                        addWord({
+                          word: word,
+                          ctxImageId: curImageId,
+                        });
                       } else {
-                        dispatch(
-                          addWordSave({
-                            word: word,
-                          })
-                        );
+                        addWord({
+                          word: word,
+                        });
                       }
                     }
                     setText([]);
-                    setCurContext(null);
+                    setCurImageId(null);
                   }
                 }
               }}
@@ -261,9 +342,9 @@ function EntrySection() {
         <ReflexSplitter propagate />
         <ReflexElement>
           <div css={imgSection}>
-            <label htmlFor="fileInput">{curContext ?? "Add Context"}</label>
+            <label htmlFor="fileInput">{curImageId ?? "Add Context"}</label>
             <input
-              disabled={curContext != null}
+              disabled={curImageId != null}
               type="file"
               id="fileInput"
               ref={fileInput}
@@ -276,27 +357,27 @@ function EntrySection() {
               <DownloadingIcon fontSize="large" css={loadingIcon} />
             ) : null}
             <div css={imgScrollWrapper}>
-              {curContext != null ? (
+              {curImageId != null ? (
                 <img
                   // hideHint
                   css={contextImg}
                   // zoomScale={2}
                   src={`${
                     import.meta.env.VITE_DIRECTUS_URL
-                  }/assets/${curContext}`}
+                  }/assets/${curImageId}`}
                 />
               ) : null}
             </div>
             <button
               className={cx({
-                disabled: isEmpty(curContext),
+                disabled: isEmpty(curImageId),
                 [clearButton]: true,
               })}
               onClick={() => {
-                if (curContext) {
+                if (curImageId) {
                   const clear = confirm("Clear Context?");
                   if (clear) {
-                    setCurContext(null);
+                    setCurImageId(null);
                   }
                 }
               }}

@@ -2,21 +2,24 @@ import { css } from "@emotion/react";
 import KeyboardDoubleArrowRightIcon from "@mui/icons-material/KeyboardDoubleArrowRight";
 import { useAppDispatch, useAppSelector } from "../redux/hooks";
 import {
+  setGlyphFilterDirection,
+  setConsonantFilter,
+  setVowelFilter,
+} from "../redux/reducers/selection";
+import {
   selectGlyphFilterDirection,
   selectConsonantFilter,
   selectConsonantGlyphs,
   selectVowelFilter,
   selectVowelGlyphs,
-  setGlyphFilterDirection,
-  setConsonantFilter,
-  setVowelFilter,
-} from "../redux/reducers/selection";
+} from "../selectors";
 
 import Glyph from "../components/Glyph";
 import Tile from "../components/Tile";
 import FilterOptions from "./FilterOptions";
 import { cx } from "@emotion/css";
 import { getGraphemeSoundGuess } from "../glyph";
+import { useGetGraphemesQuery } from "../redux/services/data";
 
 const tileSize = 35;
 
@@ -87,16 +90,15 @@ const soundGuess = css`
 
 function Filters() {
   const dispatch = useAppDispatch();
+  const { data: graphemes } = useGetGraphemesQuery();
 
   const vowelFilter = useAppSelector(selectVowelFilter);
   const consonantFilter = useAppSelector(selectConsonantFilter);
 
-  const vowelGlyphs = useAppSelector(selectVowelGlyphs);
-  const consonantGlyphs = useAppSelector(selectConsonantGlyphs);
+  const vowelGlyphs = useAppSelector(selectVowelGlyphs(graphemes));
+  const consonantGlyphs = useAppSelector(selectConsonantGlyphs(graphemes));
 
   const glyphFilterDirection = useAppSelector(selectGlyphFilterDirection);
-
-  const graphemes = useAppSelector((state) => state.data.graphemes.entities);
 
   return (
     <section css={glyphPartsSection}>
@@ -134,9 +136,7 @@ function Filters() {
                 }}
               >
                 <Glyph val={val} />
-                <div css={soundGuess}>
-                  {getGraphemeSoundGuess(val, graphemes)}
-                </div>
+                <div css={soundGuess}>{getGraphemeSoundGuess(val)}</div>
               </Tile>
             ))}
           </div>
@@ -156,9 +156,7 @@ function Filters() {
                 }}
               >
                 <Glyph val={val} />
-                <div css={soundGuess}>
-                  {getGraphemeSoundGuess(val, graphemes)}
-                </div>
+                <div css={soundGuess}>{getGraphemeSoundGuess(val)}</div>
               </Tile>
             ))}
           </div>

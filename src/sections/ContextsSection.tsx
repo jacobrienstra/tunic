@@ -2,14 +2,18 @@ import Section from "./Section";
 import { css } from "@emotion/react";
 import { useAppDispatch, useAppSelector } from "../redux/hooks";
 import InnerImageZoom from "react-inner-image-zoom";
-import { createSelector } from "@reduxjs/toolkit";
-import { selectAllWords } from "../redux/reducers/data";
+import {
+  useGetContextsForWordQuery,
+  useGetContextsQuery,
+} from "../redux/services/data";
 import Tile from "../components/Tile";
 import {
   selectContextFilterDirection,
   selectSelectedContext,
   selectSelectedWord,
   selectWordFilterDirection,
+} from "../selectors";
+import {
   setContextFilterDirection,
   setSelectedContext,
 } from "../redux/reducers/selection";
@@ -41,7 +45,7 @@ const filterDirectionSection = css`
   display: flex;
   flex-direction: row;
   align-items: center;
-  justify-content: start;
+  justify-content: center;
   align-content: center;
   flex-wrap: wrap;
   flex: 0 0 auto;
@@ -59,48 +63,43 @@ function ContextsSection() {
   const wordFilterDireciton = useAppSelector(selectWordFilterDirection);
   const selectedContext = useAppSelector(selectSelectedContext);
 
-  const selectAllCtxs = createSelector([selectAllWords], (words) => {
-    return words.reduce((acc, word) => {
-      word.ctxs.forEach((ctx) => acc.add(ctx));
-      return acc;
-    }, new Set<string>());
-  });
-  const allCtxs = useAppSelector(selectAllCtxs);
+  const { data: allCtxs } = useGetContextsQuery();
   const ctxs =
-    selectedWord && wordFilterDireciton === "right"
-      ? selectedWord.ctxs
-      : Array.from(allCtxs).sort((a, b) => {
-          if (a === selectedContext) return -1;
-          if (b === selectedContext) return 1;
-          else return a.localeCompare(b);
-        });
+    (selectedWord && wordFilterDireciton === "right"
+      ? useGetContextsForWordQuery(selectedWord.id).data
+      : allCtxs) ?? [];
+  // .sort((a, b) => {
+  //     if (a === selectedContext) return -1;
+  //     if (b === selectedContext) return 1;
+  //     else return a.localeCompare(b);
+  //   });
 
   const contextFilterDirection = useAppSelector(selectContextFilterDirection);
 
   return (
     <Section title="Contexts">
+      <div css={filterDirectionSection}>
+        <button
+          className={cx({ active: contextFilterDirection === "left" })}
+          onClick={() => dispatch(setContextFilterDirection("left"))}
+        >
+          <KeyboardDoubleArrowLeftIcon />
+        </button>
+        <button
+          className={cx({ active: contextFilterDirection === "off" })}
+          onClick={() => dispatch(setContextFilterDirection("off"))}
+        >
+          Off
+        </button>
+      </div>
       <div css={contextsWrapper}>
-        <div css={filterDirectionSection}>
-          <button
-            className={cx({ active: contextFilterDirection === "left" })}
-            onClick={() => dispatch(setContextFilterDirection("left"))}
-          >
-            <KeyboardDoubleArrowLeftIcon />
-          </button>
-          <button
-            className={cx({ active: contextFilterDirection === "off" })}
-            onClick={() => dispatch(setContextFilterDirection("off"))}
-          >
-            Off
-          </button>
-        </div>
         {ctxs.map((ctx) => (
           <Tile
             align="start"
-            key={ctx}
-            active={selectedContext === ctx}
-            onClick={(event: React.MouseEvent) => {
-              if (selectedContext !== ctx) {
+            key={ctx.id}
+            active={selectedContext?.id === ctx.id}
+            onClick={() => {
+              if (selectedContext?.id !== ctx.id) {
                 dispatch(setSelectedContext(ctx));
               } else {
                 dispatch(setSelectedContext(null));
@@ -116,7 +115,9 @@ function ContextsSection() {
                   hideHint
                   css={contextImg}
                   zoomScale={2}
-                  src={`${import.meta.env.VITE_DIRECTUS_URL}/assets/${ctx}`}
+                  src={`${import.meta.env.VITE_DIRECTUS_URL}/assets/${
+                    ctx.image
+                  }`}
                 ></InnerImageZoom>
               </div>
             </div>

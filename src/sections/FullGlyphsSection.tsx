@@ -1,15 +1,16 @@
 import { css } from "@emotion/react";
 import { cx } from "@emotion/css";
 import { useAppDispatch, useAppSelector } from "../redux/hooks";
-import { RootState } from "../redux/store";
 import {
-  selectGraphemeFilterDirection,
-  selectMode,
-  selectN,
   setGraphemeFilterDirection,
   setMode,
   setN,
 } from "../redux/reducers/selection";
+import {
+  selectGraphemeFilterDirection,
+  selectMode,
+  selectN,
+} from "../selectors";
 import Graphemes from "./Graphemes";
 import NGrams from "./NGrams";
 import KeyboardDoubleArrowLeftIcon from "@mui/icons-material/KeyboardDoubleArrowLeft";
@@ -76,7 +77,9 @@ function FullGlyphsSection() {
   const mode = useAppSelector(selectMode);
 
   const graphemeFilterDirection = useAppSelector(selectGraphemeFilterDirection);
+
   const tileSize = mode === "graphemes" ? 60 : (selectedN + 1) * 20;
+
   const ngramsGrid = css`
     padding: 4px;
     margin-top: 8px;
@@ -85,10 +88,6 @@ function FullGlyphsSection() {
     grid-auto-rows: min-content;
     flex: 0 1 auto;
     overflow-y: scroll;
-
-    ::-webkit-scrollbar {
-      display: none;
-    }
   `;
 
   return (
