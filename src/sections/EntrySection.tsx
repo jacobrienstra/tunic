@@ -12,6 +12,7 @@ import {
   useGetGraphemesQuery,
   useGetWordsQuery,
   useUpdateContextMutation,
+  useUpsertContextMutation,
 } from "../redux/services/data";
 import { uploadFiles } from "@directus/sdk";
 import DownloadingIcon from "@mui/icons-material/Downloading";
@@ -82,7 +83,7 @@ const imgSection = css`
 `;
 
 const imgScrollWrapper = css`
-  max-width: 100%;
+  width: 100%;
   overflow-x: scroll;
   /* height: 100%; */
 `;
@@ -165,6 +166,7 @@ function EntrySection() {
 
   const [addWord] = useAddWordMutation();
   const [updateContext] = useUpdateContextMutation();
+  const [upsertContext] = useUpsertContextMutation();
   const { data: graphemes } = useGetGraphemesQuery();
   const { data: junctions } = useGetContextWordJunctionsQuery();
   const { data: words } = useGetWordsQuery();
@@ -355,18 +357,24 @@ function EntrySection() {
                 ) {
                   const submit = confirm("Submit Text with Context?");
                   if (submit) {
-                    for (let i = 0; i < text.length; i++) {
-                      if (curImageId) {
-                        await addWord({
-                          word: text[i],
-                          ctxImageId: curImageId,
-                          order: i,
-                        });
-                      } else {
-                        await addWord({
-                          word: text[i],
-                        });
+                    let context = null;
+                    if (curImageId) {
+                      context = await upsertContext({ imageId: curImageId });
+                    } else {
+                      context = await upsertContext({});
+                    }
+                    if (context && "data" in context && context?.data?.id) {
+                      const promises = [];
+                      for (let i = 0; i < text.length; i++) {
+                        promises.push(
+                          addWord({
+                            word: text[i],
+                            ctxId: context.data?.id,
+                            order: i,
+                          })
+                        );
                       }
+                      await Promise.all(promises);
                     }
                     setText([]);
                     setCurImageId(null);

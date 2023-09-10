@@ -77,6 +77,7 @@ function ContextsSection() {
   }
 
   let ctxs = filteredContexts ?? allCtxs ?? [];
+  ctxs = ctxs.slice().reverse();
   // .sort((a, b) => {
   //     if (a === selectedContext) return -1;
   //     if (b === selectedContext) return 1;

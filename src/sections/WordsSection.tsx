@@ -85,10 +85,10 @@ function WordsSection() {
         </button>
       </div>
       <div css={wordsGrid}>
-        {filteredWords.map((w) => (
+        {filteredWords.map((w, i) => (
           <Tile
             align="start"
-            key={w.id}
+            key={[w.id, i].join("_")}
             active={selectedWord === w.id}
             onClick={() => {
               if (selectedWord !== w.id) {

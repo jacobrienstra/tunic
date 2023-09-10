@@ -38,7 +38,7 @@ export const dataApi = createApi({
   tagTypes: ["Graphemes", "Words", "Contexts", "ContextWordJunction"],
   endpoints: (builder) => ({
     getGraphemes: builder.query<GraphemeData[] | undefined, void>({
-      query: () => () => sdk.request(readItems("graphemes")),
+      query: () => () => sdk.request(readItems("graphemes", { limit: -1 })),
       providesTags: (result) =>
         result
           ? [
@@ -49,7 +49,7 @@ export const dataApi = createApi({
       // transformResponse: (response: { data: GraphemeData[] }) => response?.data,
     }),
     getWords: builder.query<WordData[] | undefined, void>({
-      query: () => () => sdk.request(readItems("words")),
+      query: () => () => sdk.request(readItems("words", { limit: -1 })),
       providesTags: (result) =>
         result
           ? [
@@ -60,7 +60,7 @@ export const dataApi = createApi({
       // transformResponse: (response: { data: WordData[] }) => response?.data,
     }),
     getContexts: builder.query<ContextData[] | undefined, void>({
-      query: () => () => sdk.request(readItems("contexts")),
+      query: () => () => sdk.request(readItems("contexts", { limit: -1 })),
       providesTags: (result) =>
         result
           ? [
@@ -75,7 +75,7 @@ export const dataApi = createApi({
       void
     >({
       query: () => () =>
-        sdk.request(readItems("contexts_words", { sort: "order" })),
+        sdk.request(readItems("contexts_words", { sort: "order", limit: -1 })),
       providesTags: (result) =>
         result
           ? [
@@ -142,6 +142,58 @@ export const dataApi = createApi({
       invalidatesTags: (result) =>
         result ? [{ type: "Contexts", id: result.id }] : [],
     }),
+    upsertContext: builder.mutation<
+      ContextData | undefined,
+      { imageId?: string }
+    >({
+      queryFn: async ({ imageId }, _queryApi, _extraOptions, fetchWithBQ) => {
+        let existingContext: ContextData | null = null;
+        let result = null;
+        if (imageId) {
+          let result = await fetchWithBQ(() =>
+            sdk.request(
+              readItems("contexts", {
+                filter: {
+                  image: { _eq: imageId },
+                },
+              })
+            )
+          );
+          if (!isEmpty(result.data)) {
+            existingContext = (result.data as any[])[0];
+          }
+        } else {
+          result = await fetchWithBQ(() =>
+            sdk.request(
+              readItems("contexts", {
+                filter: {
+                  image: { _null: true },
+                },
+              })
+            )
+          );
+          if (!isEmpty(result.data)) {
+            existingContext = (result.data as any[])[0];
+          }
+        }
+        if (!existingContext) {
+          result = await fetchWithBQ(() =>
+            sdk.request(
+              createItem("contexts", imageId ? { image: imageId } : {})
+            )
+          );
+          if (!result.data) {
+            return { error: result.error as FetchBaseQueryError };
+          } else {
+            existingContext = result.data as ContextData;
+          }
+        }
+
+        return { data: existingContext };
+      },
+      invalidatesTags: (result) =>
+        result ? [{ type: "Contexts", id: result.id }] : [],
+    }),
     addWord: builder.mutation<
       | {
           wordId: number;
@@ -150,10 +202,10 @@ export const dataApi = createApi({
           contextWordJunctionId: number;
         }
       | undefined,
-      { word: number[]; ctxImageId?: string; order?: number }
+      { word: number[]; ctxId: number; order?: number }
     >({
       queryFn: async (
-        { word, ctxImageId, order },
+        { word, ctxId, order },
         _queryApi,
         _extraOptions,
         fetchWithBQ
@@ -180,51 +232,10 @@ export const dataApi = createApi({
           }
         }
 
-        let existingContext: ContextData | null = null;
-        if (ctxImageId) {
-          result = await fetchWithBQ(() =>
-            sdk.request(
-              readItems("contexts", {
-                filter: {
-                  image: { _eq: ctxImageId },
-                },
-              })
-            )
-          );
-          if (!isEmpty(result.data)) {
-            existingContext = (result.data as any[])[0];
-          }
-        } else {
-          result = await fetchWithBQ(() =>
-            sdk.request(
-              readItems("contexts", {
-                filter: {
-                  image: { _null: true },
-                },
-              })
-            )
-          );
-          if (!isEmpty(result.data)) {
-            existingContext = (result.data as any[])[0];
-          }
-        }
-        if (!existingContext) {
-          result = await fetchWithBQ(() =>
-            sdk.request(
-              createItem("contexts", ctxImageId ? { image: ctxImageId } : {})
-            )
-          );
-          if (!result.data) {
-            return { error: result.error as FetchBaseQueryError };
-          } else {
-            existingContext = result.data as ContextData;
-          }
-        }
-
         const updatedJunction = await fetchWithBQ(() =>
           sdk.request(
             createItem("contexts_words", {
-              contexts_id: (existingContext as ContextData).id,
+              contexts_id: ctxId,
               words_id: (existingWord as WordData).id,
               order: order,
             })
@@ -251,7 +262,7 @@ export const dataApi = createApi({
         return {
           data: {
             wordId: (existingWord as WordData).id,
-            contextId: (existingContext as ContextData).id,
+            contextId: ctxId,
             graphemeIds: word,
             contextWordJunctionId: (updatedJunction.data as ContextWordJunction)
               .id,
@@ -318,6 +329,7 @@ export const {
   useUpdateGraphemeMutation,
   useUpdateWordMutation,
   useUpdateContextMutation,
+  useUpsertContextMutation,
   useAddWordMutation,
 } = dataApi;
 export default dataApi;
