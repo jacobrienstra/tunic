@@ -20,7 +20,7 @@ function App() {
       windowResizeAware={true}
       css={rootLayout}
     >
-      <ReflexElement size={450} style={{ overflow: "hidden" }}>
+      <ReflexElement size={100} style={{ overflow: "hidden" }}>
         <GlyphsSection />
       </ReflexElement>
       <ReflexSplitter propagate />

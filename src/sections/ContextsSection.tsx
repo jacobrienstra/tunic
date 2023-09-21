@@ -61,6 +61,7 @@ const filterDirectionSection = css`
 function ContextsSection() {
   const dispatch = useAppDispatch();
   const selectedWord = useAppSelector(selectSelectedWord);
+  const wordFilterDirection = useAppSelector(selectWordFilterDirection);
   const selectedContext = useAppSelector(selectSelectedContext);
 
   const { data: allCtxs } = useGetContextsQuery();
@@ -76,13 +77,12 @@ function ContextsSection() {
     );
   }
 
-  let ctxs = filteredContexts ?? allCtxs ?? [];
+  let ctxs =
+    selectedWord && wordFilterDirection === "right"
+      ? filteredContexts
+      : allCtxs;
+  if (isEmpty(ctxs) || ctxs == undefined) ctxs = [];
   ctxs = ctxs.slice().reverse();
-  // .sort((a, b) => {
-  //     if (a === selectedContext) return -1;
-  //     if (b === selectedContext) return 1;
-  //     else return a.localeCompare(b);
-  //   });
 
   const contextFilterDirection = useAppSelector(selectContextFilterDirection);
 

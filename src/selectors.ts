@@ -273,7 +273,7 @@ export const calcFilteredGraphemes = (
     });
   } else if (wordFilterDirection === "left" && selectedWord != null) {
     filteredGraphemes = graphemes.filter((gd) =>
-      words.find((w) => w.id === selectedWord)?.word.includes(gd.id)
+      words.find((w) => w.id === selectedWord)?.word.includes(gd.id.toString())
     );
   }
   return filteredGraphemes;
@@ -368,9 +368,9 @@ export const calcFilteredNGrams = (
     | "selectedNGram"
   >,
   words: WordData[]
-): number[][] => {
+): string[][] => {
   const filteredNGrams = {} as {
-    [id: string]: { count: number; ngram: number[] };
+    [id: string]: { count: number; ngram: string[] };
   };
 
   for (let w of words) {
@@ -380,7 +380,7 @@ export const calcFilteredNGrams = (
       if (glyphFilterDirection === "right") {
         const results = nGramSlice.map((g) => {
           return graphemeMatchesFilters(
-            g,
+            parseInt(g),
             vowelFilter,
             consonantFilter,
             reverseSyllableFilter,
@@ -416,16 +416,17 @@ export const calcFilteredNGrams = (
     }
   }
 
-  return Object.values(filteredNGrams).map((ng) => {
-    return ng.ngram;
-  });
-  // .sort((a, b) => {
-  //   // if (a === selectedNGram) return -1;
-  //   // if (b === selectedNGram) return 1;
-  //   return (
-  //     filteredNGrams[getWordId(b)].count - filteredNGrams[getWordId(a)].count
-  //   );
-  // });
+  return Object.values(filteredNGrams)
+    .map((ng) => {
+      return ng.ngram;
+    })
+    .sort((a, b) => {
+      // if (a === selectedNGram) return -1;
+      // if (b === selectedNGram) return 1;
+      return (
+        filteredNGrams[b.join("_")].count - filteredNGrams[a.join("_")].count
+      );
+    });
 };
 
 export const selectFilteredNGrams = (
@@ -477,7 +478,7 @@ export const selectFilteredNGrams = (
     }
   );
 
-const wordContainsNGram = (word: number[], nGram: number[]): boolean => {
+const wordContainsNGram = (word: string[], nGram: string[]): boolean => {
   const n = nGram.length;
   for (let i = 0; i < word.length - (n - 1); i++) {
     let nGramSlice = word.slice(i, i + n);
@@ -525,7 +526,9 @@ export const calcFilteredWords = (
     }, [] as WordData[]);
   } else if (graphemeFilterDirection === "right") {
     if (mode === "graphemes" && selectedGrapheme) {
-      filteredWords = words.filter((w) => w.word.includes(selectedGrapheme));
+      filteredWords = words.filter((w) =>
+        w.word.includes(selectedGrapheme.toString())
+      );
     } else if (mode === "ngrams" && selectedNGram) {
       filteredWords = words.filter((w) =>
         wordContainsNGram(w.word, selectedNGram)

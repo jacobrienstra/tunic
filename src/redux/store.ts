@@ -6,6 +6,7 @@ import type {
   Mode,
 } from "./reducers/selection";
 import dataApi from "./services/data";
+import { isEmpty, throttle } from "lodash";
 
 const initialState = {
   selection: {
@@ -27,6 +28,28 @@ const initialState = {
   },
 };
 
+export const loadState = () => {
+  try {
+    const serializedState = localStorage.getItem("tunicState");
+    if (serializedState === null || isEmpty(serializedState)) {
+      return initialState;
+    }
+    return JSON.parse(serializedState);
+  } catch (err) {
+    return undefined;
+  }
+};
+
+export const saveState = (state: Partial<RootState>) => {
+  try {
+    const serializedState = JSON.stringify(state);
+    localStorage.setItem("tunicState", serializedState);
+  } catch {
+    // ignore write errors
+  }
+};
+const persistedState = loadState();
+
 const store = configureStore({
   reducer: {
     [dataApi.reducerPath]: dataApi.reducer,
@@ -34,10 +57,19 @@ const store = configureStore({
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(dataApi.middleware),
-  preloadedState: initialState,
+  preloadedState: persistedState,
 });
+
+store.subscribe(
+  throttle(() => {
+    saveState({
+      selection: store.getState().selection,
+    });
+  }, 1000)
+);
 
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;
+
 
 export default store;

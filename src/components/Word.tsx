@@ -21,7 +21,7 @@ interface WordProps {
 
 function Word({ word, width = 20 }: WordProps) {
   return (
-    <div css={wordStyle}>
+    <div css={wordStyle} data-word={word} className="word">
       {word.map((w, i) => (
         <Glyph val={w} width={width} key={[w, i].join("_")} />
       ))}

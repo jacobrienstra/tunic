@@ -7,8 +7,10 @@ import { selectFilteredNGrams, selectSelectedNGram } from "../selectors";
 import { isEqual } from "lodash";
 import {
   useGetGraphemeByIdQuery,
+  useGetGraphemesQuery,
   useGetWordsQuery,
 } from "../redux/services/data";
+import { getGraphemeSoundGuess } from "../glyph";
 
 const wordGuess = css`
   color: var(--cyan-600);
@@ -21,6 +23,7 @@ function NGrams({ tileSize }: NGramsProps) {
   const dispatch = useAppDispatch();
 
   const { data: words } = useGetWordsQuery();
+  const { data: graphemes } = useGetGraphemesQuery();
   const filteredNGrams = useAppSelector(selectFilteredNGrams(() => words));
   const selectedNGram = useAppSelector(selectSelectedNGram);
 
@@ -41,13 +44,17 @@ function NGrams({ tileSize }: NGramsProps) {
         >
           <Word word={ng} />
           <div css={wordGuess}>
-            {ng.map((val) => {
-              let sound = useGetGraphemeByIdQuery(val).data?.sound;
-              if (sound === "" || sound === undefined) {
-                return "??";
-              }
-              return sound.replace("?", "");
-            })}
+            {ng
+              .map((val) => {
+                let sound = graphemes?.find(
+                  (g) => g.id === parseInt(val)
+                )?.sound;
+                if (sound === "" || sound === undefined) {
+                  return getGraphemeSoundGuess(parseInt(val), graphemes);
+                }
+                return sound.replace("?", "");
+              })
+              .join("")}
           </div>
         </Tile>
       ))}

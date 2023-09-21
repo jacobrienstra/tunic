@@ -69,12 +69,14 @@ export function getCombo(
   );
 }
 
-export function getVowel(val: number) {
-  return val & vowelMask;
+export function getVowel(val: number | string) {
+  const v = typeof val === "string" ? parseInt(val) : val;
+  return v & vowelMask;
 }
 
-export function getConsonant(val: number) {
-  return val & consonantMask;
+export function getConsonant(val: number | string) {
+  const v = typeof val === "string" ? parseInt(val) : val;
+  return v & consonantMask;
 }
 
 export const getGraphemeSoundGuess = (

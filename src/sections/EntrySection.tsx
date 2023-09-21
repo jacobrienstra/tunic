@@ -1,6 +1,6 @@
 import { cx, css as cssClass } from "@emotion/css";
 import { css } from "@emotion/react";
-import { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import GlyphTyper from "../components/GlyphTyper";
 import Section from "./Section";
 import Word from "../components/Word";
@@ -23,25 +23,35 @@ import { useAddWordMutation } from "../redux/services/data";
 import { useAppSelector } from "../redux/hooks";
 import { selectSelectedContext } from "../selectors";
 import InlineEdit from "../components/InlineEdit";
+import InnerImageZoom from "react-inner-image-zoom";
 
 const textSection = css`
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
   text-align: center;
-  border: 1px dashed var(--slate-600);
-  /* flex: 1 0 auto; */
+  height: 100%;
+  max-width: 100%;
+`;
+
+const textRenderSection = css`
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  height: 100%;
 `;
 
 const textWrapper = css`
-  flex: 1 1 auto;
-  min-height: 40px;
+  flex: 1 0 50%;
   align-self: stretch;
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
+  justify-content: flex-start;
+  align-content: flex-start;
+  overflow-y: scroll;
 
-  border-bottom: 2px solid var(--slate-500);
+  border: 1px dotted var(--slate-500);
 
   & > div {
     padding: 2px 6px;
@@ -50,27 +60,23 @@ const textWrapper = css`
 
 const wordWrapper = css`
   padding: 8px 0;
-  flex: 1 1 auto;
-  min-height: 65px;
-`;
-
-const submitButton = cssClass`
-  margin-bottom: 8px;
+  flex: 0 0 auto;
 `;
 
 const typerWrapper = css`
   display: flex;
+  flex: 0 0 auto;
   flex-direction: column;
   align-items: center;
-  padding: 8px;
-  height: 100%;
-  justify-content: center;
+  padding: 0 8px;
+  justify-content: flex-start;
 `;
 
 const imgSection = css`
   display: flex;
   flex-direction: column;
   align-items: center;
+  flex: 0 0 auto;
   /* height: 100%; */
   label {
     margin: 8px;
@@ -82,10 +88,17 @@ const imgSection = css`
   }
 `;
 
-const imgScrollWrapper = css`
+const imgSectionButtons = css`
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
   width: 100%;
+`;
+
+const imgScrollWrapper = css`
   overflow-x: scroll;
-  /* height: 100%; */
+  height: 100%;
 `;
 
 const contextImg = css`
@@ -110,7 +123,6 @@ const loadingIcon = css`
 `;
 
 const clearButton = cssClass`
-  margin-top: 8px;
   color: var(--red-900);
 
   &:hover {
@@ -136,16 +148,49 @@ const headerSwitcher = css`
 
 const textEditor = css`
   width: 100%;
+  flex: 1 0 auto;
+  white-space: pre-wrap;
+  padding: 8px;
+  font-family: "Noto Serif", Inter, system-ui, Avenir, Helvetica, Arial,
+    sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  cursor: text;
+  overflow-y: scroll;
+`;
+
+const editingWrapper = css`
+  display: flex;
+  flex-direction: column;
+  padding: 8px 12px;
   height: 100%;
 `;
 
 type EntryMode = "enter" | "edit";
 
 function EntrySection() {
-  const [mode, setMode] = useState<EntryMode>("enter");
-  const [text, setText] = useState<number[][]>([]);
-  const [curWord, setCurWord] = useState<number[]>([]);
-  const [curImageId, setCurImageId] = useState<string | null>(null);
+  const [mode, setMode] = useState<EntryMode>(
+    (localStorage.getItem("tunic-EntryMode") as EntryMode) ??
+      ("enter" as EntryMode)
+  );
+  const [text, setText] = useState<number[][]>(
+    JSON.parse(localStorage.getItem("tunic-EntryText") ?? "[]") as number[][]
+  );
+  const [curWord, setCurWord] = useState<number[]>(
+    (JSON.parse(localStorage.getItem("tunic-EntryWord") ?? "[]") ??
+      []) as number[]
+  );
+  const [curImageId, setCurImageId] = useState<string | null>(
+    localStorage.getItem("tunic-EntryImageId")
+  );
+
+  useEffect(() => {
+    localStorage.setItem("tunic-EntryMode", mode);
+    localStorage.setItem("tunic-EntryText", JSON.stringify(text));
+    localStorage.setItem("tunic-EntryWord", JSON.stringify(curWord));
+    if (curImageId) localStorage.setItem("tunic-EntryImageId", curImageId);
+    else localStorage.removeItem("tunic-EntryImageId");
+  }, [mode, text, curWord, curImageId]);
 
   const selectedContextId = useAppSelector(selectSelectedContext);
 
@@ -171,6 +216,28 @@ function EntrySection() {
   const { data: junctions } = useGetContextWordJunctionsQuery();
   const { data: words } = useGetWordsQuery();
 
+  const textWrapperRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const wordChildren =
+      textWrapperRef.current?.querySelectorAll(".wordWrapper");
+    if (wordChildren) {
+      [...wordChildren].forEach((child, i) => {
+        const wordEl = child.querySelector(".word");
+        const wordString = wordEl?.getAttribute("data-word");
+        const existingSpan = child.querySelector(`.translatedText`);
+        if (wordEl && wordString && !existingSpan) {
+          const wordNums = wordString.split(",").map((w) => parseInt(w));
+          const translatedText = document.createElement("span");
+          translatedText.setAttribute("class", "translatedText");
+          translatedText.innerText = getWordTranslation(wordNums);
+          translatedText.style.color = "var(--cyan-600)";
+          child.appendChild(translatedText);
+        }
+      });
+    }
+  }, [text]);
+
   const setValueFn = (val: string) => {
     if (selectedContext != null && selectedContext?.id) {
       return updateContext({ id: selectedContext!.id, text: val });
@@ -179,26 +246,53 @@ function EntrySection() {
     }
   };
 
+  const submitTextFn = async () => {
+    if (!isEmpty(text)) {
+      const submit = confirm("Submit Text with Context?");
+      if (submit) {
+        let context = null;
+        if (curImageId) {
+          context = await upsertContext({ imageId: curImageId });
+        } else {
+          context = await upsertContext({});
+        }
+        if (context && "data" in context && context?.data?.id) {
+          const promises = [];
+          for (let i = 0; i < text.length; i++) {
+            promises.push(
+              addWord({
+                word: text[i],
+                ctxId: context.data?.id,
+                order: i,
+              })
+            );
+          }
+          await Promise.all(promises);
+        }
+        setText([]);
+        setCurImageId(null);
+      }
+    }
+  };
+
   const addGraphemeToWord = (val: number) => {
     setCurWord(curWord.concat([val]));
   };
 
+  const getWordTranslation = (w: number[]): string => {
+    let existingWord = words?.find((word) =>
+      isEqual(word.word.join(","), w.join(","))
+    );
+    if (existingWord && !isEmpty(existingWord.meaning)) {
+      return existingWord.meaning;
+    } else {
+      return w.map((val) => getGraphemeSoundGuess(val, graphemes)).join("");
+    }
+  };
+
   const translation =
     mode === "enter"
-      ? text
-          .map((w) => {
-            let existingWord = words?.find((word) =>
-              isEqual(word.word.join(","), w.join(","))
-            );
-            if (existingWord && !isEmpty(existingWord.meaning)) {
-              return existingWord.meaning;
-            } else {
-              return w
-                .map((val) => getGraphemeSoundGuess(val, graphemes))
-                .join("");
-            }
-          })
-          .join(" ")
+      ? text.map(getWordTranslation).join(" ")
       : junctions && selectedContext
       ? junctions
           ?.filter((j) => j.contexts_id === selectedContext?.id)
@@ -298,148 +392,126 @@ function EntrySection() {
           Edit
         </button>
       </div>
-      <ReflexContainer orientation={"horizontal"} windowResizeAware={true}>
-        <ReflexElement minSize={121} size={121} style={{ padding: "8px 12px" }}>
-          {mode === "enter" ? (
-            <>
-              <div css={textSection}>
-                <div css={textWrapper}>
+      {mode === "enter" ? (
+        <ReflexContainer orientation={"horizontal"} windowResizeAware={true}>
+          <ReflexElement
+            minSize={225}
+            size={225}
+            style={{ padding: "0px 12px 8px" }}
+          >
+            <div css={textSection}>
+              <div css={textRenderSection}>
+                <div css={textWrapper} ref={textWrapperRef}>
                   {text.map((w, i) => (
-                    <Word word={w} key={i} />
+                    <div className="wordWrapper" key={i}>
+                      <Word word={w} width={18} />
+                    </div>
                   ))}
                 </div>
-                <div css={wordWrapper}>
-                  <Word word={curWord} width={30} />
-                </div>
+                <button
+                  style={{ marginTop: "8px" }}
+                  className={cx({
+                    disabled: isEmpty(text),
+                  })}
+                  onClick={submitTextFn}
+                >
+                  Submit Text
+                </button>
+                {/* <div style={{ flex: "0 0 50%" }}>
+                  <div css={translationStyle} style={{ overflowY: "scroll" }}>
+                    {translation}
+                  </div>
+                </div> */}
               </div>
-              <div css={translationStyle}>{translation}</div>
-            </>
-          ) : (
-            <>
-              <div css={translationStyle}>{translation}</div>
-              <InlineEdit
-                textarea
-                css={textEditor}
-                value={
-                  selectedContext && !isEmpty(selectedContext.text)
-                    ? selectedContext.text
-                    : translation ?? ""
-                }
-                setValue={setValueFn}
-              />
-            </>
-          )}
-        </ReflexElement>
-        <ReflexSplitter />
-        <ReflexElement minSize={200} maxSize={280} size={250}>
-          <div
-            tabIndex={0}
-            css={typerWrapper}
-            onFocus={() => {
-              // if (curContext != null) {
-              setIsTyping(true);
-              // }
-            }}
-            onBlur={() => {
-              setIsTyping(false);
-            }}
-          >
-            <button
-              className={cx({
-                disabled: isEmpty(text),
-                [submitButton]: true,
-              })}
-              onClick={async () => {
-                if (
-                  !isEmpty(text)
-                  // !isEmpty(curContext) &&
-                  // curContext != null
-                ) {
-                  const submit = confirm("Submit Text with Context?");
-                  if (submit) {
-                    let context = null;
-                    if (curImageId) {
-                      context = await upsertContext({ imageId: curImageId });
-                    } else {
-                      context = await upsertContext({});
-                    }
-                    if (context && "data" in context && context?.data?.id) {
-                      const promises = [];
-                      for (let i = 0; i < text.length; i++) {
-                        promises.push(
-                          addWord({
-                            word: text[i],
-                            ctxId: context.data?.id,
-                            order: i,
-                          })
-                        );
-                      }
-                      await Promise.all(promises);
-                    }
-                    setText([]);
-                    setCurImageId(null);
-                  }
-                }
-              }}
-            >
-              Submit Text
-            </button>
-            <GlyphTyper
-              emitGrapheme={addGraphemeToWord}
-              emitWord={addWordToText}
-              popLastGrapheme={popLastGrapheme}
-              isActive={isTyping}
-            />
-          </div>
-        </ReflexElement>
-        <ReflexSplitter propagate />
-        <ReflexElement>
-          <div css={imgSection}>
-            <label htmlFor="fileInput">{curImageId ?? "Add Context"}</label>
-            <input
-              disabled={curImageId != null}
-              type="file"
-              id="fileInput"
-              ref={fileInput}
-              onInput={(event: React.FormEvent) =>
-                uploadFile((event.target as HTMLInputElement).files)
-              }
-            />
-            {error != null ? <div css={errorSection}>{error}</div> : null}
-            {uploading ? (
-              <DownloadingIcon fontSize="large" css={loadingIcon} />
-            ) : null}
-            <div css={imgScrollWrapper}>
-              {curImageId != null ? (
-                <img
-                  // hideHint
-                  css={contextImg}
-                  // zoomScale={2}
-                  src={`${
-                    import.meta.env.VITE_DIRECTUS_URL
-                  }/assets/${curImageId}`}
+              <div
+                tabIndex={0}
+                css={typerWrapper}
+                onFocus={() => {
+                  setIsTyping(true);
+                }}
+                onBlur={() => {
+                  setIsTyping(false);
+                }}
+              >
+                <div css={wordWrapper}>
+                  <Word word={curWord} width={20} />
+                </div>
+                <GlyphTyper
+                  width={100}
+                  emitGrapheme={addGraphemeToWord}
+                  emitWord={addWordToText}
+                  popLastGrapheme={popLastGrapheme}
+                  isActive={isTyping}
                 />
-              ) : null}
+              </div>
             </div>
-            <button
-              className={cx({
-                disabled: isEmpty(curImageId),
-                [clearButton]: true,
-              })}
-              onClick={() => {
-                if (curImageId) {
-                  const clear = confirm("Clear Context?");
-                  if (clear) {
-                    setCurImageId(null);
+          </ReflexElement>
+          <ReflexSplitter propagate />
+          <ReflexElement>
+            <div css={imgSection}>
+              <div css={imgSectionButtons}>
+                <label htmlFor="fileInput">{curImageId ?? "Add Context"}</label>
+                <input
+                  disabled={curImageId != null}
+                  type="file"
+                  id="fileInput"
+                  ref={fileInput}
+                  onInput={(event: React.FormEvent) =>
+                    uploadFile((event.target as HTMLInputElement).files)
                   }
-                }
-              }}
-            >
-              Clear Context
-            </button>
-          </div>
-        </ReflexElement>
-      </ReflexContainer>
+                />
+                <button
+                  className={cx({
+                    disabled: isEmpty(curImageId),
+                    [clearButton]: true,
+                  })}
+                  onClick={() => {
+                    if (curImageId) {
+                      const clear = confirm("Clear Context?");
+                      if (clear) {
+                        setCurImageId(null);
+                      }
+                    }
+                  }}
+                >
+                  Clear Context
+                </button>
+              </div>
+              {error != null ? <div css={errorSection}>{error}</div> : null}
+              {uploading ? (
+                <DownloadingIcon fontSize="large" css={loadingIcon} />
+              ) : null}
+              <div css={imgScrollWrapper}>
+                {curImageId != null ? (
+                  <InnerImageZoom
+                    hideHint
+                    css={contextImg}
+                    zoomScale={2}
+                    zoomType="hover"
+                    src={`${
+                      import.meta.env.VITE_DIRECTUS_URL
+                    }/assets/${curImageId}`}
+                  />
+                ) : null}
+              </div>
+            </div>
+          </ReflexElement>
+        </ReflexContainer>
+      ) : (
+        <div css={editingWrapper}>
+          <div css={translationStyle}>{translation}</div>
+          <InlineEdit
+            textarea
+            css={textEditor}
+            value={
+              selectedContext && !isEmpty(selectedContext.text)
+                ? selectedContext.text
+                : translation ?? ""
+            }
+            setValue={setValueFn}
+          />
+        </div>
+      )}
     </Section>
   );
 }

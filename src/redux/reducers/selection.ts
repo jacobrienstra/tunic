@@ -1,11 +1,5 @@
 /* eslint-disable no-param-reassign */
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import {
-  ContextData,
-  type GraphemeData,
-  type WordData,
-} from "../services/data";
-
 export type ReverseSyllableStatus = "present" | "absent" | "either";
 export type Mode = "graphemes" | "ngrams";
 export type FilterDirection = "off" | "left" | "right";
@@ -22,7 +16,7 @@ export interface SelectionSliceState {
   wordFilterDirection: FilterDirection;
   contextFilterDirection: FilterDirection;
   selectedGrapheme: null | number;
-  selectedNGram: null | number[];
+  selectedNGram: null | string[];
   selectedWord: number | null;
   selectedContext: number | null;
 }
@@ -125,7 +119,7 @@ export const selectionSlice = createSlice({
     ): void => {
       state.selectedGrapheme = action.payload;
     },
-    setSelectedNGram: (state, action: PayloadAction<null | number[]>): void => {
+    setSelectedNGram: (state, action: PayloadAction<null | string[]>): void => {
       state.selectedNGram = action.payload;
     },
     setSelectedWord: (state, action: PayloadAction<null | number>): void => {

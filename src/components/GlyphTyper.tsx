@@ -65,9 +65,9 @@ function GlyphTyper({
 
   const svgStyle = css`
     &:focus,
-    &:focus-visible(),
+    &:focus-visible,
     &:focus-within {
-      outline: -webkit-focus-ring-color auto 5px;
+      outline: none;
     }
     max-width: ${width}px;
   `;
