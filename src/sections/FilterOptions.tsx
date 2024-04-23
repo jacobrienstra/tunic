@@ -1,17 +1,18 @@
-import { css } from "@emotion/react";
 import CheckBoxOutlineBlankIcon from "@mui/icons-material/CheckBoxOutlineBlank";
 import CheckBoxIcon from "@mui/icons-material/CheckBox";
+import { css } from "@emotion/react";
 import { cx } from "@emotion/css";
-import {
-  setReverseSyllableFilter,
-  toggleExclusive,
-  togglePartialFilter,
-} from "../redux/reducers/selection";
+
 import {
   selectExclusive,
   selectReverseSyllableFilter,
   selectPartial,
 } from "../selectors";
+import {
+  setReverseSyllableFilter,
+  toggleExclusive,
+  togglePartialFilter,
+} from "../redux/reducers/selection";
 import { useAppDispatch, useAppSelector } from "../redux/hooks";
 
 const filterToggles = css`

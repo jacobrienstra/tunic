@@ -1,12 +1,14 @@
 import { css } from "@emotion/react";
+
 import {
   WordData,
   useGetGraphemesQuery,
   useUpdateWordMutation,
 } from "../redux/services/data";
+import { getGraphemeSoundGuess } from "../glyph";
+
 import Word from "./Word";
 import InlineEdit from "./InlineEdit";
-import { getGraphemeSoundGuess } from "../glyph";
 
 interface WordRowProps {
   wordData: WordData;

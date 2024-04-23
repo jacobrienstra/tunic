@@ -1,10 +1,11 @@
+import { isEmpty } from "lodash";
+import type { AxiosError } from "axios";
 import {
   BaseQueryFn,
   FetchBaseQueryError,
+  TagDescription,
   createApi,
 } from "@reduxjs/toolkit/query/react";
-import { isEmpty } from "lodash";
-import type { AxiosError } from "axios";
 import {
   createDirectus,
   createItem,
@@ -13,16 +14,52 @@ import {
   rest,
   updateItem,
 } from "@directus/sdk";
-export const sdk = createDirectus("http://localhost:8055").with(rest());
+
+export interface GraphemeData {
+  id: number;
+  sound: string;
+}
+
+export interface WordData {
+  id: number;
+  word: string[];
+  contexts: number[] | ContextWordJunction[];
+  meaning: string;
+}
+
+export interface ContextData {
+  id: number;
+  image: string;
+  words: number[] | ContextWordJunction[];
+  text: string;
+}
+
+export interface ContextWordJunction {
+  id: number;
+  order: number;
+  contexts_id: number | ContextData;
+  words_id: number | WordData;
+}
+
+interface DirectusSchema {
+  graphemes: GraphemeData[];
+  words: WordData[];
+  contexts: ContextData[];
+  contexts_words: ContextWordJunction[];
+}
+
+export const sdk = createDirectus<DirectusSchema>("http://localhost:8055").with(
+  rest()
+);
 
 const directusBaseQuery =
   (): BaseQueryFn<() => Promise<object>, unknown, unknown> =>
   async (requestFn: () => Promise<object>) => {
     try {
       const result = await requestFn();
-      return { data: result as any };
+      return { data: result as object };
     } catch (error) {
-      let err = error as AxiosError;
+      const err = error as AxiosError;
       return {
         error: {
           status: err.response?.status,
@@ -150,7 +187,7 @@ export const dataApi = createApi({
         let existingContext: ContextData | null = null;
         let result = null;
         if (imageId) {
-          let result = await fetchWithBQ(() =>
+          const result = await fetchWithBQ(() =>
             sdk.request(
               readItems("contexts", {
                 filter: {
@@ -160,7 +197,7 @@ export const dataApi = createApi({
             )
           );
           if (!isEmpty(result.data)) {
-            existingContext = (result.data as any[])[0];
+            existingContext = (result.data as ContextData[])[0];
           }
         } else {
           result = await fetchWithBQ(() =>
@@ -173,7 +210,7 @@ export const dataApi = createApi({
             )
           );
           if (!isEmpty(result.data)) {
-            existingContext = (result.data as any[])[0];
+            existingContext = (result.data as ContextData[])[0];
           }
         }
         if (!existingContext) {
@@ -214,16 +251,18 @@ export const dataApi = createApi({
         let result = await fetchWithBQ(() =>
           sdk.request(
             readItems("words", {
-              filter: { word: { _eq: word.join(",") } },
+              filter: { word: { _eq: word.map(String) } },
             })
           )
         );
 
         if (!isEmpty(result.data)) {
-          existingWord = (result.data as any[])[0];
+          existingWord = (result.data as WordData[])[0];
         } else {
           result = await fetchWithBQ(() =>
-            sdk.request(createItem("words", { word: word, meaning: "" }))
+            sdk.request(
+              createItem("words", { word: word.map(String), meaning: "" })
+            )
           );
           if (!result.data) {
             return { error: result.error as FetchBaseQueryError };
@@ -245,7 +284,7 @@ export const dataApi = createApi({
           return { error: updatedJunction.error as FetchBaseQueryError };
         }
 
-        for (let grapheme of word) {
+        for (const grapheme of word) {
           let existingGrapheme = await fetchWithBQ(() =>
             sdk.request(readItem("graphemes", grapheme))
           );
@@ -283,40 +322,19 @@ export const dataApi = createApi({
                   type: "ContextWordJunction" as const,
                   id: result.contextWordJunctionId,
                 },
-              ] as any[]
+              ] as TagDescription<
+                "Graphemes" | "Words" | "Contexts" | "ContextWordJunction"
+              >[]
             ).concat(
-              result.graphemeIds.map((id) => ({ type: "Graphemes", id: id }))
+              result.graphemeIds.map((id) => ({
+                type: "Graphemes" as const,
+                id: id,
+              }))
             )
           : [],
     }),
   }),
 });
-
-export interface ContextWordJunction {
-  id: number;
-  order: number;
-  contexts_id: number;
-  words_id: number;
-}
-
-export interface GraphemeData {
-  id: number;
-  sound: string;
-}
-
-export interface WordData {
-  id: number;
-  word: string[];
-  contexts: number[];
-  meaning: string;
-}
-
-export interface ContextData {
-  id: number;
-  image: string;
-  words: number[];
-  text: string;
-}
 
 export const {
   useGetGraphemesQuery,

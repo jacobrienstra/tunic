@@ -1,11 +1,7 @@
-import { css } from "@emotion/react";
 import KeyboardDoubleArrowRightIcon from "@mui/icons-material/KeyboardDoubleArrowRight";
-import { useAppDispatch, useAppSelector } from "../redux/hooks";
-import {
-  setGlyphFilterDirection,
-  setConsonantFilter,
-  setVowelFilter,
-} from "../redux/reducers/selection";
+import { css } from "@emotion/react";
+import { cx } from "@emotion/css";
+
 import {
   selectGlyphFilterDirection,
   selectConsonantFilter,
@@ -13,13 +9,18 @@ import {
   selectVowelFilter,
   selectVowelGlyphs,
 } from "../selectors";
-
-import Glyph from "../components/Glyph";
-import Tile from "../components/Tile";
-import FilterOptions from "./FilterOptions";
-import { cx } from "@emotion/css";
+import { useGetGraphemesQuery } from "../redux/services/data";
+import {
+  setGlyphFilterDirection,
+  setConsonantFilter,
+  setVowelFilter,
+} from "../redux/reducers/selection";
+import { useAppDispatch, useAppSelector } from "../redux/hooks";
 import { getGraphemeSoundGuess } from "../glyph";
-import { useGetGraphemesQuery, useGetWordsQuery } from "../redux/services/data";
+import Tile from "../components/Tile";
+import Glyph from "../components/Glyph";
+
+import FilterOptions from "./FilterOptions";
 
 const tileSize = 35;
 

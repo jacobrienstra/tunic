@@ -1,4 +1,3 @@
-/* eslint-disable no-param-reassign */
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 export type ReverseSyllableStatus = "present" | "absent" | "either";
 export type Mode = "graphemes" | "ngrams";
@@ -131,7 +130,6 @@ export const selectionSlice = createSlice({
   },
 });
 
-
 // type AppThunkAction = ThunkAction<void, RootState, unknown, Action<unknown>>;
 
 export const {
@@ -151,7 +149,5 @@ export const {
   setSelectedWord,
   setSelectedContext,
 } = selectionSlice.actions;
-
-
 
 export default selectionSlice.reducer;

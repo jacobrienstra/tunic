@@ -1,11 +1,13 @@
+import { ReflexContainer, ReflexSplitter, ReflexElement } from "react-reflex";
 import { css } from "@emotion/react";
-import GlyphsSection from "./sections/GlyphsSection";
-import ContextsSection from "./sections/ContextsSection";
-import EntrySection from "./sections/EntrySection";
+
 import WordsSection from "./sections/WordsSection";
+import GlyphsSection from "./sections/GlyphsSection";
+import EntrySection from "./sections/EntrySection";
+import ContextsSection from "./sections/ContextsSection";
+
 import "react-inner-image-zoom/lib/InnerImageZoom/styles.min.css";
 import "react-reflex/styles.css";
-import { ReflexContainer, ReflexSplitter, ReflexElement } from "react-reflex";
 
 const rootLayout = css`
   width: 100%;

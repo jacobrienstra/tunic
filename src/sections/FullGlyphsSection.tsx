@@ -1,20 +1,22 @@
+import KeyboardDoubleArrowRightIcon from "@mui/icons-material/KeyboardDoubleArrowRight";
+import KeyboardDoubleArrowLeftIcon from "@mui/icons-material/KeyboardDoubleArrowLeft";
 import { css } from "@emotion/react";
 import { cx } from "@emotion/css";
-import { useAppDispatch, useAppSelector } from "../redux/hooks";
-import {
-  setGraphemeFilterDirection,
-  setMode,
-  setN,
-} from "../redux/reducers/selection";
+
 import {
   selectGraphemeFilterDirection,
   selectMode,
   selectN,
 } from "../selectors";
-import Graphemes from "./Graphemes";
+import {
+  setGraphemeFilterDirection,
+  setMode,
+  setN,
+} from "../redux/reducers/selection";
+import { useAppDispatch, useAppSelector } from "../redux/hooks";
+
 import NGrams from "./NGrams";
-import KeyboardDoubleArrowLeftIcon from "@mui/icons-material/KeyboardDoubleArrowLeft";
-import KeyboardDoubleArrowRightIcon from "@mui/icons-material/KeyboardDoubleArrowRight";
+import Graphemes from "./Graphemes";
 
 const fullGlyphsSection = css`
   display: flex;

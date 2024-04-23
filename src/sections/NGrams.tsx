@@ -1,16 +1,13 @@
-import { css } from "@emotion/react";
-import Tile from "../components/Tile";
-import Word from "../components/Word";
-import { useAppDispatch, useAppSelector } from "../redux/hooks";
-import { setSelectedNGram } from "../redux/reducers/selection";
-import { selectFilteredNGrams, selectSelectedNGram } from "../selectors";
 import { isEqual } from "lodash";
-import {
-  useGetGraphemeByIdQuery,
-  useGetGraphemesQuery,
-  useGetWordsQuery,
-} from "../redux/services/data";
+import { css } from "@emotion/react";
+
+import { selectFilteredNGrams, selectSelectedNGram } from "../selectors";
+import { useGetGraphemesQuery, useGetWordsQuery } from "../redux/services/data";
+import { setSelectedNGram } from "../redux/reducers/selection";
+import { useAppDispatch, useAppSelector } from "../redux/hooks";
 import { getGraphemeSoundGuess } from "../glyph";
+import Word from "../components/Word";
+import Tile from "../components/Tile";
 
 const wordGuess = css`
   color: var(--cyan-600);
@@ -46,7 +43,7 @@ function NGrams({ tileSize }: NGramsProps) {
           <div css={wordGuess}>
             {ng
               .map((val) => {
-                let sound = graphemes?.find(
+                const sound = graphemes?.find(
                   (g) => g.id === parseInt(val)
                 )?.sound;
                 if (sound === "" || sound === undefined) {

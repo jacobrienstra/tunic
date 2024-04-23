@@ -1,5 +1,5 @@
-import { css } from "@emotion/react";
 import { PropsWithChildren } from "react";
+import { css } from "@emotion/react";
 import { cx } from "@emotion/css";
 
 type TileProps = {
@@ -14,7 +14,6 @@ function Tile({
   children,
   align = "center",
   active = false,
-  sure = false,
   ...rest
 }: PropsWithChildren<TileProps>) {
   const tile = css`

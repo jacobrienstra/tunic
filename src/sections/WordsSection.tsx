@@ -1,24 +1,26 @@
+import KeyboardDoubleArrowRightIcon from "@mui/icons-material/KeyboardDoubleArrowRight";
+import KeyboardDoubleArrowLeftIcon from "@mui/icons-material/KeyboardDoubleArrowLeft";
 import { css } from "@emotion/react";
-import Section from "./Section";
-import { useAppDispatch, useAppSelector } from "../redux/hooks";
-import Tile from "../components/Tile";
-import WordRow from "../components/WordRow";
-import {
-  setSelectedWord,
-  setWordFilterDirection,
-} from "../redux/reducers/selection";
+import { cx } from "@emotion/css";
+
 import {
   selectFilteredWords,
   selectSelectedWord,
   selectWordFilterDirection,
 } from "../selectors";
-import { cx } from "@emotion/css";
-import KeyboardDoubleArrowLeftIcon from "@mui/icons-material/KeyboardDoubleArrowLeft";
-import KeyboardDoubleArrowRightIcon from "@mui/icons-material/KeyboardDoubleArrowRight";
 import {
   useGetContextWordJunctionsQuery,
   useGetWordsQuery,
 } from "../redux/services/data";
+import {
+  setSelectedWord,
+  setWordFilterDirection,
+} from "../redux/reducers/selection";
+import { useAppDispatch, useAppSelector } from "../redux/hooks";
+import WordRow from "../components/WordRow";
+import Tile from "../components/Tile";
+
+import Section from "./Section";
 
 const wordsGrid = css`
   padding: 8px;

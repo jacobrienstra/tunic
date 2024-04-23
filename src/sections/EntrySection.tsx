@@ -1,9 +1,13 @@
-import { cx, css as cssClass } from "@emotion/css";
+import { ReflexElement, ReflexContainer, ReflexSplitter } from "react-reflex";
+import InnerImageZoom from "react-inner-image-zoom";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import { isEmpty, isEqual } from "lodash";
+import DownloadingIcon from "@mui/icons-material/Downloading";
 import { css } from "@emotion/react";
-import React, { useEffect, useRef, useState } from "react";
-import GlyphTyper from "../components/GlyphTyper";
-import Section from "./Section";
-import Word from "../components/Word";
+import { cx, css as cssClass } from "@emotion/css";
+import { uploadFiles } from "@directus/sdk";
+
+import { selectSelectedContext } from "../selectors";
 import {
   ContextData,
   sdk,
@@ -14,16 +18,14 @@ import {
   useUpdateContextMutation,
   useUpsertContextMutation,
 } from "../redux/services/data";
-import { uploadFiles } from "@directus/sdk";
-import DownloadingIcon from "@mui/icons-material/Downloading";
-import { isEmpty, isEqual } from "lodash";
-import { ReflexElement, ReflexContainer, ReflexSplitter } from "react-reflex";
-import { getGraphemeSoundGuess } from "../glyph";
 import { useAddWordMutation } from "../redux/services/data";
 import { useAppSelector } from "../redux/hooks";
-import { selectSelectedContext } from "../selectors";
+import { getGraphemeSoundGuess } from "../glyph";
+import Word from "../components/Word";
 import InlineEdit from "../components/InlineEdit";
-import InnerImageZoom from "react-inner-image-zoom";
+import GlyphTyper from "../components/GlyphTyper";
+
+import Section from "./Section";
 
 const textSection = css`
   display: flex;
@@ -218,11 +220,25 @@ function EntrySection() {
 
   const textWrapperRef = useRef<HTMLDivElement>(null);
 
+  const getWordTranslation = useCallback(
+    (w: number[]): string => {
+      const existingWord = words?.find((word) =>
+        isEqual(word.word.join(","), w.join(","))
+      );
+      if (existingWord && !isEmpty(existingWord.meaning)) {
+        return existingWord.meaning;
+      } else {
+        return w.map((val) => getGraphemeSoundGuess(val, graphemes)).join("");
+      }
+    },
+    [words, graphemes]
+  );
+
   useEffect(() => {
     const wordChildren =
       textWrapperRef.current?.querySelectorAll(".wordWrapper");
     if (wordChildren) {
-      [...wordChildren].forEach((child, i) => {
+      [...wordChildren].forEach((child) => {
         const wordEl = child.querySelector(".word");
         const wordString = wordEl?.getAttribute("data-word");
         const existingSpan = child.querySelector(`.translatedText`);
@@ -236,11 +252,11 @@ function EntrySection() {
         }
       });
     }
-  }, [text]);
+  }, [text, getWordTranslation]);
 
   const setValueFn = (val: string) => {
     if (selectedContext != null && selectedContext?.id) {
-      return updateContext({ id: selectedContext!.id, text: val });
+      return updateContext({ id: selectedContext.id, text: val });
     } else {
       return () => {};
     }
@@ -279,37 +295,26 @@ function EntrySection() {
     setCurWord(curWord.concat([val]));
   };
 
-  const getWordTranslation = (w: number[]): string => {
-    let existingWord = words?.find((word) =>
-      isEqual(word.word.join(","), w.join(","))
-    );
-    if (existingWord && !isEmpty(existingWord.meaning)) {
-      return existingWord.meaning;
-    } else {
-      return w.map((val) => getGraphemeSoundGuess(val, graphemes)).join("");
-    }
-  };
-
   const translation =
     mode === "enter"
       ? text.map(getWordTranslation).join(" ")
       : junctions && selectedContext
-      ? junctions
-          ?.filter((j) => j.contexts_id === selectedContext?.id)
-          .sort((a, b) => a.order - b.order)
-          .map((j) => words?.find((word) => word.id === j.words_id))
-          .map((w) => {
-            if (!w) return "???";
-            else if (!isEmpty(w.meaning)) {
-              return w.meaning;
-            } else {
-              return w.word
-                .map((val) => getGraphemeSoundGuess(parseInt(val), graphemes))
-                .join("");
-            }
-          })
-          .join(" ")
-      : "";
+        ? junctions
+            ?.filter((j) => j.contexts_id === selectedContext?.id)
+            .sort((a, b) => a.order - b.order)
+            .map((j) => words?.find((word) => word.id === j.words_id))
+            .map((w) => {
+              if (!w) return "???";
+              else if (!isEmpty(w.meaning)) {
+                return w.meaning;
+              } else {
+                return w.word
+                  .map((val) => getGraphemeSoundGuess(parseInt(val), graphemes))
+                  .join("");
+              }
+            })
+            .join(" ")
+        : "";
 
   const addWordToText = () => {
     if (curWord.length > 0) {

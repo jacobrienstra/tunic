@@ -1,12 +1,13 @@
+import { isEmpty, throttle } from "lodash";
 import { configureStore } from "@reduxjs/toolkit";
+
+import dataApi from "./services/data";
 import selectionReducer from "./reducers/selection";
 import type {
   FilterDirection,
   ReverseSyllableStatus,
   Mode,
 } from "./reducers/selection";
-import dataApi from "./services/data";
-import { isEmpty, throttle } from "lodash";
 
 const initialState = {
   selection: {
@@ -70,6 +71,5 @@ store.subscribe(
 
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;
-
 
 export default store;

@@ -1,17 +1,17 @@
+import { has, isEqual, uniq } from "lodash";
 import { createSelector } from "@reduxjs/toolkit";
-import { getConsonant, getVowel, reverseSyllableMask } from "./glyph";
+
+import { RootState } from "./redux/store";
 import {
-  ReverseSyllableStatus,
-  SelectionSliceState,
-} from "./redux/reducers/selection";
-import {
-  ContextData,
   ContextWordJunction,
   GraphemeData,
   WordData,
 } from "./redux/services/data";
-import { RootState } from "./redux/store";
-import { has, isEmpty, isEqual, isNull, uniq } from "lodash";
+import {
+  ReverseSyllableStatus,
+  SelectionSliceState,
+} from "./redux/reducers/selection";
+import { getConsonant, getVowel, reverseSyllableMask } from "./glyph";
 
 export const selectVowelFilter = (state: RootState) =>
   state.selection.vowelFilter;
@@ -373,7 +373,7 @@ export const calcFilteredNGrams = (
     [id: string]: { count: number; ngram: string[] };
   };
 
-  for (let w of words) {
+  for (const w of words) {
     for (let i = 0; i < w.word.length - (n - 1); i++) {
       const nGramSlice = w.word.slice(i, i + n);
       let nGramMatches = true;
@@ -387,11 +387,11 @@ export const calcFilteredNGrams = (
             partial
           );
         });
-        let reverseSyllablePassExists = results.some(
+        const reverseSyllablePassExists = results.some(
           (r) => r.reverseSyllablePass
         );
-        let consonantMatchExists = results.some((r) => r.matchesConsonant);
-        let vowelMatchExists = results.some((r) => r.matchesVowel);
+        const consonantMatchExists = results.some((r) => r.matchesConsonant);
+        const vowelMatchExists = results.some((r) => r.matchesVowel);
         nGramMatches = getTotalPassValue(
           vowelFilter,
           consonantFilter,
@@ -481,7 +481,7 @@ export const selectFilteredNGrams = (
 const wordContainsNGram = (word: string[], nGram: string[]): boolean => {
   const n = nGram.length;
   for (let i = 0; i < word.length - (n - 1); i++) {
-    let nGramSlice = word.slice(i, i + n);
+    const nGramSlice = word.slice(i, i + n);
     if (isEqual(nGramSlice, nGram)) {
       return true;
     }
@@ -594,6 +594,3 @@ export const selectFilteredWords = (
       );
     }
   );
-
-const emptyContexts = [] as ContextData[];
-

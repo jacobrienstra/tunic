@@ -1,13 +1,13 @@
-import Grapheme from "../components/Grapheme";
-import Tile from "../components/Tile";
-import { setSelectedGrapheme } from "../redux/reducers/selection";
 import { selectFilteredGraphemes, selectSelectedGrapheme } from "../selectors";
-import { useAppDispatch, useAppSelector } from "../redux/hooks";
 import {
   GraphemeData,
   useGetGraphemesQuery,
   useGetWordsQuery,
 } from "../redux/services/data";
+import { setSelectedGrapheme } from "../redux/reducers/selection";
+import { useAppDispatch, useAppSelector } from "../redux/hooks";
+import Tile from "../components/Tile";
+import Grapheme from "../components/Grapheme";
 
 interface GraphemesProps {
   tileSize: number;

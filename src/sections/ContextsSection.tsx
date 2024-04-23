@@ -1,12 +1,9 @@
-import Section from "./Section";
-import { css } from "@emotion/react";
-import { useAppDispatch, useAppSelector } from "../redux/hooks";
 import InnerImageZoom from "react-inner-image-zoom";
-import {
-  useGetContextWordJunctionsQuery,
-  useGetContextsQuery,
-} from "../redux/services/data";
-import Tile from "../components/Tile";
+import { isEmpty } from "lodash";
+import KeyboardDoubleArrowLeftIcon from "@mui/icons-material/KeyboardDoubleArrowLeft";
+import { css } from "@emotion/react";
+import { cx } from "@emotion/css";
+
 import {
   selectContextFilterDirection,
   selectSelectedContext,
@@ -14,12 +11,17 @@ import {
   selectWordFilterDirection,
 } from "../selectors";
 import {
+  useGetContextWordJunctionsQuery,
+  useGetContextsQuery,
+} from "../redux/services/data";
+import {
   setContextFilterDirection,
   setSelectedContext,
 } from "../redux/reducers/selection";
-import { cx } from "@emotion/css";
-import KeyboardDoubleArrowLeftIcon from "@mui/icons-material/KeyboardDoubleArrowLeft";
-import { isEmpty } from "lodash";
+import { useAppDispatch, useAppSelector } from "../redux/hooks";
+import Tile from "../components/Tile";
+
+import Section from "./Section";
 
 const contextsWrapper = css`
   padding: 0 12px;

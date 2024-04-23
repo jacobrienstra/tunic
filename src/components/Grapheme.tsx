@@ -1,12 +1,14 @@
 import { css } from "@emotion/react";
-import Glyph from "./Glyph";
+
 import {
   GraphemeData,
   useGetGraphemesQuery,
   useUpdateGraphemeMutation,
 } from "../redux/services/data";
-import InlineEdit from "./InlineEdit";
 import { getGraphemeSoundGuess } from "../glyph";
+
+import InlineEdit from "./InlineEdit";
+import Glyph from "./Glyph";
 
 interface GraphemeProps {
   glyph: GraphemeData;
