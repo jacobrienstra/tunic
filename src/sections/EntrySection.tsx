@@ -27,7 +27,7 @@ import GlyphTyper from "../components/GlyphTyper";
 
 import Section from "./Section";
 
-const textSection = css`
+const trunicTextSection = css`
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -36,14 +36,14 @@ const textSection = css`
   max-width: 100%;
 `;
 
-const textRenderSection = css`
+const trunicTextRenderSection = css`
   display: flex;
   flex-direction: column;
   flex: 1 1 auto;
   height: 100%;
 `;
 
-const textWrapper = css`
+const trunicTextWrapper = css`
   flex: 1 0 50%;
   align-self: stretch;
   display: flex;
@@ -175,24 +175,27 @@ function EntrySection() {
     (localStorage.getItem("tunic-EntryMode") as EntryMode) ??
       ("enter" as EntryMode)
   );
-  const [text, setText] = useState<number[][]>(
-    JSON.parse(localStorage.getItem("tunic-EntryText") ?? "[]") as number[][]
+  const [trunic, setTrunic] = useState<number[][]>(
+    JSON.parse(localStorage.getItem("tunic-EntryTrunic") ?? "[]") as number[][]
   );
-  const [curWord, setCurWord] = useState<number[]>(
-    (JSON.parse(localStorage.getItem("tunic-EntryWord") ?? "[]") ??
+  const [curTrunicWord, setCurTrunicWord] = useState<number[]>(
+    (JSON.parse(localStorage.getItem("tunic-EntryCurTrunicWord") ?? "[]") ??
       []) as number[]
   );
   const [curImageId, setCurImageId] = useState<string | null>(
-    localStorage.getItem("tunic-EntryImageId")
+    localStorage.getItem("tunic-EntryCurImageId")
   );
 
   useEffect(() => {
     localStorage.setItem("tunic-EntryMode", mode);
-    localStorage.setItem("tunic-EntryText", JSON.stringify(text));
-    localStorage.setItem("tunic-EntryWord", JSON.stringify(curWord));
-    if (curImageId) localStorage.setItem("tunic-EntryImageId", curImageId);
-    else localStorage.removeItem("tunic-EntryImageId");
-  }, [mode, text, curWord, curImageId]);
+    localStorage.setItem("tunic-EntryTrunic", JSON.stringify(trunic));
+    localStorage.setItem(
+      "tunic-EntryCurTrunicWord",
+      JSON.stringify(curTrunicWord)
+    );
+    if (curImageId) localStorage.setItem("tunic-EntryCurImageId", curImageId);
+    else localStorage.removeItem("tunic-EntryCurImageId");
+  }, [mode, trunic, curTrunicWord, curImageId]);
 
   const selectedContextId = useAppSelector(selectSelectedContext);
 
@@ -218,7 +221,7 @@ function EntrySection() {
   const { data: junctions } = useGetContextWordJunctionsQuery();
   const { data: words } = useGetWordsQuery();
 
-  const textWrapperRef = useRef<HTMLDivElement>(null);
+  const trunicTextWrapperRef = useRef<HTMLDivElement>(null);
 
   const getWordTranslation = useCallback(
     (w: number[]): string => {
@@ -235,26 +238,26 @@ function EntrySection() {
   );
 
   useEffect(() => {
-    const wordChildren =
-      textWrapperRef.current?.querySelectorAll(".wordWrapper");
-    if (wordChildren) {
-      [...wordChildren].forEach((child) => {
+    const wordEls =
+      trunicTextWrapperRef.current?.querySelectorAll(".wordWrapper");
+    if (wordEls) {
+      [...wordEls].forEach((child) => {
         const wordEl = child.querySelector(".word");
         const wordString = wordEl?.getAttribute("data-word");
         const existingSpan = child.querySelector(`.translatedText`);
         if (wordEl && wordString && !existingSpan) {
           const wordNums = wordString.split(",").map((w) => parseInt(w));
-          const translatedText = document.createElement("span");
-          translatedText.setAttribute("class", "translatedText");
-          translatedText.innerText = getWordTranslation(wordNums);
-          translatedText.style.color = "var(--cyan-600)";
-          child.appendChild(translatedText);
+          const translatedTextEl = document.createElement("span");
+          translatedTextEl.setAttribute("class", "translatedText");
+          translatedTextEl.innerText = getWordTranslation(wordNums);
+          translatedTextEl.style.color = "var(--cyan-600)";
+          child.appendChild(translatedTextEl);
         }
       });
     }
-  }, [text, getWordTranslation]);
+  }, [trunic, getWordTranslation]);
 
-  const setValueFn = (val: string) => {
+  const setContextFn = (val: string) => {
     if (selectedContext != null && selectedContext?.id) {
       return updateContext({ id: selectedContext.id, text: val });
     } else {
@@ -262,8 +265,8 @@ function EntrySection() {
     }
   };
 
-  const submitTextFn = async () => {
-    if (!isEmpty(text)) {
+  const submitTrunicFn = async () => {
+    if (!isEmpty(trunic)) {
       const submit = confirm("Submit Text with Context?");
       if (submit) {
         let context = null;
@@ -274,10 +277,10 @@ function EntrySection() {
         }
         if (context && "data" in context && context?.data?.id) {
           const promises = [];
-          for (let i = 0; i < text.length; i++) {
+          for (let i = 0; i < trunic.length; i++) {
             promises.push(
               addWord({
-                word: text[i],
+                word: trunic[i],
                 ctxId: context.data?.id,
                 order: i,
               })
@@ -285,19 +288,19 @@ function EntrySection() {
           }
           await Promise.all(promises);
         }
-        setText([]);
+        setTrunic([]);
         setCurImageId(null);
       }
     }
   };
 
   const addGraphemeToWord = (val: number) => {
-    setCurWord(curWord.concat([val]));
+    setCurTrunicWord(curTrunicWord.concat([val]));
   };
 
   const translation =
     mode === "enter"
-      ? text.map(getWordTranslation).join(" ")
+      ? trunic.map(getWordTranslation).join(" ")
       : junctions && selectedContext
         ? junctions
             ?.filter((j) => j.contexts_id === selectedContext?.id)
@@ -317,23 +320,23 @@ function EntrySection() {
         : "";
 
   const addWordToText = () => {
-    if (curWord.length > 0) {
-      setText(text.concat([curWord]));
-      setCurWord([]);
+    if (curTrunicWord.length > 0) {
+      setTrunic(trunic.concat([curTrunicWord]));
+      setCurTrunicWord([]);
     }
   };
 
   const popLastGrapheme = () => {
-    let lastWord = curWord;
-    if (curWord.length === 0) {
-      if (text.length === 0) {
+    let lastWord = curTrunicWord;
+    if (curTrunicWord.length === 0) {
+      if (trunic.length === 0) {
         return 0;
       }
-      lastWord = text[text.length - 1];
-      setText(text.slice(0, -1));
+      lastWord = trunic[trunic.length - 1];
+      setTrunic(trunic.slice(0, -1));
     }
     const lastLetter = lastWord[lastWord.length - 1];
-    setCurWord(lastWord.slice(0, -1));
+    setCurTrunicWord(lastWord.slice(0, -1));
     return lastLetter;
   };
 
@@ -404,10 +407,10 @@ function EntrySection() {
             size={225}
             style={{ padding: "0px 12px 8px" }}
           >
-            <div css={textSection}>
-              <div css={textRenderSection}>
-                <div css={textWrapper} ref={textWrapperRef}>
-                  {text.map((w, i) => (
+            <div css={trunicTextSection}>
+              <div css={trunicTextRenderSection}>
+                <div css={trunicTextWrapper} ref={trunicTextWrapperRef}>
+                  {trunic.map((w, i) => (
                     <div className="wordWrapper" key={i}>
                       <Word word={w} width={18} />
                     </div>
@@ -416,17 +419,17 @@ function EntrySection() {
                 <button
                   style={{ marginTop: "8px" }}
                   className={cx({
-                    disabled: isEmpty(text),
+                    disabled: isEmpty(trunic),
                   })}
-                  onClick={submitTextFn}
+                  onClick={submitTrunicFn}
                 >
-                  Submit Text
+                  Submit Trunic
                 </button>
-                {/* <div style={{ flex: "0 0 50%" }}>
+                <div style={{ flex: "0 0 50%" }}>
                   <div css={translationStyle} style={{ overflowY: "scroll" }}>
                     {translation}
                   </div>
-                </div> */}
+                </div>
               </div>
               <div
                 tabIndex={0}
@@ -439,7 +442,7 @@ function EntrySection() {
                 }}
               >
                 <div css={wordWrapper}>
-                  <Word word={curWord} width={20} />
+                  <Word word={curTrunicWord} width={20} />
                 </div>
                 <GlyphTyper
                   width={100}
@@ -513,7 +516,7 @@ function EntrySection() {
                 ? selectedContext.text
                 : translation ?? ""
             }
-            setValue={setValueFn}
+            setValue={setContextFn}
           />
         </div>
       )}
