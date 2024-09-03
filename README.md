@@ -16,7 +16,7 @@ Tunic is a game that starts you off with no instructions whatsoever; you must di
 The majority of the text in these pages (and other in-game text) is written in Trunic, with only some key words written in the user's selected language (which need not be English, but Trunic is a neography for English).
 
 <p align="center">
-<img alt="An example of Trunic" src="docs/img/TrunicExample.jpg" width=500/>
+<img alt="An example of Trunic" src="docs/img/TrunicExample.JPG" width=500/>
 </p>
 <p align="center" style="margin-top: -20px;">
 <sub>other in-game Trunic</sub>
