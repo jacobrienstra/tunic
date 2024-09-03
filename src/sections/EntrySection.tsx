@@ -1,6 +1,12 @@
 import { ReflexElement, ReflexContainer, ReflexSplitter } from "react-reflex";
 import InnerImageZoom from "react-inner-image-zoom";
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { isEmpty, isEqual } from "lodash";
 import DownloadingIcon from "@mui/icons-material/Downloading";
 import { css } from "@emotion/react";
@@ -188,14 +194,23 @@ function EntrySection() {
 
   useEffect(() => {
     localStorage.setItem("tunic-EntryMode", mode);
+  }, [mode]);
+
+  useEffect(() => {
     localStorage.setItem("tunic-EntryTrunic", JSON.stringify(trunic));
+  }, [trunic]);
+
+  useEffect(() => {
     localStorage.setItem(
       "tunic-EntryCurTrunicWord",
       JSON.stringify(curTrunicWord)
     );
+  }, [curTrunicWord]);
+
+  useEffect(() => {
     if (curImageId) localStorage.setItem("tunic-EntryCurImageId", curImageId);
     else localStorage.removeItem("tunic-EntryCurImageId");
-  }, [mode, trunic, curTrunicWord, curImageId]);
+  }, [curImageId]);
 
   const selectedContextId = useAppSelector(selectSelectedContext);
 
@@ -257,7 +272,7 @@ function EntrySection() {
     }
   }, [trunic, getWordTranslation]);
 
-  const setContextFn = (val: string) => {
+  const setContextTranslationFn = (val: string) => {
     if (selectedContext != null && selectedContext?.id) {
       return updateContext({ id: selectedContext.id, text: val });
     } else {
@@ -298,8 +313,8 @@ function EntrySection() {
     setCurTrunicWord(curTrunicWord.concat([val]));
   };
 
-  const translation =
-    mode === "enter"
+  const translation = useMemo(() => {
+    return mode === "enter"
       ? trunic.map(getWordTranslation).join(" ")
       : junctions && selectedContext
         ? junctions
@@ -318,6 +333,34 @@ function EntrySection() {
             })
             .join(" ")
         : "";
+  }, [
+    selectedContext,
+    trunic,
+    mode,
+    getWordTranslation,
+    junctions,
+    graphemes,
+    words,
+  ]);
+
+  useEffect(() => {
+    if (junctions && words) {
+      if (selectedContextId != null) {
+        setTrunic(
+          junctions
+            .filter((j) => j.contexts_id === selectedContextId)
+            .sort((a, b) => a.order - b.order)
+            .map((j) => words?.find((word) => word.id === j.words_id))
+            .filter((wd) => wd !== undefined)
+            .map((wd) =>
+              wd?.word.map((g) => {
+                return parseInt(g, 10);
+              })
+            )
+        );
+      } else setTrunic([]);
+    }
+  }, [selectedContextId, junctions, words]);
 
   const addWordToText = () => {
     if (curTrunicWord.length > 0) {
@@ -516,7 +559,7 @@ function EntrySection() {
                 ? selectedContext.text
                 : translation ?? ""
             }
-            setValue={setContextFn}
+            setValue={setContextTranslationFn}
           />
         </div>
       )}

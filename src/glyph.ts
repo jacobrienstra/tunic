@@ -1,5 +1,9 @@
 import { GraphemeData } from "./redux/services/data";
 
+/* Tinkered with these values to get them just right.
+ * They're based on a regular hexagon with sides of 100,
+ * plus some white space padding and tweaks
+ */
 export const W = 173.2050807569;
 export const halfW = 86.60254037845;
 export const H = 310;
@@ -9,6 +13,14 @@ export const vowelMask = 0b1000011001100;
 export const consonantMask = 0b0111100010011;
 export const reverseSyllableMask = 32;
 
+/* Key:
+ * Lower/Upper
+ * Top/Bottom/Middle/Left
+ * Left/Right/Vertical/Circle
+ * Key
+ *
+ * e.g. LTLK = Lower Top Left Key
+ */
 export const LTLK = 1 << 0; // 1
 export const LTRK = 1 << 1; // 2
 export const LBLK = 1 << 2; // 4
