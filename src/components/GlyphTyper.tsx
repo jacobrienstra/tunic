@@ -3,50 +3,26 @@ import { css } from "@emotion/react";
 
 import {
   glyphStrokes,
+  H,
   W,
-  ULV,
-  LLV,
-  LBC,
-  LTLK,
-  LTRK,
-  LBLK,
-  LBRK,
-  LMVK,
-  LBCK,
-  LLVK,
   UTLK,
   UTRK,
+  UMVK,
   UBLK,
   UBRK,
-  UMVK,
-  UBVK,
-  H,
-  midH,
+  LTLK,
+  LTRK,
+  LMVK,
+  LBLK,
+  LBRK,
+  ULV,
+  LLV,
+  LVK,
+  BCK,
+  BC,
+  Midline,
 } from "../glyph";
 
-const stroke = css`
-  cursor: pointer;
-`;
-const ghost = css`
-  stroke: whitesmoke;
-`;
-const solid = css`
-  stroke: black;
-`;
-
-const blink = css`
-  @keyframes blink {
-    from,
-    to {
-      stroke: whitesmoke;
-    }
-    50% {
-      stroke: black;
-    }
-  }
-
-  animation: 1s blink step-end infinite;
-`;
 interface GlyphTyperProps {
   emitGrapheme: (val: number) => void;
   emitWord: () => void;
@@ -65,11 +41,11 @@ function GlyphTyper({
   const [val, setVal] = useState(0);
 
   const svgStyle = css`
-    &:focus,
+    /* &:focus,
     &:focus-visible,
     &:focus-within {
       outline: none;
-    }
+    } */
     max-width: ${width}px;
   `;
 
@@ -89,14 +65,11 @@ function GlyphTyper({
       case "s":
         setVal(val ^ UBLK);
         break;
-      case "f":
-        setVal(val ^ UBRK);
-        break;
-      case "e":
+      case "d":
         setVal(val ^ UMVK);
         break;
-      case "d":
-        setVal(val ^ UBVK);
+      case "f":
+        setVal(val ^ UBRK);
         break;
       case "u":
         setVal(val ^ LTLK);
@@ -104,20 +77,20 @@ function GlyphTyper({
       case "o":
         setVal(val ^ LTRK);
         break;
+      case "k":
+        setVal(val ^ LMVK);
+        break;
       case "j":
         setVal(val ^ LBLK);
         break;
       case "l":
         setVal(val ^ LBRK);
         break;
-      case "k":
-        setVal(val ^ LMVK);
+      case "a":
+        setVal(val ^ LVK);
         break;
       case ",":
-        setVal(val ^ LBCK);
-        break;
-      case "a":
-        setVal(val ^ LLVK);
+        setVal(val ^ BCK);
         break;
       case "Enter":
         emitGrapheme(val);
@@ -151,20 +124,20 @@ function GlyphTyper({
     }
   }, [isActive, svgRef]);
 
-  // Omit 5 because that's the circle, special case
-  for (const i of [0, 1, 2, 3, 4, 6, 7, 8, 9, 10, 11]) {
+  // For strokes 0 through 9, push lines (10 is actually 2 segments, 11 is circle)
+  for (const i of [...Array(10).keys()]) {
     if (val & (1 << i)) {
       usedLines.push({ ...glyphStrokes[1 << i], k: 1 << i });
     } else {
       unusedLines.push({ ...glyphStrokes[1 << i], k: 1 << i });
     }
   }
-  if (val & (1 << 12)) {
-    usedLines.push({ ...ULV, k: 1 << 12 });
-    usedLines.push({ ...LLV, k: 1 << 12 });
+  if (val & LVK) {
+    usedLines.push({ ...ULV, k: LVK });
+    usedLines.push({ ...LLV, k: LVK });
   } else {
-    unusedLines.push({ ...ULV, k: 1 << 12 });
-    unusedLines.push({ ...LLV, k: 1 << 12 });
+    unusedLines.push({ ...ULV, k: LVK });
+    unusedLines.push({ ...LLV, k: LVK });
   }
 
   return (
@@ -176,16 +149,16 @@ function GlyphTyper({
       tabIndex={0}
       onKeyDown={handleKeyDown}
       ref={svgRef}
-      css={svgStyle}
+      className={"outline-none"} // TODO: Make sure not overridden on focus
+      style={{ maxWidth: `${width}px` }} // Better way of doing this?
     >
-      {unusedLines.map((l) => (
+      {unusedLines.map((l, i) => (
         <line
-          key={l.k + l.x1 + l.y1}
-          css={[ghost, stroke]}
-          strokeWidth="10"
-          strokeLinecap="round"
-          strokeLinejoin="round"
+          className={
+            "stroke-slate-200 stroke-10 [stroke-linecap:round] [stroke-linejoin:round]"
+          }
           {...l}
+          key={i} // TODO: use a better key
           onClick={() => {
             if (isActive) {
               setVal(val ^ l.k);
@@ -194,31 +167,20 @@ function GlyphTyper({
         />
       ))}
       <circle
-        css={[val & 32 ? solid : ghost, stroke]}
-        strokeWidth="10"
-        {...LBC}
-        fill="transparent"
-        onClick={() => setVal(val ^ 32)}
+        className={`[fill:transparent] stroke-10 ${val & BCK ? "stroke-black" : "stroke-slate-200"}`}
+        {...BC}
+        onClick={() => setVal(val ^ BCK)}
       />
       ;{/* Midline */}
       <line
-        css={isActive ? blink : ghost}
-        strokeWidth="10"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        x1="0"
-        x2={W}
-        y1={midH}
-        y2={midH}
+        className={`stroke-10 [stroke-linecap:round] [stroke-linejoin:round] ${isActive ? "animate-blink stroke-black" : "stroke-slate-200"}`}
+        {...Midline}
       />
       ;
       {usedLines.map((l) => (
         <line
           key={l.k + l.x1 + l.y1}
-          css={[solid, stroke]}
-          strokeWidth="10"
-          strokeLinecap="round"
-          strokeLinejoin="round"
+          className="stroke-black stroke-10 [stroke-linecap:round] [stroke-linejoin:round]"
           {...l}
           onClick={() => {
             if (isActive) {

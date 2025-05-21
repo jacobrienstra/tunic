@@ -11,7 +11,7 @@ import {
   ReverseSyllableStatus,
   SelectionSliceState,
 } from "./redux/reducers/selection";
-import { getConsonant, getVowel, reverseSyllableMask } from "./glyph";
+import { getConsonant, getVowel, BCK } from "./glyph";
 
 export const selectVowelFilter = (state: RootState) =>
   state.selection.vowelFilter;
@@ -79,9 +79,9 @@ const graphemeMatchesFilters = (
   }
   let reverseSyllablePass = true;
   if (reverseSyllableFilter === "present") {
-    reverseSyllablePass = (g | reverseSyllableMask) === g;
+    reverseSyllablePass = (g | BCK) === g;
   } else if (reverseSyllableFilter === "absent") {
-    reverseSyllablePass = (g | reverseSyllableMask) !== g;
+    reverseSyllablePass = (g | BCK) !== g;
   }
   return { matchesVowel, matchesConsonant, reverseSyllablePass };
 };
@@ -273,7 +273,9 @@ export const calcFilteredGraphemes = (
     });
   } else if (wordFilterDirection === "left" && selectedWord != null) {
     filteredGraphemes = graphemes.filter((gd) =>
-      words.find((w) => w.id === selectedWord)?.word.includes(gd.id.toString())
+      words
+        .find((w) => w.id === selectedWord)
+        ?.glyphs.includes(gd.id.toString())
     );
   }
   return filteredGraphemes;
@@ -374,8 +376,8 @@ export const calcFilteredNGrams = (
   };
 
   for (const w of words) {
-    for (let i = 0; i < w.word.length - (n - 1); i++) {
-      const nGramSlice = w.word.slice(i, i + n);
+    for (let i = 0; i < w.glyphs.length - (n - 1); i++) {
+      const nGramSlice = w.glyphs.slice(i, i + n);
       let nGramMatches = true;
       if (glyphFilterDirection === "right") {
         const results = nGramSlice.map((g) => {
@@ -403,7 +405,10 @@ export const calcFilteredNGrams = (
       } else if (wordFilterDirection === "left" && selectedWord != null) {
         const selectedWordData = words.find((w) => w.id === selectedWord);
         if (selectedWordData)
-          nGramMatches = wordContainsNGram(selectedWordData?.word, nGramSlice);
+          nGramMatches = wordContainsNGram(
+            selectedWordData?.glyphs,
+            nGramSlice
+          );
       }
       if (nGramMatches) {
         const id = nGramSlice.join("_");
@@ -527,11 +532,11 @@ export const calcFilteredWords = (
   } else if (graphemeFilterDirection === "right") {
     if (mode === "graphemes" && selectedGrapheme) {
       filteredWords = words.filter((w) =>
-        w.word.includes(selectedGrapheme.toString())
+        w.glyphs.includes(selectedGrapheme.toString())
       );
     } else if (mode === "ngrams" && selectedNGram) {
       filteredWords = words.filter((w) =>
-        wordContainsNGram(w.word, selectedNGram)
+        wordContainsNGram(w.glyphs, selectedNGram)
       );
     }
   }

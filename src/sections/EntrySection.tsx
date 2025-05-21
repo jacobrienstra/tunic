@@ -159,8 +159,8 @@ const textEditor = css`
   flex: 1 0 auto;
   white-space: pre-wrap;
   padding: 8px;
-  font-family: "Noto Serif", Inter, system-ui, Avenir, Helvetica, Arial,
-    sans-serif;
+  font-family:
+    "Noto Serif", Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
   font-size: 16px;
   line-height: 1.5;
   cursor: text;
@@ -241,7 +241,7 @@ function EntrySection() {
   const getWordTranslation = useCallback(
     (w: number[]): string => {
       const existingWord = words?.find((word) =>
-        isEqual(word.word.join(","), w.join(","))
+        isEqual(word.glyphs.join(","), w.join(","))
       );
       if (existingWord && !isEmpty(existingWord.meaning)) {
         return existingWord.meaning;
@@ -259,10 +259,13 @@ function EntrySection() {
       [...wordEls].forEach((child) => {
         const wordEl = child.querySelector(".word");
         const wordString = wordEl?.getAttribute("data-word");
-        const existingSpan = child.querySelector(`.translatedText`);
-        if (wordEl && wordString && !existingSpan) {
+        const existingSpan = child.querySelector(
+          `.translatedText`
+        ) as HTMLSpanElement;
+        if (wordEl && wordString) {
           const wordNums = wordString.split(",").map((w) => parseInt(w));
-          const translatedTextEl = document.createElement("span");
+          const translatedTextEl =
+            existingSpan ?? document.createElement("span");
           translatedTextEl.setAttribute("class", "translatedText");
           translatedTextEl.innerText = getWordTranslation(wordNums);
           translatedTextEl.style.color = "var(--cyan-600)";
@@ -326,7 +329,7 @@ function EntrySection() {
               else if (!isEmpty(w.meaning)) {
                 return w.meaning;
               } else {
-                return w.word
+                return w.glyphs
                   .map((val) => getGraphemeSoundGuess(parseInt(val), graphemes))
                   .join("");
               }
@@ -353,7 +356,7 @@ function EntrySection() {
             .map((j) => words?.find((word) => word.id === j.words_id))
             .filter((wd) => wd !== undefined)
             .map((wd) =>
-              wd?.word.map((g) => {
+              wd?.glyphs.map((g) => {
                 return parseInt(g, 10);
               })
             )
@@ -557,7 +560,7 @@ function EntrySection() {
             value={
               selectedContext && !isEmpty(selectedContext.text)
                 ? selectedContext.text
-                : translation ?? ""
+                : (translation ?? "")
             }
             setValue={setContextTranslationFn}
           />

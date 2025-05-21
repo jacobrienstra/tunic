@@ -1,4 +1,15 @@
-import { glyphStrokes, W, ULV, LLV, LBC, H, midH } from "../glyph";
+import {
+  glyphStrokes,
+  H,
+  W,
+  LVK,
+  ULV,
+  LLV,
+  BC,
+  BCK,
+  GlyphLine,
+  Midline,
+} from "../glyph";
 
 type GlyphProps = {
   val: number | string;
@@ -7,19 +18,19 @@ type GlyphProps = {
 
 function Glyph({ width, val }: GlyphProps) {
   if (typeof val === "string") val = parseInt(val);
-  const lines: { x1: number; x2: number; y1: number; y2: number; k: number }[] =
-    [];
+  const lines: GlyphLine[] = [];
 
-  // Omit 5 because that's the circle, special case
-  for (const i of [0, 1, 2, 3, 4, 6, 7, 8, 9, 10, 11]) {
+  for (const i of Array(10).keys()) {
     if (val & (1 << i)) {
-      lines.push({ ...glyphStrokes[1 << i], k: 1 << i });
+      lines.push({ ...glyphStrokes[1 << i] });
     }
   }
-  if (val & (1 << 12)) {
-    lines.push({ ...ULV, k: 1 << 12 });
-    lines.push({ ...LLV, k: 1 << 12 });
+  if (val & LVK) {
+    lines.push({ ...ULV });
+    lines.push({ ...LLV });
   }
+
+  lines.push({ ...Midline });
 
   return (
     <svg
@@ -28,34 +39,19 @@ function Glyph({ width, val }: GlyphProps) {
       xmlnsXlink="http://www.w3.org/1999/xlink"
       viewBox={`-5 -5 ${W + 10} ${H}`}
     >
-      {lines.map((l) => {
+      {lines.map((l, i) => {
         return (
           <line
-            key={l.k + l.x1 + l.y1}
-            stroke="black"
-            strokeWidth="10"
-            strokeLinecap="round"
-            strokeLinejoin="round"
+            className="stroke-black stroke-10 [stroke-linecap:round] [stroke-linejoin:round]"
             {...l}
+            key={i} // TODO use a better key
           />
         );
       })}
 
-      {val & 32 ? (
-        <circle stroke="black" strokeWidth="10" {...LBC} fill="transparent" />
+      {val & BCK ? (
+        <circle {...BC} className="[fill:transparent] stroke-black stroke-10" />
       ) : null}
-
-      {/* Midline */}
-      <line
-        stroke="black"
-        strokeWidth="10"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        x1="0"
-        x2={W}
-        y1={midH}
-        y2={midH}
-      />
     </svg>
   );
 }

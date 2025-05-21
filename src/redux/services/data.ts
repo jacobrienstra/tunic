@@ -22,9 +22,10 @@ export interface GraphemeData {
 
 export interface WordData {
   id: number;
-  word: string[];
+  // word: string[];
   contexts: number[] | ContextWordJunction[];
   meaning: string;
+  glyphs: string[];
 }
 
 export interface ContextData {
@@ -42,7 +43,8 @@ export interface ContextWordJunction {
 }
 
 interface DirectusSchema {
-  graphemes: GraphemeData[];
+  // graphemes: GraphemeData[];
+  glyphs: GraphemeData[];
   words: WordData[];
   contexts: ContextData[];
   contexts_words: ContextWordJunction[];
@@ -75,7 +77,7 @@ export const dataApi = createApi({
   tagTypes: ["Graphemes", "Words", "Contexts", "ContextWordJunction"],
   endpoints: (builder) => ({
     getGraphemes: builder.query<GraphemeData[] | undefined, void>({
-      query: () => () => sdk.request(readItems("graphemes", { limit: -1 })),
+      query: () => () => sdk.request(readItems("glyphs", { limit: -1 })),
       providesTags: (result) =>
         result
           ? [
@@ -126,7 +128,7 @@ export const dataApi = createApi({
       // transformResponse: (response: { data: ContextWordJunction[] }) => response?.data,
     }),
     getGraphemeById: builder.query<GraphemeData | undefined, number>({
-      query: (id) => () => sdk.request(readItem("graphemes", id)),
+      query: (id) => () => sdk.request(readItem("glyphs", id)),
       providesTags: (result) =>
         result ? [{ type: "Graphemes", id: result.id }] : [],
       // transformResponse: (response: { data: GraphemeData }) => response?.data,
@@ -150,7 +152,7 @@ export const dataApi = createApi({
       query:
         ({ id, ...rest }) =>
         () =>
-          sdk.request(updateItem("graphemes", id, { ...rest })),
+          sdk.request(updateItem("glyphs", id, { ...rest })),
       // transformResponse: (response: { data: GraphemeData }) => response?.data,
       invalidatesTags: (result) =>
         result ? [{ type: "Graphemes", id: result.id }] : [],
@@ -251,7 +253,7 @@ export const dataApi = createApi({
         let result = await fetchWithBQ(() =>
           sdk.request(
             readItems("words", {
-              filter: { word: { _eq: word.map(String) } },
+              filter: { glyphs: { _eq: word.map(String) } },
             })
           )
         );
@@ -261,7 +263,7 @@ export const dataApi = createApi({
         } else {
           result = await fetchWithBQ(() =>
             sdk.request(
-              createItem("words", { word: word.map(String), meaning: "" })
+              createItem("words", { glyphs: word.map(String), meaning: "" })
             )
           );
           if (!result.data) {
@@ -286,12 +288,12 @@ export const dataApi = createApi({
 
         for (const grapheme of word) {
           let existingGrapheme = await fetchWithBQ(() =>
-            sdk.request(readItem("graphemes", grapheme))
+            sdk.request(readItem("glyphs", grapheme))
           );
 
           if (isEmpty(existingGrapheme.data)) {
             existingGrapheme = await fetchWithBQ(() =>
-              sdk.request(createItem("graphemes", { id: grapheme, sound: "" }))
+              sdk.request(createItem("glyphs", { id: grapheme, sound: "" }))
             );
           }
           if (!existingGrapheme.data) {

@@ -48,10 +48,10 @@ function WordRow({ wordData }: WordRowProps) {
   return (
     <div css={wordRowWrapper}>
       <div css={wordWrapper}>
-        <Word word={wordData.word} />
+        <Word word={wordData.glyphs} />
       </div>
       <div css={wordGuess}>
-        {wordData.word
+        {wordData.glyphs
           .map((val) => {
             const ival = parseInt(val);
             let sound = graphemes?.find((g) => g.id === ival)?.sound;
@@ -67,7 +67,7 @@ function WordRow({ wordData }: WordRowProps) {
         setValue={(val: string) =>
           updateWord({
             id: wordData.id,
-            word: wordData.word,
+            glyphs: wordData.glyphs,
             meaning: val,
           })
         }
