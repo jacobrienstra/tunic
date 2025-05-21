@@ -1,19 +1,34 @@
+@import "tailwindcss";
+
+@theme {
+  --animate-blink: blink 1s step-end infinite;
+
+  @keyframes blink {
+    0%,
+    100% {
+      opacity: 0.2;
+    }
+
+    50% {
+      opacity: 1;
+    }
+  }
+} /* TODO: This ought to work for general purpose blink but for the typer it should alternate between colors not opacities */
+
 :root {
-  font-family: "Noto Serif", Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
-  font-weight: 400;
-  font-size: 16px;
-
-
   color: var(--slate-900);
   color-scheme: light;
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
+  font-family:
+    "Noto Serif", Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-size: 16px;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  -webkit-text-size-adjust: 100%;
+  font-synthesis: none;
+  font-weight: 400;
+  text-rendering: optimizelegibility;
+  text-size-adjust: 100%;
 
   --green: #618833;
-
   --red-400: #f87171;
   --red-500: #ef4444;
   --red-600: #dc2626;
@@ -23,7 +38,7 @@
   --cyan-50: #ecfeff;
   --cyan-100: #cffafe;
   --cyan-200: #a5f3fc;
-  --cyan-300: #76E4F7;
+  --cyan-300: #76e4f7;
   --cyan-400: #0bc5ea;
   --cyan-500: #06b6d4;
   --cyan-600: #0891b2;
@@ -42,14 +57,23 @@
   --slate-900: #0f172a;
 }
 
-
 ::-webkit-scrollbar {
   display: none;
 }
 
 * {
-  box-sizing: border-box;
   overflow: hidden;
+  box-sizing: border-box;
+}
+
+input {
+  padding: 4px;
+  border: 0;
+  background-color: transparent;
+  font-family: inherit;
+  font-size: 1.1em;
+  font-weight: 700;
+  text-align: center;
 }
 
 input:hover {
@@ -57,19 +81,11 @@ input:hover {
   cursor: pointer;
 }
 
-input {
-  background-color: transparent;
-  border: 0;
-  padding: 4px;
-  font-family: inherit;
-  text-align: center;
-  font-weight: 700;
-  font-size: 1.1em;
-}
 
-input:focus, input:focus-visible {
-  outline: none;
+input:focus,
+input:focus-visible {
   background-color: var(--cyan-50);
+  outline: none;
 }
 
 body {
@@ -77,8 +93,8 @@ body {
 }
 
 a {
-  font-weight: 500;
   color: #646cff;
+  font-weight: 500;
   text-decoration: inherit;
 }
 
@@ -90,59 +106,60 @@ h1 {
   font-size: 3.2em;
   line-height: 1.1;
   user-select: none;
-
 }
 
 h3 {
+  margin: 4px 0;
   font-size: 1.2em;
   line-height: 1.1;
-  margin: 4px 0;
   user-select: none;
-
 }
 
 h4 {
-  font-size: 1.1em;
   margin: 2px 0;
+  font-size: 1.1em;
   user-select: none;
-
 }
 
-button, label {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.4em .8em;
-  font-size: 12px;
-  font-weight: 500;
-  font-family: inherit;
-  cursor: pointer;
-  background-color: var(--slate-200);
+button,
+label {
 
   display: inline-flex;
+  flex: 0 0 auto;
   flex-direction: row;
-  align-content: center;
   align-items: center;
-  justify-content: center;
-  text-align: center;
+  padding: 0.4em 0.8em;
+  border: 1px solid transparent;
+  border-radius: 8px;
 
   appearance: none;
-  flex: 0 0 auto;
-  user-select: none;
+  background-color: var(--slate-200);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  place-content: center center;
+  text-align: center;
 
   transition: background-color 0.25s;
+  user-select: none;
 }
-button:hover, label:hover, button.active  {
+
+button:hover,
+label:hover,
+button.active {
   background-color: var(--cyan-300);
 }
 
-button.disabled, label.disabled {
+button.disabled,
+label.disabled {
   color: var(--slate-400);
   cursor: auto;
 }
 
-button.disabled:hover, label.disabled:hover, button.disabled:active, label.disabled:active {
+button.disabled:hover,
+label.disabled:hover,
+button.disabled:active,
+label.disabled:active {
   background-color: var(--slate-200);
 }
-
-
-

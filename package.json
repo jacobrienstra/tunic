@@ -19,6 +19,7 @@
     "@mui/icons-material": "^6.4.6",
     "@mui/material": "^6.4.6",
     "@reduxjs/toolkit": "^2.6.0",
+    "@tailwindcss/vite": "^4.1.6",
     "directus": "^11.5.1",
     "lodash": "^4.17.21",
     "react": "^19.0.0",
@@ -28,7 +29,8 @@
     "react-redux": "^9.2.0",
     "react-reflex": "^4.2.7",
     "redux": "^5.0.1",
-    "sqlite3": "^5.1.7"
+    "sqlite3": "^5.1.7",
+    "tailwindcss": "^4.1.6"
   },
   "devDependencies": {
     "@emotion/babel-plugin": "^11.13.5",
@@ -73,6 +75,7 @@
       "vue-demi"
     ],
     "onlyBuiltDependencies": [
+      "@tailwindcss/oxide",
       "isolated-vm",
       "sqlite3"
     ]
