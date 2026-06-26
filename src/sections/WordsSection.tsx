@@ -9,7 +9,7 @@ import {
   selectWordFilterDirection,
 } from "../selectors";
 import {
-  useGetContextWordJunctionsQuery,
+  useGetContextWordJoinsQuery,
   useGetWordsQuery,
 } from "../redux/services/data";
 import {
@@ -54,7 +54,7 @@ function WordsSection() {
   const selectedWord = useAppSelector(selectSelectedWord);
 
   const { data: words } = useGetWordsQuery();
-  const { data: junctions } = useGetContextWordJunctionsQuery();
+  const { data: junctions } = useGetContextWordJoinsQuery();
 
   const filteredWords = useAppSelector(
     selectFilteredWords(

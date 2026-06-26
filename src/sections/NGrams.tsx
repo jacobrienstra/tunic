@@ -43,13 +43,13 @@ function NGrams({ tileSize }: NGramsProps) {
           <div css={wordGuess}>
             {ng
               .map((val) => {
-                const sound = graphemes?.find(
+                const meaning = graphemes?.find(
                   (g) => g.id === parseInt(val)
-                )?.sound;
-                if (sound === "" || sound === undefined) {
+                )?.meaning;
+                if (meaning === "" || meaning === undefined) {
                   return getGraphemeSoundGuess(parseInt(val), graphemes);
                 }
-                return sound.replace("?", "");
+                return meaning.replace("?", "");
               })
               .join("")}
           </div>

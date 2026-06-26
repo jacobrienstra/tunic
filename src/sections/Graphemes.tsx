@@ -1,6 +1,6 @@
 import { selectFilteredGraphemes, selectSelectedGrapheme } from "../selectors";
 import {
-  GraphemeData,
+  Grapheme as GraphemeData,
   useGetGraphemesQuery,
   useGetWordsQuery,
 } from "../redux/services/data";

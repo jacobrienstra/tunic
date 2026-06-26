@@ -11,7 +11,7 @@ import {
   selectWordFilterDirection,
 } from "../selectors";
 import {
-  useGetContextWordJunctionsQuery,
+  useGetContextWordJoinsQuery,
   useGetContextsQuery,
 } from "../redux/services/data";
 import {
@@ -19,6 +19,7 @@ import {
   setSelectedContext,
 } from "../redux/reducers/selection";
 import { useAppDispatch, useAppSelector } from "../redux/hooks";
+import { useDbImageUrl } from "../db";
 import Tile from "../components/Tile";
 
 import Section from "./Section";
@@ -60,6 +61,13 @@ const filterDirectionSection = css`
   }
 `;
 
+function ContextImage(props: { imageId: number }) {
+  const url = useDbImageUrl(props.imageId);
+  if (!url) return null;
+  // TODO: placeholder image box
+  return <InnerImageZoom hideHint css={contextImg} zoomScale={2} src={url} />;
+}
+
 function ContextsSection() {
   const dispatch = useAppDispatch();
   const selectedWord = useAppSelector(selectSelectedWord);
@@ -67,13 +75,13 @@ function ContextsSection() {
   const selectedContext = useAppSelector(selectSelectedContext);
 
   const { data: allCtxs } = useGetContextsQuery();
-  const { data: junctions } = useGetContextWordJunctionsQuery();
+  const { data: junctions } = useGetContextWordJoinsQuery();
 
   let filteredContexts = allCtxs;
   if (junctions && allCtxs && selectedWord) {
     const filteredContextIds = junctions
-      .filter((j) => j.words_id === selectedWord)
-      .map((j) => j.contexts_id);
+      .filter((j) => j.wordId === selectedWord)
+      .map((j) => j.contextId);
     filteredContexts = allCtxs.filter((ctx) =>
       filteredContextIds.includes(ctx.id)
     );
@@ -123,15 +131,8 @@ function ContextsSection() {
               onClick={(event: React.MouseEvent) => event.stopPropagation()}
             >
               <div css={imgScrollWrapper}>
-                {ctx.image ? (
-                  <InnerImageZoom
-                    hideHint
-                    css={contextImg}
-                    zoomScale={2}
-                    src={`${import.meta.env.VITE_DIRECTUS_URL}/assets/${
-                      ctx.image
-                    }`}
-                  ></InnerImageZoom>
+                {ctx.imageId != null ? (
+                  <ContextImage imageId={ctx.imageId} />
                 ) : null}
               </div>
             </div>

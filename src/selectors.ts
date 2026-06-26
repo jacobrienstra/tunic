@@ -3,9 +3,9 @@ import { createSelector } from "@reduxjs/toolkit";
 
 import { RootState } from "./redux/store";
 import {
-  ContextWordJunction,
-  GraphemeData,
-  WordData,
+  ContextWordJoin,
+  Grapheme,
+  Word,
 } from "./redux/services/data";
 import {
   ReverseSyllableStatus,
@@ -115,7 +115,7 @@ const getTotalPassValue = (
 };
 
 export const selectVowelGlyphs = (
-  selectGraphemes: () => GraphemeData[] | undefined
+  selectGraphemes: () => Grapheme[] | undefined
 ) =>
   createSelector(
     [
@@ -170,7 +170,7 @@ export const selectVowelGlyphs = (
   );
 
 export const selectConsonantGlyphs = (
-  selectGraphemes: () => GraphemeData[] | undefined
+  selectGraphemes: () => Grapheme[] | undefined
 ) =>
   createSelector(
     [
@@ -248,9 +248,9 @@ export const calcFilteredGraphemes = (
     | "wordFilterDirection"
     | "selectedGrapheme"
   >,
-  graphemes: GraphemeData[],
-  words: WordData[]
-): GraphemeData[] => {
+  graphemes: Grapheme[],
+  words: Word[]
+): Grapheme[] => {
   let filteredGraphemes = graphemes;
   if (glyphFilterDirection === "right") {
     filteredGraphemes = graphemes.filter((gd) => {
@@ -295,8 +295,8 @@ export const calcFilteredGraphemes = (
 };
 
 export const selectFilteredGraphemes = (
-  selectGraphemes: () => GraphemeData[] | undefined,
-  selectWords: () => WordData[] | undefined
+  selectGraphemes: () => Grapheme[] | undefined,
+  selectWords: () => Word[] | undefined
 ) =>
   createSelector(
     [
@@ -369,7 +369,7 @@ export const calcFilteredNGrams = (
     | "wordFilterDirection"
     | "selectedNGram"
   >,
-  words: WordData[]
+  words: Word[]
 ): string[][] => {
   const filteredNGrams = {} as {
     [id: string]: { count: number; ngram: string[] };
@@ -435,7 +435,7 @@ export const calcFilteredNGrams = (
 };
 
 export const selectFilteredNGrams = (
-  selectWords: () => WordData[] | undefined
+  selectWords: () => Word[] | undefined
 ) =>
   createSelector(
     [
@@ -513,22 +513,22 @@ export const calcFilteredWords = (
     | "contextFilterDirection"
     | "selectedWord"
   >,
-  words: WordData[],
-  junctions?: ContextWordJunction[]
-): WordData[] => {
+  words: Word[],
+  junctions?: ContextWordJoin[]
+): Word[] => {
   let filteredWords = words;
   if (contextFilterDirection === "left" && selectedContext) {
     if (!junctions) {
       return filteredWords;
     }
     const filteredJunctions = junctions
-      .filter((j) => j.contexts_id === selectedContext)
+      .filter((j) => j.contextId === selectedContext)
       .sort((a, b) => a.order - b.order);
     filteredWords = filteredJunctions.reduce((acc, j) => {
-      const word = words.find((w) => w.id === j.words_id);
+      const word = words.find((w) => w.id === j.wordId);
       if (word) acc.push(word);
       return acc;
-    }, [] as WordData[]);
+    }, [] as Word[]);
   } else if (graphemeFilterDirection === "right") {
     if (mode === "graphemes" && selectedGrapheme) {
       filteredWords = words.filter((w) =>
@@ -557,8 +557,8 @@ export const calcFilteredWords = (
 };
 
 export const selectFilteredWords = (
-  selectWords: () => WordData[] | undefined,
-  selectJunctions: () => ContextWordJunction[] | undefined
+  selectWords: () => Word[] | undefined,
+  selectJunctions: () => ContextWordJoin[] | undefined
 ) =>
   createSelector(
     [

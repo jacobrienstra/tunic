@@ -1,7 +1,7 @@
 import { css } from "@emotion/react";
 
 import {
-  GraphemeData,
+  Grapheme as GraphemeData,
   useGetGraphemesQuery,
   useUpdateGraphemeMutation,
 } from "../redux/services/data";
@@ -47,8 +47,10 @@ function Grapheme({ glyph }: GraphemeProps) {
       </div>
       <div css={soundGuess}>{getGraphemeSoundGuess(glyph.id, graphemes)}</div>
       <InlineEdit
-        value={glyph.sound ?? ""}
-        setValue={(val: string) => updateGrapheme({ id: glyph.id, sound: val })}
+        value={glyph.meaning ?? ""}
+        setValue={(val: string) =>
+          updateGrapheme({ id: glyph.id, meaning: val })
+        }
       />
     </div>
   );

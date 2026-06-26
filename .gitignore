@@ -11,10 +11,9 @@
 
 # production
 /build
+/dist/*
 
 *.db 
-
-/uploads
 
 # misc
 .DS_Store

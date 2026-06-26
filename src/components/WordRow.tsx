@@ -1,7 +1,7 @@
 import { css } from "@emotion/react";
 
 import {
-  WordData,
+  Word as WordData,
   useGetGraphemesQuery,
   useUpdateWordMutation,
 } from "../redux/services/data";
@@ -54,11 +54,11 @@ function WordRow({ wordData }: WordRowProps) {
         {wordData.glyphs
           .map((val) => {
             const ival = parseInt(val);
-            let sound = graphemes?.find((g) => g.id === ival)?.sound;
-            if (sound === "" || sound === undefined) {
-              sound = getGraphemeSoundGuess(ival, graphemes);
+            let meaning = graphemes?.find((g) => g.id === ival)?.meaning;
+            if (meaning === "" || meaning === undefined) {
+              meaning = getGraphemeSoundGuess(ival, graphemes);
             }
-            return sound.replace("?", "");
+            return meaning.replace("?", "");
           })
           .join("")}
       </div>

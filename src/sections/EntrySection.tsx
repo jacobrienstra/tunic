@@ -11,22 +11,21 @@ import { isEmpty, isEqual } from "lodash";
 import DownloadingIcon from "@mui/icons-material/Downloading";
 import { css } from "@emotion/react";
 import { cx, css as cssClass } from "@emotion/css";
-import { uploadFiles } from "@directus/sdk";
 
 import { selectSelectedContext } from "../selectors";
 import {
-  ContextData,
-  sdk,
-  useGetContextWordJunctionsQuery,
+  Context,
+  useGetContextWordJoinsQuery,
   useGetContextsQuery,
   useGetGraphemesQuery,
   useGetWordsQuery,
   useUpdateContextMutation,
   useUpsertContextMutation,
+  useAddWordMutation,
 } from "../redux/services/data";
-import { useAddWordMutation } from "../redux/services/data";
 import { useAppSelector } from "../redux/hooks";
 import { getGraphemeSoundGuess } from "../glyph";
+import { db, useDbImageUrl } from "../db";
 import Word from "../components/Word";
 import InlineEdit from "../components/InlineEdit";
 import GlyphTyper from "../components/GlyphTyper";
@@ -188,9 +187,10 @@ function EntrySection() {
     (JSON.parse(localStorage.getItem("tunic-EntryCurTrunicWord") ?? "[]") ??
       []) as number[]
   );
-  const [curImageId, setCurImageId] = useState<string | null>(
-    localStorage.getItem("tunic-EntryCurImageId")
-  );
+  const [curImageId, setCurImageId] = useState<number | null>(() => {
+    const stored = localStorage.getItem("tunic-EntryCurImageId");
+    return stored ? parseInt(stored, 10) : null;
+  });
 
   useEffect(() => {
     localStorage.setItem("tunic-EntryMode", mode);
@@ -208,9 +208,12 @@ function EntrySection() {
   }, [curTrunicWord]);
 
   useEffect(() => {
-    if (curImageId) localStorage.setItem("tunic-EntryCurImageId", curImageId);
+    if (curImageId != null)
+      localStorage.setItem("tunic-EntryCurImageId", String(curImageId));
     else localStorage.removeItem("tunic-EntryCurImageId");
   }, [curImageId]);
+
+  const curImageUrl = useDbImageUrl(curImageId);
 
   const selectedContextId = useAppSelector(selectSelectedContext);
 
@@ -218,7 +221,7 @@ function EntrySection() {
     selectFromResult: ({ data }) => ({
       data:
         data?.find((ctx) => ctx.id === selectedContextId) ??
-        ({} as ContextData),
+        ({} as Context),
     }),
   });
 
@@ -233,7 +236,7 @@ function EntrySection() {
   const [updateContext] = useUpdateContextMutation();
   const [upsertContext] = useUpsertContextMutation();
   const { data: graphemes } = useGetGraphemesQuery();
-  const { data: junctions } = useGetContextWordJunctionsQuery();
+  const { data: junctions } = useGetContextWordJoinsQuery();
   const { data: words } = useGetWordsQuery();
 
   const trunicTextWrapperRef = useRef<HTMLDivElement>(null);
@@ -259,9 +262,8 @@ function EntrySection() {
       [...wordEls].forEach((child) => {
         const wordEl = child.querySelector(".word");
         const wordString = wordEl?.getAttribute("data-word");
-        const existingSpan = child.querySelector(
-          `.translatedText`
-        ) as HTMLSpanElement;
+        const existingSpan: HTMLSpanElement =
+          child.querySelector(`.translatedText`)!;
         if (wordEl && wordString) {
           const wordNums = wordString.split(",").map((w) => parseInt(w));
           const translatedTextEl =
@@ -276,7 +278,7 @@ function EntrySection() {
   }, [trunic, getWordTranslation]);
 
   const setContextTranslationFn = (val: string) => {
-    if (selectedContext != null && selectedContext?.id) {
+    if (selectedContext?.id) {
       return updateContext({ id: selectedContext.id, text: val });
     } else {
       return () => {};
@@ -288,7 +290,7 @@ function EntrySection() {
       const submit = confirm("Submit Text with Context?");
       if (submit) {
         let context = null;
-        if (curImageId) {
+        if (curImageId != null) {
           context = await upsertContext({ imageId: curImageId });
         } else {
           context = await upsertContext({});
@@ -321,9 +323,9 @@ function EntrySection() {
       ? trunic.map(getWordTranslation).join(" ")
       : junctions && selectedContext
         ? junctions
-            ?.filter((j) => j.contexts_id === selectedContext?.id)
+            ?.filter((j) => j.contextId === selectedContext?.id)
             .sort((a, b) => a.order - b.order)
-            .map((j) => words?.find((word) => word.id === j.words_id))
+            .map((j) => words?.find((word) => word.id === j.wordId))
             .map((w) => {
               if (!w) return "???";
               else if (!isEmpty(w.meaning)) {
@@ -351,9 +353,9 @@ function EntrySection() {
       if (selectedContextId != null) {
         setTrunic(
           junctions
-            .filter((j) => j.contexts_id === selectedContextId)
+            .filter((j) => j.contextId === selectedContextId)
             .sort((a, b) => a.order - b.order)
-            .map((j) => words?.find((word) => word.id === j.words_id))
+            .map((j) => words?.find((word) => word.id === j.wordId))
             .filter((wd) => wd !== undefined)
             .map((wd) =>
               wd?.glyphs.map((g) => {
@@ -403,20 +405,11 @@ function EntrySection() {
         }
         return;
       }
-      const formData = new FormData();
-      formData.append("file", file);
       try {
-        const response = await sdk.request(uploadFiles(formData));
-        setCurImageId(response.id);
-      } catch ({ errors }: any) {
-        setError(
-          errors
-            .map(
-              (e: { message: string; extensions: Record<string, any> }) =>
-                e.message
-            )
-            .toString()
-        );
+        const id = await db.images.add({ blob: file });
+        setCurImageId(id);
+      } catch (e) {
+        setError(e instanceof Error ? e.message : String(e));
       } finally {
         setUploading(false);
         if (fileInput.current) {
@@ -504,7 +497,9 @@ function EntrySection() {
           <ReflexElement>
             <div css={imgSection}>
               <div css={imgSectionButtons}>
-                <label htmlFor="fileInput">{curImageId ?? "Add Context"}</label>
+                <label htmlFor="fileInput">
+                  {curImageId != null ? `Image #${curImageId}` : "Add Context"}
+                </label>
                 <input
                   disabled={curImageId != null}
                   type="file"
@@ -536,15 +531,13 @@ function EntrySection() {
                 <DownloadingIcon fontSize="large" css={loadingIcon} />
               ) : null}
               <div css={imgScrollWrapper}>
-                {curImageId != null ? (
+                {curImageUrl ? (
                   <InnerImageZoom
                     hideHint
                     css={contextImg}
                     zoomScale={2}
                     zoomType="hover"
-                    src={`${
-                      import.meta.env.VITE_DIRECTUS_URL
-                    }/assets/${curImageId}`}
+                    src={curImageUrl}
                   />
                 ) : null}
               </div>

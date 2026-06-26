@@ -1,4 +1,4 @@
-import { GraphemeData } from "./redux/services/data";
+import { Grapheme } from "./redux/services/data";
 
 /* Tinkered with these values to get them just right.
  * They're based on a regular hexagon with sides of 100,
@@ -93,14 +93,15 @@ export function getConsonant(val: number | string) {
 
 export const getGraphemeSoundGuess = (
   val: number,
-  graphemes?: GraphemeData[]
+  graphemes?: Grapheme[]
 ): string => {
-  let vowelGuess = graphemes?.find((g) => g.id === getVowel(val))?.sound ?? "?";
+  let vowelGuess =
+    graphemes?.find((g) => g.id === getVowel(val))?.meaning ?? "?";
   if (!getVowel(val) && vowelGuess === "?") {
     vowelGuess = "";
   }
   let consonantGuess =
-    graphemes?.find((g) => g.id === getConsonant(val))?.sound ?? "?";
+    graphemes?.find((g) => g.id === getConsonant(val))?.meaning ?? "?";
   if (!getConsonant(val) && consonantGuess === "?") {
     consonantGuess = "";
   }

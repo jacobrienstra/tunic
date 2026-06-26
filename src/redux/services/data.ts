@@ -1,71 +1,23 @@
-import { isEmpty } from "lodash";
-import type { AxiosError } from "axios";
 import {
   BaseQueryFn,
   FetchBaseQueryError,
   TagDescription,
   createApi,
 } from "@reduxjs/toolkit/query/react";
-import {
-  createDirectus,
-  createItem,
-  readItem,
-  readItems,
-  rest,
-  updateItem,
-} from "@directus/sdk";
 
-export interface GraphemeData {
-  id: number;
-  sound: string;
-}
+import { Context, ContextWordJoin, Grapheme, Word, db } from "../../db";
 
-export interface WordData {
-  id: number;
-  // word: string[];
-  contexts: number[] | ContextWordJunction[];
-  meaning: string;
-  glyphs: string[];
-}
+export type { Context, ContextWordJoin, Grapheme, Word };
 
-export interface ContextData {
-  id: number;
-  image: string;
-  words: number[] | ContextWordJunction[];
-  text: string;
-}
-
-export interface ContextWordJunction {
-  id: number;
-  order: number;
-  contexts_id: number | ContextData;
-  words_id: number | WordData;
-}
-
-interface DirectusSchema {
-  // graphemes: GraphemeData[];
-  glyphs: GraphemeData[];
-  words: WordData[];
-  contexts: ContextData[];
-  contexts_words: ContextWordJunction[];
-}
-
-export const sdk = createDirectus<DirectusSchema>("http://localhost:8055").with(
-  rest()
-);
-
-const directusBaseQuery =
-  (): BaseQueryFn<() => Promise<object>, unknown, unknown> =>
-  async (requestFn: () => Promise<object>) => {
+const dexieBaseQuery =
+  (): BaseQueryFn<() => Promise<unknown>, unknown, unknown> =>
+  async (requestFn) => {
     try {
-      const result = await requestFn();
-      return { data: result as object };
+      return { data: await requestFn() };
     } catch (error) {
-      const err = error as AxiosError;
       return {
         error: {
-          status: err.response?.status,
-          data: err.response?.data || err.message,
+          message: error instanceof Error ? error.message : String(error),
         },
       };
     }
@@ -73,11 +25,11 @@ const directusBaseQuery =
 
 export const dataApi = createApi({
   reducerPath: "data",
-  baseQuery: directusBaseQuery(),
-  tagTypes: ["Graphemes", "Words", "Contexts", "ContextWordJunction"],
+  baseQuery: dexieBaseQuery(),
+  tagTypes: ["Graphemes", "Words", "Contexts", "ContextWordJoins"],
   endpoints: (builder) => ({
-    getGraphemes: builder.query<GraphemeData[] | undefined, void>({
-      query: () => () => sdk.request(readItems("glyphs", { limit: -1 })),
+    getGraphemes: builder.query<Grapheme[] | undefined, void>({
+      query: () => async () => db.graphemes.toArray(),
       providesTags: (result) =>
         result
           ? [
@@ -85,10 +37,9 @@ export const dataApi = createApi({
               "Graphemes",
             ]
           : ["Graphemes"],
-      // transformResponse: (response: { data: GraphemeData[] }) => response?.data,
     }),
-    getWords: builder.query<WordData[] | undefined, void>({
-      query: () => () => sdk.request(readItems("words", { limit: -1 })),
+    getWords: builder.query<Word[] | undefined, void>({
+      query: () => async () => db.words.toArray(),
       providesTags: (result) =>
         result
           ? [
@@ -96,10 +47,9 @@ export const dataApi = createApi({
               "Words",
             ]
           : ["Words"],
-      // transformResponse: (response: { data: WordData[] }) => response?.data,
     }),
-    getContexts: builder.query<ContextData[] | undefined, void>({
-      query: () => () => sdk.request(readItems("contexts", { limit: -1 })),
+    getContexts: builder.query<Context[] | undefined, void>({
+      query: () => async () => db.contexts.toArray(),
       providesTags: (result) =>
         result
           ? [
@@ -107,128 +57,102 @@ export const dataApi = createApi({
               "Contexts",
             ]
           : ["Contexts"],
-      // transformResponse: (response: { data: ContextData[] }) => response?.data,
     }),
-    getContextWordJunctions: builder.query<
-      ContextWordJunction[] | undefined,
-      void
-    >({
-      query: () => () =>
-        sdk.request(readItems("contexts_words", { sort: "order", limit: -1 })),
+    getContextWordJoins: builder.query<ContextWordJoin[] | undefined, void>({
+      query: () => async () => db.contextWordJoins.toArray(),
       providesTags: (result) =>
         result
           ? [
               ...result.map(({ id }) => ({
-                type: "ContextWordJunction" as const,
+                type: "ContextWordJoins" as const,
                 id,
               })),
-              "ContextWordJunction",
+              "ContextWordJoins",
             ]
-          : ["ContextWordJunction"],
-      // transformResponse: (response: { data: ContextWordJunction[] }) => response?.data,
+          : ["ContextWordJoins"],
     }),
-    getGraphemeById: builder.query<GraphemeData | undefined, number>({
-      query: (id) => () => sdk.request(readItem("glyphs", id)),
+    getGraphemeById: builder.query<Grapheme | undefined, number>({
+      query: (id) => async () => db.graphemes.get(id),
       providesTags: (result) =>
         result ? [{ type: "Graphemes", id: result.id }] : [],
-      // transformResponse: (response: { data: GraphemeData }) => response?.data,
     }),
-    getWordById: builder.query<WordData | undefined, number>({
-      query: (id) => () => sdk.request(readItem("words", id)),
+    getWordById: builder.query<Word | undefined, number>({
+      query: (id) => async () => db.words.get(id),
       providesTags: (result) =>
         result ? [{ type: "Words", id: result.id }] : [],
-      // transformResponse: (response: { data: WordData }) => response?.data,
     }),
-    getContextById: builder.query<ContextData | undefined, number>({
-      query: (id) => () => sdk.request(readItem("contexts", id)),
+    getContextById: builder.query<Context | undefined, number>({
+      query: (id) => async () => db.contexts.get(id),
       providesTags: (result) =>
         result ? [{ type: "Contexts", id: result.id }] : [],
-      // transformResponse: (response: { data: ContextData }) => response?.data,
     }),
     updateGrapheme: builder.mutation<
-      GraphemeData | undefined,
-      { id: number } & Partial<GraphemeData>
+      Grapheme | undefined,
+      { id: number } & Partial<Grapheme>
     >({
       query:
-        ({ id, ...rest }) =>
-        () =>
-          sdk.request(updateItem("glyphs", id, { ...rest })),
-      // transformResponse: (response: { data: GraphemeData }) => response?.data,
+        ({ id, meaning = "" }) =>
+        async () => {
+          const existing = await db.graphemes.get(id);
+          const next: Grapheme = {
+            id,
+            meaning: meaning ?? existing?.meaning ?? "",
+          };
+          await db.graphemes.put(next);
+          return next;
+        },
       invalidatesTags: (result) =>
         result ? [{ type: "Graphemes", id: result.id }] : [],
     }),
     updateWord: builder.mutation<
-      WordData | undefined,
-      { id: number } & Partial<WordData>
+      Word | undefined,
+      { id: number } & Partial<Word>
     >({
       query:
-        ({ id, ...rest }) =>
-        () =>
-          sdk.request(updateItem("words", id, { ...rest })),
-      // transformResponse: (response: { data: WordData }) => response?.data,
+        ({ id, ...patch }) =>
+        async () => {
+          await db.words.update(id, patch);
+          return db.words.get(id);
+        },
       invalidatesTags: (result) =>
         result ? [{ type: "Words", id: result.id }] : [],
     }),
     updateContext: builder.mutation<
-      ContextData | undefined,
-      { id: number } & Partial<ContextData>
+      Context | undefined,
+      { id: number } & Partial<Context>
     >({
       query:
-        ({ id, ...rest }) =>
-        () =>
-          sdk.request(updateItem("contexts", id, { ...rest })),
-      // transformResponse: (response: { data: ContextData }) => response?.data,
+        ({ id, ...patch }) =>
+        async () => {
+          await db.contexts.update(id, patch);
+          return db.contexts.get(id);
+        },
       invalidatesTags: (result) =>
         result ? [{ type: "Contexts", id: result.id }] : [],
     }),
-    upsertContext: builder.mutation<
-      ContextData | undefined,
-      { imageId?: string }
-    >({
-      queryFn: async ({ imageId }, _queryApi, _extraOptions, fetchWithBQ) => {
-        let existingContext: ContextData | null = null;
-        let result = null;
-        if (imageId) {
-          const result = await fetchWithBQ(() =>
-            sdk.request(
-              readItems("contexts", {
-                filter: {
-                  image: { _eq: imageId },
-                },
-              })
-            )
-          );
-          if (!isEmpty(result.data)) {
-            existingContext = (result.data as ContextData[])[0];
-          }
-        } else {
-          result = await fetchWithBQ(() =>
-            sdk.request(
-              readItems("contexts", {
-                filter: {
-                  image: { _null: true },
-                },
-              })
-            )
-          );
-          if (!isEmpty(result.data)) {
-            existingContext = (result.data as ContextData[])[0];
-          }
+    upsertContext: builder.mutation<Context | undefined, { imageId?: number }>({
+      queryFn: async ({ imageId }) => {
+        try {
+          const existing = await db.transaction("rw", db.contexts, async () => {
+            const found =
+              imageId != null
+                ? await db.contexts.where("imageId").equals(imageId).first()
+                : await db.contexts.filter((c) => c.imageId == null).first();
+            if (found) return found;
+            const id = await db.contexts.add({
+              imageId,
+              text: "",
+            });
+            return (await db.contexts.get(id))!;
+          });
+          return { data: existing };
+        } catch (error) {
+          return {
+            error: {
+              message: error instanceof Error ? error.message : String(error),
+            } as unknown as FetchBaseQueryError,
+          };
         }
-        if (!existingContext) {
-          result = await fetchWithBQ(() =>
-            sdk.request(
-              createItem("contexts", imageId ? { image: imageId } : {})
-            )
-          );
-          if (!result.data) {
-            return { error: result.error as FetchBaseQueryError };
-          } else {
-            existingContext = result.data as ContextData;
-          }
-        }
-
-        return { data: existingContext };
       },
       invalidatesTags: (result) =>
         result ? [{ type: "Contexts", id: result.id }] : [],
@@ -238,77 +162,59 @@ export const dataApi = createApi({
           wordId: number;
           graphemeIds: number[];
           contextId: number;
-          contextWordJunctionId: number;
+          contextWordJoinId: number;
         }
       | undefined,
       { word: number[]; ctxId: number; order?: number }
     >({
-      queryFn: async (
-        { word, ctxId, order },
-        _queryApi,
-        _extraOptions,
-        fetchWithBQ
-      ) => {
-        let existingWord: WordData | null = null;
-        let result = await fetchWithBQ(() =>
-          sdk.request(
-            readItems("words", {
-              filter: { glyphs: { _eq: word.map(String) } },
-            })
-          )
-        );
+      queryFn: async ({ word, ctxId, order }) => {
+        try {
+          const result = await db.transaction(
+            "rw",
+            [db.words, db.contextWordJoins, db.graphemes],
+            async () => {
+              const glyphs = word.map(String);
+              let existingWord = await db.words
+                .where("glyphs")
+                .equals(glyphs)
+                .first();
+              if (!existingWord) {
+                const wordId = await db.words.add({
+                  glyphs,
+                  meaning: "",
+                });
+                existingWord = (await db.words.get(wordId))!;
+              }
 
-        if (!isEmpty(result.data)) {
-          existingWord = (result.data as WordData[])[0];
-        } else {
-          result = await fetchWithBQ(() =>
-            sdk.request(
-              createItem("words", { glyphs: word.map(String), meaning: "" })
-            )
+              const joinId = await db.contextWordJoins.add({
+                contextId: ctxId,
+                wordId: existingWord.id,
+                order: order ?? 0,
+              });
+
+              for (const grapheme of word) {
+                const existing = await db.graphemes.get(grapheme);
+                if (!existing) {
+                  await db.graphemes.put({ id: grapheme, meaning: "" });
+                }
+              }
+
+              return {
+                wordId: existingWord.id,
+                contextId: ctxId,
+                graphemeIds: word,
+                contextWordJoinId: joinId,
+              };
+            }
           );
-          if (!result.data) {
-            return { error: result.error as FetchBaseQueryError };
-          } else {
-            existingWord = result.data as WordData;
-          }
+          return { data: result };
+        } catch (error) {
+          return {
+            error: {
+              message: error instanceof Error ? error.message : String(error),
+            } as unknown as FetchBaseQueryError,
+          };
         }
-
-        const updatedJunction = await fetchWithBQ(() =>
-          sdk.request(
-            createItem("contexts_words", {
-              contexts_id: ctxId,
-              words_id: (existingWord as WordData).id,
-              order: order,
-            })
-          )
-        );
-        if (!updatedJunction.data) {
-          return { error: updatedJunction.error as FetchBaseQueryError };
-        }
-
-        for (const grapheme of word) {
-          let existingGrapheme = await fetchWithBQ(() =>
-            sdk.request(readItem("glyphs", grapheme))
-          );
-
-          if (isEmpty(existingGrapheme.data)) {
-            existingGrapheme = await fetchWithBQ(() =>
-              sdk.request(createItem("glyphs", { id: grapheme, sound: "" }))
-            );
-          }
-          if (!existingGrapheme.data) {
-            return { error: existingGrapheme.error as FetchBaseQueryError };
-          }
-        }
-        return {
-          data: {
-            wordId: (existingWord as WordData).id,
-            contextId: ctxId,
-            graphemeIds: word,
-            contextWordJunctionId: (updatedJunction.data as ContextWordJunction)
-              .id,
-          },
-        };
       },
       invalidatesTags: (result) =>
         result
@@ -317,15 +223,15 @@ export const dataApi = createApi({
                 "Words",
                 "Contexts",
                 "Graphemes",
-                "ContextWordJunction",
+                "ContextWordJoins",
                 { type: "Words" as const, id: result.wordId },
                 { type: "Contexts" as const, id: result.contextId },
                 {
-                  type: "ContextWordJunction" as const,
-                  id: result.contextWordJunctionId,
+                  type: "ContextWordJoins" as const,
+                  id: result.contextWordJoinId,
                 },
               ] as TagDescription<
-                "Graphemes" | "Words" | "Contexts" | "ContextWordJunction"
+                "Graphemes" | "Words" | "Contexts" | "ContextWordJoins"
               >[]
             ).concat(
               result.graphemeIds.map((id) => ({
@@ -342,7 +248,7 @@ export const {
   useGetGraphemesQuery,
   useGetWordsQuery,
   useGetContextsQuery,
-  useGetContextWordJunctionsQuery,
+  useGetContextWordJoinsQuery,
   useGetGraphemeByIdQuery,
   useGetWordByIdQuery,
   useGetContextByIdQuery,
