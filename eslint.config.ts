@@ -1,22 +1,17 @@
-// @ts-check
-
-import globals from "globals";
-import eslint from "@eslint/js";
 import tseslint from "typescript-eslint";
-import reactPlugin from "eslint-plugin-react";
-import importPlugin from "eslint-plugin-import";
+import globals from "globals";
 import reactHooks from "eslint-plugin-react-hooks";
+import reactPlugin from "eslint-plugin-react";
 import eslintPluginPrettierRecommended from "eslint-plugin-prettier/recommended";
+import importPlugin from "eslint-plugin-import";
+import eslint from "@eslint/js";
 
 export default tseslint.config(
   {
-    ignores: ["**/dist", "**/node_modules"],
+    ignores: ["**/dist", "**/node_modules", "eslint.config.ts"],
   },
   eslint.configs.recommended,
   {
-    plugins: {
-      import: importPlugin,
-    },
     languageOptions: {
       globals: {
         ...globals.browser,
@@ -58,7 +53,9 @@ export default tseslint.config(
     files: ["**/*.tsx"],
     plugins: {
       react: reactPlugin,
-      "react-hooks": reactHooks,
+    },
+    settings: {
+      react: { version: "detect" },
     },
     languageOptions: {
       ...reactPlugin.configs.flat.recommended.languageOptions,
@@ -85,10 +82,3 @@ export default tseslint.config(
 
   eslintPluginPrettierRecommended
 );
-
-//   // "react-refresh/only-export-components": [
-//   //   "warn",
-//   //   {
-//   //     allowConstantExport: true,
-//   //   },
-//   // ],
