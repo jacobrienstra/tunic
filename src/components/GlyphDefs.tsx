@@ -16,7 +16,7 @@ import {
 } from "../glyph";
 import { useGraphemes } from "../data/queries";
 
-function computeGlyphLines(val: number): GlyphLine[] {
+export function computeGlyphLines(val: number): GlyphLine[] {
   const lines: GlyphLine[] = [];
   for (const i of Array(10).keys()) {
     if (val & (1 << i)) lines.push(glyphStrokes[1 << i]);

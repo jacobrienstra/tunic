@@ -406,7 +406,7 @@ function EntrySection() {
                 <div css={trunicTextWrapper} ref={trunicTextWrapperRef}>
                   {trunic.map((w, i) => (
                     <div className="wordWrapper" key={i}>
-                      <Word word={w} width={18} />
+                      <Word word={w} width={18} inline />
                     </div>
                   ))}
                 </div>
@@ -438,7 +438,7 @@ function EntrySection() {
                 }}
               >
                 <div css={wordWrapper}>
-                  <Word word={curTrunicWord} width={20} />
+                  <Word word={curTrunicWord} width={20} inline />
                 </div>
                 <GlyphTyper
                   width={100}

@@ -16,13 +16,20 @@ const wordStyle = (width: number) => css`
 interface WordProps {
   word: string[] | number[];
   width?: number;
+  inline?: boolean;
 }
 
-function Word({ word, width = 20 }: WordProps) {
+function Word({ word, width = 20, inline = false }: WordProps) {
   return (
     <div css={wordStyle(width)} data-word={word} className="word">
       {word.map((w, i) => (
-        <Glyph val={w} width={width} inWord={true} key={[w, i].join("_")} />
+        <Glyph
+          val={w}
+          width={width}
+          inWord={true}
+          inline={inline}
+          key={[w, i].join("_")}
+        />
       ))}
     </div>
   );
