@@ -1,17 +1,15 @@
 import { css } from "@emotion/react";
 
+import { W, pad } from "../glyph";
+
 import Glyph from "./Glyph";
 
-const wordStyle = css`
+const wordStyle = (width: number) => css`
   display: flex;
   flex-direction: row;
-  /* padding: 8px; */
-  svg:not(:first-of-type) {
-    margin-left: -1.7%;
-  }
-
-  svg:not(:last-child) {
-    border-right: 1px dotted var(--slate-300);
+  padding-inline: ${(pad / W) * width}px;
+  svg {
+    overflow: visible;
   }
 `;
 
@@ -22,9 +20,9 @@ interface WordProps {
 
 function Word({ word, width = 20 }: WordProps) {
   return (
-    <div css={wordStyle} data-word={word} className="word">
+    <div css={wordStyle(width)} data-word={word} className="word">
       {word.map((w, i) => (
-        <Glyph val={w} width={width} key={[w, i].join("_")} />
+        <Glyph val={w} width={width} inWord={true} key={[w, i].join("_")} />
       ))}
     </div>
   );

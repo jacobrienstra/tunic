@@ -1,10 +1,7 @@
 import { useState, useEffect, useRef } from "react";
-import { css } from "@emotion/react";
 
 import {
   glyphStrokes,
-  H,
-  W,
   UTLK,
   UTRK,
   UMVK,
@@ -21,6 +18,10 @@ import {
   BCK,
   BC,
   Midline,
+  paddedViewBox,
+  strokeWidth,
+  strokeLinecap,
+  strokeLinejoin,
 } from "../glyph";
 
 interface GlyphTyperProps {
@@ -39,15 +40,6 @@ function GlyphTyper({
   width = 150,
 }: GlyphTyperProps) {
   const [val, setVal] = useState(0);
-
-  const svgStyle = css`
-    /* &:focus,
-    &:focus-visible,
-    &:focus-within {
-      outline: none;
-    } */
-    max-width: ${width}px;
-  `;
 
   const unusedLines = [];
   const usedLines = [];
@@ -145,7 +137,10 @@ function GlyphTyper({
       width={width ?? "100%"}
       xmlns="http://www.w3.org/2000/svg"
       xmlnsXlink="http://www.w3.org/1999/xlink"
-      viewBox={`-5 -5 ${W + 10} ${H}`}
+      viewBox={paddedViewBox}
+      strokeWidth={strokeWidth}
+      strokeLinecap={strokeLinecap}
+      strokeLinejoin={strokeLinejoin}
       tabIndex={0}
       onKeyDown={handleKeyDown}
       ref={svgRef}
@@ -154,9 +149,7 @@ function GlyphTyper({
     >
       {unusedLines.map((l, i) => (
         <line
-          className={
-            "stroke-slate-200 stroke-10 [stroke-linecap:round] [stroke-linejoin:round]"
-          }
+          className="stroke-slate-200"
           {...l}
           key={i} // TODO: use a better key
           onClick={() => {
@@ -167,20 +160,20 @@ function GlyphTyper({
         />
       ))}
       <circle
-        className={`[fill:transparent] stroke-10 ${val & BCK ? "stroke-black" : "stroke-slate-200"}`}
+        className={`[fill:transparent] ${val & BCK ? "stroke-black" : "stroke-slate-200"}`}
         {...BC}
         onClick={() => setVal(val ^ BCK)}
       />
       ;{/* Midline */}
       <line
-        className={`stroke-10 [stroke-linecap:round] [stroke-linejoin:round] ${isActive ? "animate-blink stroke-black" : "stroke-slate-200"}`}
+        className={isActive ? "animate-blink stroke-black" : "stroke-slate-200"}
         {...Midline}
       />
       ;
       {usedLines.map((l) => (
         <line
           key={l.k + l.x1 + l.y1}
-          className="stroke-black stroke-10 [stroke-linecap:round] [stroke-linejoin:round]"
+          className="stroke-black"
           {...l}
           onClick={() => {
             if (isActive) {

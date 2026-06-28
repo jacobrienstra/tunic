@@ -1,4 +1,4 @@
-import { Grapheme } from "./data/db";
+import type { Grapheme } from "./data/db";
 
 /* Tinkered with these values to get them just right.
  * They're based on a regular hexagon with sides of 100,
@@ -6,8 +6,18 @@ import { Grapheme } from "./data/db";
  */
 export const W = 173.2050807569;
 export const halfW = 86.60254037845;
-export const H = 310;
-export const midH = 135;
+export const H = 357;
+export const midH = 150;
+
+export const strokeWidth = 24;
+export const strokeLinecap = "round" as const;
+export const strokeLinejoin = "round" as const;
+// No padding for symbol viewbox: matches the glyph's geometry exactly
+export const tightViewBox = `0 0 ${W} ${H}`;
+// Visible SVG's viewBox pads so thick strokes stay visible.
+export const pad = strokeWidth / 2 + 5;
+export const scriptViewBox = `0 ${-pad} ${W} ${H + pad * 2}`;
+export const paddedViewBox = `${-pad} ${-pad} ${W + pad * 2} ${H + pad * 2}`;
 
 export const vowelMask = 0b11100000011;
 export const consonantMask = 0b00011111100;
@@ -54,18 +64,18 @@ export const UTR: GlyphLine = { x1: halfW, y1: 0, x2: W, y2: 50 };
 export const UMV: GlyphLine = { x1: halfW, y1: 0, x2: halfW, y2: 100 };
 export const UBL: GlyphLine = { x1: 0, y1: 50, x2: halfW, y2: 100 };
 export const UBR: GlyphLine = { x1: halfW, y1: 100, x2: W, y2: 50 };
-export const UBV: GlyphLine = { x1: halfW, y1: 100, x2: halfW, y2: 135 };
+export const UBV: GlyphLine = { x1: halfW, y1: 100, x2: halfW, y2: midH };
 
-export const LTL: GlyphLine = { x1: 0, y1: 220, x2: halfW, y2: 170 };
-export const LTR: GlyphLine = { x1: halfW, y1: 170, x2: W, y2: 220 };
-export const LMV: GlyphLine = { x1: halfW, y1: 170, x2: halfW, y2: 270 };
-export const LBL: GlyphLine = { x1: 0, y1: 220, x2: halfW, y2: 270 };
-export const LBR: GlyphLine = { x1: halfW, y1: 270, x2: W, y2: 220 };
+export const LTL: GlyphLine = { x1: 0, y1: 260, x2: halfW, y2: 210 };
+export const LTR: GlyphLine = { x1: halfW, y1: 210, x2: W, y2: 260 };
+export const LMV: GlyphLine = { x1: halfW, y1: 210, x2: halfW, y2: 310 };
+export const LBL: GlyphLine = { x1: 0, y1: 260, x2: halfW, y2: 310 };
+export const LBR: GlyphLine = { x1: halfW, y1: 310, x2: W, y2: 260 };
 
-export const ULV: GlyphLine = { x1: 0, y1: 50, x2: 0, y2: 135 };
-export const LLV: GlyphLine = { x1: 0, y1: 220, x2: 0, y2: 170 };
+export const ULV: GlyphLine = { x1: 0, y1: 52, x2: 0, y2: midH };
+export const LLV: GlyphLine = { x1: 0, y1: 210, x2: 0, y2: 258 };
 
-export const BC: GlyphCircle = { cx: halfW, cy: 284, r: 14 };
+export const BC: GlyphCircle = { cx: halfW, cy: 336, r: 21 };
 
 export const Midline: GlyphLine = { x1: 0, x2: W, y1: midH, y2: midH };
 

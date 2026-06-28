@@ -81,7 +81,6 @@ input:hover {
   cursor: pointer;
 }
 
-
 input:focus,
 input:focus-visible {
   background-color: var(--cyan-50);
@@ -123,7 +122,6 @@ h4 {
 
 button,
 label {
-
   display: inline-flex;
   flex: 0 0 auto;
   flex-direction: row;
