@@ -1,4 +1,4 @@
-import { Grapheme } from "./redux/services/data";
+import { Grapheme } from "./data/db";
 
 /* Tinkered with these values to get them just right.
  * They're based on a regular hexagon with sides of 100,

@@ -11,10 +11,10 @@ import {
   Midline,
 } from "../glyph";
 
-type GlyphProps = {
+interface GlyphProps {
   val: number | string;
   width?: number;
-};
+}
 
 function Glyph({ width, val }: GlyphProps) {
   if (typeof val === "string") val = parseInt(val);

@@ -1,18 +1,13 @@
+import { memo } from "react";
 import { css } from "@emotion/react";
 
-import {
-  Grapheme as GraphemeData,
-  useGetGraphemesQuery,
-  useUpdateGraphemeMutation,
-} from "../redux/services/data";
 import { getGraphemeSoundGuess } from "../glyph";
+import { useGraphemes } from "../data/queries";
+import { updateGrapheme } from "../data/mutations";
+import { Grapheme as GraphemeProps } from "../data/db";
 
 import InlineEdit from "./InlineEdit";
 import Glyph from "./Glyph";
-
-interface GraphemeProps {
-  glyph: GraphemeData;
-}
 
 const graphemeWrapper = css`
   max-width: 100%;
@@ -37,23 +32,22 @@ const soundGuess = css`
   text-align: center;
 `;
 
-function Grapheme({ glyph }: GraphemeProps) {
-  const [updateGrapheme] = useUpdateGraphemeMutation();
-  const { data: graphemes } = useGetGraphemesQuery();
+function Grapheme({ id, meaning }: GraphemeProps) {
+  const graphemes = useGraphemes();
   return (
     <div css={graphemeWrapper}>
       <div css={glyphWrapper}>
-        <Glyph val={glyph.id} />
+        <Glyph val={id} />
       </div>
-      <div css={soundGuess}>{getGraphemeSoundGuess(glyph.id, graphemes)}</div>
+      <div css={soundGuess}>{getGraphemeSoundGuess(id, graphemes)}</div>
       <InlineEdit
-        value={glyph.meaning ?? ""}
-        setValue={(val: string) =>
-          updateGrapheme({ id: glyph.id, meaning: val })
-        }
+        value={meaning ?? ""}
+        setValue={(val: string) => {
+          updateGrapheme(id, { meaning: val }).catch(console.error);
+        }}
       />
     </div>
   );
 }
 
-export default Grapheme;
+export default memo(Grapheme);

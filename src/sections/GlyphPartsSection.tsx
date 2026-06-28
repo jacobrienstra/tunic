@@ -1,22 +1,12 @@
+import { useMemo } from "react";
 import KeyboardDoubleArrowRightIcon from "@mui/icons-material/KeyboardDoubleArrowRight";
 import { css } from "@emotion/react";
 import { cx } from "@emotion/css";
 
-import {
-  selectGlyphFilterDirection,
-  selectConsonantFilter,
-  selectConsonantGlyphs,
-  selectVowelFilter,
-  selectVowelGlyphs,
-} from "../selectors";
-import { useGetGraphemesQuery } from "../redux/services/data";
-import {
-  setGlyphFilterDirection,
-  setConsonantFilter,
-  setVowelFilter,
-} from "../redux/reducers/selection";
-import { useAppDispatch, useAppSelector } from "../redux/hooks";
 import { getGraphemeSoundGuess } from "../glyph";
+import { useSelectionStore } from "../data/state";
+import { useGraphemes } from "../data/queries";
+import { calcConsonantGlyphs, calcVowelGlyphs } from "../data/filters";
 import Tile from "../components/Tile";
 import Glyph from "../components/Glyph";
 
@@ -90,31 +80,81 @@ const soundGuess = css`
 `;
 
 function Filters() {
-  const dispatch = useAppDispatch();
-  const { data: graphemes } = useGetGraphemesQuery();
+  const graphemes = useGraphemes();
 
-  const vowelFilter = useAppSelector(selectVowelFilter);
-  const consonantFilter = useAppSelector(selectConsonantFilter);
-
-  const vowelGlyphs = useAppSelector(selectVowelGlyphs(() => graphemes));
-  const consonantGlyphs = useAppSelector(
-    selectConsonantGlyphs(() => graphemes)
+  const vowelFilter = useSelectionStore((s) => s.vowelFilter);
+  const consonantFilter = useSelectionStore((s) => s.consonantFilter);
+  const glyphFilterDirection = useSelectionStore((s) => s.glyphFilterDirection);
+  const graphemeFilterDirection = useSelectionStore(
+    (s) => s.graphemeFilterDirection
+  );
+  const selectedGrapheme = useSelectionStore((s) => s.selectedGrapheme);
+  const selectedNGram = useSelectionStore((s) => s.selectedNGram);
+  const partial = useSelectionStore((s) => s.partial);
+  const mode = useSelectionStore((s) => s.mode);
+  const setGlyphFilterDirection = useSelectionStore(
+    (s) => s.setGlyphFilterDirection
+  );
+  const toggleVowelFilter = useSelectionStore((s) => s.toggleVowelFilter);
+  const toggleConsonantFilter = useSelectionStore(
+    (s) => s.toggleConsonantFilter
   );
 
-  const glyphFilterDirection = useAppSelector(selectGlyphFilterDirection);
+  const vowelGlyphs = useMemo(
+    () =>
+      calcVowelGlyphs(
+        {
+          graphemeFilterDirection,
+          selectedGrapheme,
+          selectedNGram,
+          partial,
+          mode,
+        },
+        graphemes
+      ),
+    [
+      graphemeFilterDirection,
+      selectedGrapheme,
+      selectedNGram,
+      partial,
+      mode,
+      graphemes,
+    ]
+  );
+  const consonantGlyphs = useMemo(
+    () =>
+      calcConsonantGlyphs(
+        {
+          graphemeFilterDirection,
+          selectedGrapheme,
+          selectedNGram,
+          partial,
+          mode,
+        },
+        graphemes
+      ),
+    [
+      graphemeFilterDirection,
+      selectedGrapheme,
+      selectedNGram,
+      partial,
+      mode,
+      graphemes,
+    ]
+  );
 
   return (
     <section css={glyphPartsSection}>
       <div css={filterDirectionSection}>
         <button
           className={cx({ active: glyphFilterDirection === "off" })}
-          onClick={() => dispatch(setGlyphFilterDirection("off"))}
+          onClick={() => setGlyphFilterDirection("off")}
         >
           Off
         </button>
         <button
           className={cx({ active: glyphFilterDirection === "right" })}
-          onClick={() => dispatch(setGlyphFilterDirection("right"))}
+          onClick={() => setGlyphFilterDirection("right")}
         >
           <KeyboardDoubleArrowRightIcon />
         </button>
@@ -132,11 +172,8 @@ function Filters() {
                 size={tileSize}
                 key={val}
                 active={vowelFilter === val}
-                onClick={() => {
-                  if (vowelFilter !== val) {
-                    dispatch(setVowelFilter(val));
-                  } else dispatch(setVowelFilter(null));
-                }}
+                toggleFn={toggleVowelFilter}
+                val={val}
               >
                 <Glyph val={val} />
                 <div css={soundGuess}>
@@ -154,11 +191,8 @@ function Filters() {
                 size={tileSize}
                 key={val}
                 active={consonantFilter === val}
-                onClick={() => {
-                  if (consonantFilter !== val) {
-                    dispatch(setConsonantFilter(val));
-                  } else dispatch(setConsonantFilter(null));
-                }}
+                toggleFn={toggleConsonantFilter}
+                val={val}
               >
                 <Glyph val={val} />
                 <div css={soundGuess}>

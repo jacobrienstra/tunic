@@ -3,17 +3,7 @@ import KeyboardDoubleArrowLeftIcon from "@mui/icons-material/KeyboardDoubleArrow
 import { css } from "@emotion/react";
 import { cx } from "@emotion/css";
 
-import {
-  selectGraphemeFilterDirection,
-  selectMode,
-  selectN,
-} from "../selectors";
-import {
-  setGraphemeFilterDirection,
-  setMode,
-  setN,
-} from "../redux/reducers/selection";
-import { useAppDispatch, useAppSelector } from "../redux/hooks";
+import { useSelectionStore } from "../data/state";
 
 import NGrams from "./NGrams";
 import Graphemes from "./Graphemes";
@@ -73,12 +63,16 @@ const filterDirectionSection = css`
 `;
 
 function FullGlyphsSection() {
-  const dispatch = useAppDispatch();
-
-  const selectedN = useAppSelector(selectN);
-  const mode = useAppSelector(selectMode);
-
-  const graphemeFilterDirection = useAppSelector(selectGraphemeFilterDirection);
+  const selectedN = useSelectionStore((s) => s.n);
+  const mode = useSelectionStore((s) => s.mode);
+  const graphemeFilterDirection = useSelectionStore(
+    (s) => s.graphemeFilterDirection
+  );
+  const setGraphemeFilterDirection = useSelectionStore(
+    (s) => s.setGraphemeFilterDirection
+  );
+  const setMode = useSelectionStore((s) => s.setMode);
+  const setN = useSelectionStore((s) => s.setN);
 
   const tileSize = mode === "graphemes" ? 60 : (selectedN + 1) * 20;
 
@@ -97,19 +91,19 @@ function FullGlyphsSection() {
       <div css={filterDirectionSection}>
         <button
           className={cx({ active: graphemeFilterDirection === "left" })}
-          onClick={() => dispatch(setGraphemeFilterDirection("left"))}
+          onClick={() => setGraphemeFilterDirection("left")}
         >
           <KeyboardDoubleArrowLeftIcon />
         </button>
         <button
           className={cx({ active: graphemeFilterDirection === "off" })}
-          onClick={() => dispatch(setGraphemeFilterDirection("off"))}
+          onClick={() => setGraphemeFilterDirection("off")}
         >
           Off
         </button>
         <button
           className={cx({ active: graphemeFilterDirection === "right" })}
-          onClick={() => dispatch(setGraphemeFilterDirection("right"))}
+          onClick={() => setGraphemeFilterDirection("right")}
         >
           <KeyboardDoubleArrowRightIcon />
         </button>
@@ -118,7 +112,7 @@ function FullGlyphsSection() {
         <button
           className={cx({ active: mode === "graphemes" })}
           onClick={() => {
-            dispatch(setMode("graphemes"));
+            setMode("graphemes");
           }}
         >
           Graphemes
@@ -126,7 +120,7 @@ function FullGlyphsSection() {
         <button
           className={cx({ active: mode === "ngrams" })}
           onClick={() => {
-            dispatch(setMode("ngrams"));
+            setMode("ngrams");
           }}
         >
           NGrams
@@ -140,7 +134,7 @@ function FullGlyphsSection() {
               <button
                 className={cx({ active: selectedN === num })}
                 key={num}
-                onClick={() => dispatch(setN(num))}
+                onClick={() => setN(num)}
               >
                 {num}
               </button>

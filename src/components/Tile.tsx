@@ -2,20 +2,24 @@ import { PropsWithChildren } from "react";
 import { css } from "@emotion/react";
 import { cx } from "@emotion/css";
 
-type TileProps = {
+type TileProps<T> = {
   size?: number;
   align?: "center" | "start";
   active?: boolean;
   sure?: boolean;
+  toggleFn: (v: T | null) => void;
+  val: T | null;
 } & React.HTMLProps<HTMLDivElement>;
 
-function Tile({
+function Tile<T>({
   size,
   children,
   align = "center",
   active = false,
+  toggleFn,
+  val,
   ...rest
-}: PropsWithChildren<TileProps>) {
+}: PropsWithChildren<TileProps<T>>) {
   const tile = css`
     padding: 8px;
     display: flex;
@@ -35,7 +39,12 @@ function Tile({
   `;
 
   return (
-    <div css={tile} className={cx({ active })} {...rest}>
+    <div
+      css={tile}
+      className={cx({ active })}
+      onClick={() => toggleFn(val)}
+      {...rest}
+    >
       {children}
     </div>
   );

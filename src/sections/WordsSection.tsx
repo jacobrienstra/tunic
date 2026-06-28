@@ -1,22 +1,12 @@
+import { useMemo } from "react";
 import KeyboardDoubleArrowRightIcon from "@mui/icons-material/KeyboardDoubleArrowRight";
 import KeyboardDoubleArrowLeftIcon from "@mui/icons-material/KeyboardDoubleArrowLeft";
 import { css } from "@emotion/react";
 import { cx } from "@emotion/css";
 
-import {
-  selectFilteredWords,
-  selectSelectedWord,
-  selectWordFilterDirection,
-} from "../selectors";
-import {
-  useGetContextWordJoinsQuery,
-  useGetWordsQuery,
-} from "../redux/services/data";
-import {
-  setSelectedWord,
-  setWordFilterDirection,
-} from "../redux/reducers/selection";
-import { useAppDispatch, useAppSelector } from "../redux/hooks";
+import { useSelectionStore } from "../data/state";
+import { useContexts, useWords } from "../data/queries";
+import { calcFilteredWords } from "../data/filters";
 import WordRow from "../components/WordRow";
 import Tile from "../components/Tile";
 
@@ -50,38 +40,70 @@ const filterDirectionSection = css`
 `;
 
 function WordsSection() {
-  const dispatch = useAppDispatch();
-  const selectedWord = useAppSelector(selectSelectedWord);
+  const words = useWords();
+  const contexts = useContexts();
 
-  const { data: words } = useGetWordsQuery();
-  const { data: junctions } = useGetContextWordJoinsQuery();
-
-  const filteredWords = useAppSelector(
-    selectFilteredWords(
-      () => words,
-      () => junctions
-    )
+  const selectedGrapheme = useSelectionStore((s) => s.selectedGrapheme);
+  const selectedNGram = useSelectionStore((s) => s.selectedNGram);
+  const selectedContext = useSelectionStore((s) => s.selectedContext);
+  const mode = useSelectionStore((s) => s.mode);
+  const graphemeFilterDirection = useSelectionStore(
+    (s) => s.graphemeFilterDirection
   );
-  const wordFilterDirection = useAppSelector(selectWordFilterDirection);
+  const contextFilterDirection = useSelectionStore(
+    (s) => s.contextFilterDirection
+  );
+  const selectedWord = useSelectionStore((s) => s.selectedWord);
+  const wordFilterDirection = useSelectionStore((s) => s.wordFilterDirection);
+  const toggleSelectedWord = useSelectionStore((s) => s.toggleSelectedWord);
+  const setWordFilterDirection = useSelectionStore(
+    (s) => s.setWordFilterDirection
+  );
+
+  const filteredWords = useMemo(
+    () =>
+      calcFilteredWords(
+        {
+          selectedGrapheme,
+          selectedNGram,
+          selectedContext,
+          mode,
+          graphemeFilterDirection,
+          contextFilterDirection,
+        },
+        words,
+        contexts
+      ),
+    [
+      selectedGrapheme,
+      selectedNGram,
+      selectedContext,
+      mode,
+      graphemeFilterDirection,
+      contextFilterDirection,
+      words,
+      contexts,
+    ]
+  );
 
   return (
     <Section title="Words">
       <div css={filterDirectionSection}>
         <button
           className={cx({ active: wordFilterDirection === "left" })}
-          onClick={() => dispatch(setWordFilterDirection("left"))}
+          onClick={() => setWordFilterDirection("left")}
         >
           <KeyboardDoubleArrowLeftIcon />
         </button>
         <button
           className={cx({ active: wordFilterDirection === "off" })}
-          onClick={() => dispatch(setWordFilterDirection("off"))}
+          onClick={() => setWordFilterDirection("off")}
         >
           Off
         </button>
         <button
           className={cx({ active: wordFilterDirection === "right" })}
-          onClick={() => dispatch(setWordFilterDirection("right"))}
+          onClick={() => setWordFilterDirection("right")}
         >
           <KeyboardDoubleArrowRightIcon />
         </button>
@@ -92,15 +114,10 @@ function WordsSection() {
             align="start"
             key={[w.id, i].join("_")}
             active={selectedWord === w.id}
-            onClick={() => {
-              if (selectedWord !== w.id) {
-                dispatch(setSelectedWord(w.id));
-              } else {
-                dispatch(setSelectedWord(null));
-              }
-            }}
+            toggleFn={toggleSelectedWord}
+            val={w.id}
           >
-            <WordRow wordData={w} />
+            <WordRow {...w} />
           </Tile>
         ))}
       </div>

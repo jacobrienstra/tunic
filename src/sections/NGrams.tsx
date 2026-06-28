@@ -1,11 +1,11 @@
+import { useMemo } from "react";
 import { isEqual } from "lodash";
 import { css } from "@emotion/react";
 
-import { selectFilteredNGrams, selectSelectedNGram } from "../selectors";
-import { useGetGraphemesQuery, useGetWordsQuery } from "../redux/services/data";
-import { setSelectedNGram } from "../redux/reducers/selection";
-import { useAppDispatch, useAppSelector } from "../redux/hooks";
 import { getGraphemeSoundGuess } from "../glyph";
+import { useSelectionStore } from "../data/state";
+import { useGraphemes, useWords } from "../data/queries";
+import { calcFilteredNGrams } from "../data/filters";
 import Word from "../components/Word";
 import Tile from "../components/Tile";
 
@@ -17,12 +17,52 @@ interface NGramsProps {
   tileSize: number;
 }
 function NGrams({ tileSize }: NGramsProps) {
-  const dispatch = useAppDispatch();
+  const words = useWords();
+  const graphemes = useGraphemes();
 
-  const { data: words } = useGetWordsQuery();
-  const { data: graphemes } = useGetGraphemesQuery();
-  const filteredNGrams = useAppSelector(selectFilteredNGrams(() => words));
-  const selectedNGram = useAppSelector(selectSelectedNGram);
+  const vowelFilter = useSelectionStore((s) => s.vowelFilter);
+  const consonantFilter = useSelectionStore((s) => s.consonantFilter);
+  const reverseSyllableFilter = useSelectionStore(
+    (s) => s.reverseSyllableFilter
+  );
+  const partial = useSelectionStore((s) => s.partial);
+  const exclusive = useSelectionStore((s) => s.exclusive);
+  const n = useSelectionStore((s) => s.n);
+  const selectedWord = useSelectionStore((s) => s.selectedWord);
+  const glyphFilterDirection = useSelectionStore((s) => s.glyphFilterDirection);
+  const wordFilterDirection = useSelectionStore((s) => s.wordFilterDirection);
+  const selectedNGram = useSelectionStore((s) => s.selectedNGram);
+  const toggleSelectedNGram = useSelectionStore((s) => s.toggleSelectedNGram);
+
+  const filteredNGrams = useMemo(
+    () =>
+      calcFilteredNGrams(
+        {
+          vowelFilter,
+          consonantFilter,
+          reverseSyllableFilter,
+          partial,
+          exclusive,
+          n,
+          selectedWord,
+          glyphFilterDirection,
+          wordFilterDirection,
+        },
+        words
+      ),
+    [
+      vowelFilter,
+      consonantFilter,
+      reverseSyllableFilter,
+      partial,
+      exclusive,
+      n,
+      selectedWord,
+      glyphFilterDirection,
+      wordFilterDirection,
+      words,
+    ]
+  );
 
   return (
     <>
@@ -31,13 +71,8 @@ function NGrams({ tileSize }: NGramsProps) {
           size={tileSize}
           key={ng.join("_")}
           active={isEqual(selectedNGram, ng)}
-          onClick={() => {
-            if (!isEqual(selectedNGram, ng)) {
-              dispatch(setSelectedNGram(ng));
-            } else {
-              dispatch(setSelectedNGram(null));
-            }
-          }}
+          toggleFn={toggleSelectedNGram}
+          val={ng}
         >
           <Word word={ng} />
           <div css={wordGuess}>

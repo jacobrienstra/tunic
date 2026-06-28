@@ -1,25 +1,11 @@
-import InnerImageZoom from "react-inner-image-zoom";
+import { InnerImageZoom } from "react-inner-image-zoom";
 import { isEmpty } from "lodash";
 import KeyboardDoubleArrowLeftIcon from "@mui/icons-material/KeyboardDoubleArrowLeft";
 import { css } from "@emotion/react";
 import { cx } from "@emotion/css";
 
-import {
-  selectContextFilterDirection,
-  selectSelectedContext,
-  selectSelectedWord,
-  selectWordFilterDirection,
-} from "../selectors";
-import {
-  useGetContextWordJoinsQuery,
-  useGetContextsQuery,
-} from "../redux/services/data";
-import {
-  setContextFilterDirection,
-  setSelectedContext,
-} from "../redux/reducers/selection";
-import { useAppDispatch, useAppSelector } from "../redux/hooks";
-import { useDbImageUrl } from "../db";
+import { useSelectionStore } from "../data/state";
+import { useContexts, useDbImageUrl } from "../data/queries";
 import Tile from "../components/Tile";
 
 import Section from "./Section";
@@ -69,21 +55,25 @@ function ContextImage(props: { imageId: number }) {
 }
 
 function ContextsSection() {
-  const dispatch = useAppDispatch();
-  const selectedWord = useAppSelector(selectSelectedWord);
-  const wordFilterDirection = useAppSelector(selectWordFilterDirection);
-  const selectedContext = useAppSelector(selectSelectedContext);
+  const selectedWord = useSelectionStore((s) => s.selectedWord);
+  const wordFilterDirection = useSelectionStore((s) => s.wordFilterDirection);
+  const selectedContext = useSelectionStore((s) => s.selectedContext);
+  const contextFilterDirection = useSelectionStore(
+    (s) => s.contextFilterDirection
+  );
+  const toggleSelectedContext = useSelectionStore(
+    (s) => s.toggleSelectedContext
+  );
+  const setContextFilterDirection = useSelectionStore(
+    (s) => s.setContextFilterDirection
+  );
 
-  const { data: allCtxs } = useGetContextsQuery();
-  const { data: junctions } = useGetContextWordJoinsQuery();
+  const allCtxs = useContexts();
 
   let filteredContexts = allCtxs;
-  if (junctions && allCtxs && selectedWord) {
-    const filteredContextIds = junctions
-      .filter((j) => j.wordId === selectedWord)
-      .map((j) => j.contextId);
+  if (allCtxs && selectedWord) {
     filteredContexts = allCtxs.filter((ctx) =>
-      filteredContextIds.includes(ctx.id)
+      ctx.words.includes(selectedWord)
     );
   }
 
@@ -94,20 +84,18 @@ function ContextsSection() {
   if (isEmpty(ctxs) || ctxs == undefined) ctxs = [];
   ctxs = ctxs.slice().reverse();
 
-  const contextFilterDirection = useAppSelector(selectContextFilterDirection);
-
   return (
     <Section title="Contexts">
       <div css={filterDirectionSection}>
         <button
           className={cx({ active: contextFilterDirection === "left" })}
-          onClick={() => dispatch(setContextFilterDirection("left"))}
+          onClick={() => setContextFilterDirection("left")}
         >
           <KeyboardDoubleArrowLeftIcon />
         </button>
         <button
           className={cx({ active: contextFilterDirection === "off" })}
-          onClick={() => dispatch(setContextFilterDirection("off"))}
+          onClick={() => setContextFilterDirection("off")}
         >
           Off
         </button>
@@ -118,13 +106,8 @@ function ContextsSection() {
             align="start"
             key={ctx.id}
             active={selectedContext === ctx.id}
-            onClick={() => {
-              if (selectedContext !== ctx.id) {
-                dispatch(setSelectedContext(ctx.id));
-              } else {
-                dispatch(setSelectedContext(null));
-              }
-            }}
+            toggleFn={toggleSelectedContext}
+            val={ctx.id}
           >
             <div
               css={imgRow}

@@ -1,5 +1,5 @@
 import { ReflexElement, ReflexContainer, ReflexSplitter } from "react-reflex";
-import InnerImageZoom from "react-inner-image-zoom";
+import { InnerImageZoom } from "react-inner-image-zoom";
 import React, {
   useCallback,
   useEffect,
@@ -12,20 +12,16 @@ import DownloadingIcon from "@mui/icons-material/Downloading";
 import { css } from "@emotion/react";
 import { cx, css as cssClass } from "@emotion/css";
 
-import { selectSelectedContext } from "../selectors";
-import {
-  Context,
-  useGetContextWordJoinsQuery,
-  useGetContextsQuery,
-  useGetGraphemesQuery,
-  useGetWordsQuery,
-  useUpdateContextMutation,
-  useUpsertContextMutation,
-  useAddWordMutation,
-} from "../redux/services/data";
-import { useAppSelector } from "../redux/hooks";
 import { getGraphemeSoundGuess } from "../glyph";
-import { db, useDbImageUrl } from "../db";
+import { useSelectionStore } from "../data/state";
+import {
+  useContext,
+  useDbImageUrl,
+  useGraphemes,
+  useWords,
+} from "../data/queries";
+import { addWord, updateContext, upsertContext } from "../data/mutations";
+import { db } from "../data/db";
 import Word from "../components/Word";
 import InlineEdit from "../components/InlineEdit";
 import GlyphTyper from "../components/GlyphTyper";
@@ -215,15 +211,9 @@ function EntrySection() {
 
   const curImageUrl = useDbImageUrl(curImageId);
 
-  const selectedContextId = useAppSelector(selectSelectedContext);
+  const selectedContextId = useSelectionStore((s) => s.selectedContext);
 
-  const { data: selectedContext } = useGetContextsQuery(undefined, {
-    selectFromResult: ({ data }) => ({
-      data:
-        data?.find((ctx) => ctx.id === selectedContextId) ??
-        ({} as Context),
-    }),
-  });
+  const selectedContext = useContext(selectedContextId);
 
   const [uploading, setUploading] = useState(false);
 
@@ -232,12 +222,8 @@ function EntrySection() {
 
   const fileInput = useRef<HTMLInputElement>(null);
 
-  const [addWord] = useAddWordMutation();
-  const [updateContext] = useUpdateContextMutation();
-  const [upsertContext] = useUpsertContextMutation();
-  const { data: graphemes } = useGetGraphemesQuery();
-  const { data: junctions } = useGetContextWordJoinsQuery();
-  const { data: words } = useGetWordsQuery();
+  const graphemes = useGraphemes();
+  const words = useWords();
 
   const trunicTextWrapperRef = useRef<HTMLDivElement>(null);
 
@@ -247,7 +233,7 @@ function EntrySection() {
         isEqual(word.glyphs.join(","), w.join(","))
       );
       if (existingWord && !isEmpty(existingWord.meaning)) {
-        return existingWord.meaning;
+        return existingWord.meaning ?? "";
       } else {
         return w.map((val) => getGraphemeSoundGuess(val, graphemes)).join("");
       }
@@ -279,9 +265,7 @@ function EntrySection() {
 
   const setContextTranslationFn = (val: string) => {
     if (selectedContext?.id) {
-      return updateContext({ id: selectedContext.id, text: val });
-    } else {
-      return () => {};
+      updateContext(selectedContext.id, { text: val }).catch(console.error);
     }
   };
 
@@ -289,24 +273,11 @@ function EntrySection() {
     if (!isEmpty(trunic)) {
       const submit = confirm("Submit Text with Context?");
       if (submit) {
-        let context = null;
-        if (curImageId != null) {
-          context = await upsertContext({ imageId: curImageId });
-        } else {
-          context = await upsertContext({});
-        }
-        if (context && "data" in context && context?.data?.id) {
-          const promises = [];
-          for (let i = 0; i < trunic.length; i++) {
-            promises.push(
-              addWord({
-                word: trunic[i],
-                ctxId: context.data?.id,
-                order: i,
-              })
-            );
+        const context = await upsertContext(curImageId ?? undefined);
+        if (context?.id) {
+          for (const w of trunic) {
+            await addWord(w, context.id);
           }
-          await Promise.all(promises);
         }
         setTrunic([]);
         setCurImageId(null);
@@ -321,11 +292,9 @@ function EntrySection() {
   const translation = useMemo(() => {
     return mode === "enter"
       ? trunic.map(getWordTranslation).join(" ")
-      : junctions && selectedContext
-        ? junctions
-            ?.filter((j) => j.contextId === selectedContext?.id)
-            .sort((a, b) => a.order - b.order)
-            .map((j) => words?.find((word) => word.id === j.wordId))
+      : selectedContext
+        ? selectedContext.words
+            .map((wordId) => words?.find((word) => word.id === wordId))
             .map((w) => {
               if (!w) return "???";
               else if (!isEmpty(w.meaning)) {
@@ -338,34 +307,20 @@ function EntrySection() {
             })
             .join(" ")
         : "";
-  }, [
-    selectedContext,
-    trunic,
-    mode,
-    getWordTranslation,
-    junctions,
-    graphemes,
-    words,
-  ]);
+  }, [selectedContext, trunic, mode, getWordTranslation, graphemes, words]);
 
   useEffect(() => {
-    if (junctions && words) {
-      if (selectedContextId != null) {
+    if (words) {
+      if (selectedContext != null) {
         setTrunic(
-          junctions
-            .filter((j) => j.contextId === selectedContextId)
-            .sort((a, b) => a.order - b.order)
-            .map((j) => words?.find((word) => word.id === j.wordId))
+          selectedContext.words
+            .map((wordId) => words.find((word) => word.id === wordId))
             .filter((wd) => wd !== undefined)
-            .map((wd) =>
-              wd?.glyphs.map((g) => {
-                return parseInt(g, 10);
-              })
-            )
+            .map((wd) => wd.glyphs.map((g) => parseInt(g, 10)))
         );
       } else setTrunic([]);
     }
-  }, [selectedContextId, junctions, words]);
+  }, [selectedContext, words]);
 
   const addWordToText = () => {
     if (curTrunicWord.length > 0) {
@@ -460,7 +415,9 @@ function EntrySection() {
                   className={cx({
                     disabled: isEmpty(trunic),
                   })}
-                  onClick={submitTrunicFn}
+                  onClick={() => {
+                    submitTrunicFn().catch(console.error);
+                  }}
                 >
                   Submit Trunic
                 </button>
@@ -505,9 +462,11 @@ function EntrySection() {
                   type="file"
                   id="fileInput"
                   ref={fileInput}
-                  onInput={(event: React.FormEvent) =>
-                    uploadFile((event.target as HTMLInputElement).files)
-                  }
+                  onInput={(event: React.FormEvent) => {
+                    uploadFile((event.target as HTMLInputElement).files).catch(
+                      console.error
+                    );
+                  }}
                 />
                 <button
                   className={cx({
@@ -552,7 +511,7 @@ function EntrySection() {
             css={textEditor}
             value={
               selectedContext && !isEmpty(selectedContext.text)
-                ? selectedContext.text
+                ? (selectedContext.text ?? "")
                 : (translation ?? "")
             }
             setValue={setContextTranslationFn}

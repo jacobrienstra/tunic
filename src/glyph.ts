@@ -1,4 +1,4 @@
-import { Grapheme } from "./redux/services/data";
+import { Grapheme } from "./data/db";
 
 /* Tinkered with these values to get them just right.
  * They're based on a regular hexagon with sides of 100,
@@ -37,8 +37,17 @@ export const LBRK = 1 << 9; // 512 or 0b1000000000
 export const LVK = 1 << 10; // 1024 or 0b10000000000
 export const BCK = 1 << 11; // 2048 or 0b1000000000000
 
-export type GlyphLine = { x1: number; y1: number; x2: number; y2: number };
-export type GlyphCircle = { cx: number; cy: number; r: number };
+export interface GlyphLine {
+  x1: number;
+  y1: number;
+  x2: number;
+  y2: number;
+}
+export interface GlyphCircle {
+  cx: number;
+  cy: number;
+  r: number;
+}
 
 export const UTL: GlyphLine = { x1: 0, y1: 50, x2: halfW, y2: 0 };
 export const UTR: GlyphLine = { x1: halfW, y1: 0, x2: W, y2: 50 };
@@ -60,9 +69,7 @@ export const BC: GlyphCircle = { cx: halfW, cy: 284, r: 14 };
 
 export const Midline: GlyphLine = { x1: 0, x2: W, y1: midH, y2: midH };
 
-export const glyphStrokes: {
-  [key: number]: GlyphLine;
-} = {
+export const glyphStrokes: Record<number, GlyphLine> = {
   [UTLK]: UTL,
   [UTRK]: UTR,
   [UMVK]: UMV,
@@ -79,7 +86,7 @@ export const glyphStrokes: {
 export function getCombo(
   vowel: number,
   consonant: number,
-  reverseSyllable: boolean = false
+  reverseSyllable = false
 ) {
   return (
     (vowel & vowelMask) |

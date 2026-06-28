@@ -1,18 +1,13 @@
+import { memo } from "react";
 import { css } from "@emotion/react";
 
-import {
-  Word as WordData,
-  useGetGraphemesQuery,
-  useUpdateWordMutation,
-} from "../redux/services/data";
 import { getGraphemeSoundGuess } from "../glyph";
+import { useGraphemes } from "../data/queries";
+import { updateWord } from "../data/mutations";
+import { Word as WordData } from "../data/db";
 
 import Word from "./Word";
 import InlineEdit from "./InlineEdit";
-
-interface WordRowProps {
-  wordData: WordData;
-}
 
 const wordRowWrapper = css`
   padding: 4px;
@@ -42,16 +37,15 @@ const wordGuess = css`
   color: var(--cyan-600);
 `;
 
-function WordRow({ wordData }: WordRowProps) {
-  const [updateWord] = useUpdateWordMutation();
-  const { data: graphemes } = useGetGraphemesQuery();
+function WordRow({ glyphs, meaning, id }: WordData) {
+  const graphemes = useGraphemes();
   return (
     <div css={wordRowWrapper}>
       <div css={wordWrapper}>
-        <Word word={wordData.glyphs} />
+        <Word word={glyphs} />
       </div>
       <div css={wordGuess}>
-        {wordData.glyphs
+        {glyphs
           .map((val) => {
             const ival = parseInt(val);
             let meaning = graphemes?.find((g) => g.id === ival)?.meaning;
@@ -63,17 +57,16 @@ function WordRow({ wordData }: WordRowProps) {
           .join("")}
       </div>
       <InlineEdit
-        value={wordData.meaning}
-        setValue={(val: string) =>
-          updateWord({
-            id: wordData.id,
-            glyphs: wordData.glyphs,
+        value={meaning ?? ""}
+        setValue={(val: string) => {
+          updateWord(id, {
+            glyphs: glyphs,
             meaning: val,
-          })
-        }
+          }).catch(console.error);
+        }}
       />
     </div>
   );
 }
 
-export default WordRow;
+export default memo(WordRow);

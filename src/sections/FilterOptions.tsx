@@ -3,17 +3,7 @@ import CheckBoxIcon from "@mui/icons-material/CheckBox";
 import { css } from "@emotion/react";
 import { cx } from "@emotion/css";
 
-import {
-  selectExclusive,
-  selectReverseSyllableFilter,
-  selectPartial,
-} from "../selectors";
-import {
-  setReverseSyllableFilter,
-  toggleExclusive,
-  togglePartialFilter,
-} from "../redux/reducers/selection";
-import { useAppDispatch, useAppSelector } from "../redux/hooks";
+import { useSelectionStore } from "../data/state";
 
 const filterToggles = css`
   display: flex;
@@ -42,10 +32,16 @@ const toggleBox = css`
 `;
 
 function FilterOptions() {
-  const dispatch = useAppDispatch();
-  const reverseSyllableFilter = useAppSelector(selectReverseSyllableFilter);
-  const partial = useAppSelector(selectPartial);
-  const exclusive = useAppSelector(selectExclusive);
+  const reverseSyllableFilter = useSelectionStore(
+    (s) => s.reverseSyllableFilter
+  );
+  const partial = useSelectionStore((s) => s.partial);
+  const exclusive = useSelectionStore((s) => s.exclusive);
+  const setReverseSyllableFilter = useSelectionStore(
+    (s) => s.setReverseSyllableFilter
+  );
+  const togglePartialFilter = useSelectionStore((s) => s.togglePartialFilter);
+  const toggleExclusive = useSelectionStore((s) => s.toggleExclusive);
 
   return (
     <div css={filterToggles}>
@@ -54,7 +50,7 @@ function FilterOptions() {
         <span>Syllabled Reversed?</span>
         <button
           className={cx({ active: reverseSyllableFilter === "present" })}
-          onClick={() => dispatch(setReverseSyllableFilter("present"))}
+          onClick={() => setReverseSyllableFilter("present")}
         >
           Yes
           {reverseSyllableFilter === "present" ? (
@@ -65,7 +61,7 @@ function FilterOptions() {
         </button>
         <button
           className={cx({ active: reverseSyllableFilter === "absent" })}
-          onClick={() => dispatch(setReverseSyllableFilter("absent"))}
+          onClick={() => setReverseSyllableFilter("absent")}
         >
           No
           {reverseSyllableFilter === "absent" ? (
@@ -76,7 +72,7 @@ function FilterOptions() {
         </button>
         <button
           className={cx({ active: reverseSyllableFilter === "either" })}
-          onClick={() => dispatch(setReverseSyllableFilter("either"))}
+          onClick={() => setReverseSyllableFilter("either")}
         >
           Either
           {reverseSyllableFilter === "either" ? (
@@ -92,19 +88,19 @@ function FilterOptions() {
           <CheckBoxIcon
             fontSize="large"
             css={toggleBox}
-            onClick={() => dispatch(togglePartialFilter())}
+            onClick={togglePartialFilter}
           />
         ) : (
           <CheckBoxOutlineBlankIcon
             fontSize="large"
             css={toggleBox}
-            onClick={() => dispatch(togglePartialFilter())}
+            onClick={togglePartialFilter}
           />
         )}
       </div>
       <div css={filterOption}>
         <span>Logical Operator</span>
-        <button onClick={() => dispatch(toggleExclusive())}>
+        <button onClick={toggleExclusive}>
           {exclusive ? <strong>AND</strong> : <strong>OR</strong>}
         </button>
       </div>

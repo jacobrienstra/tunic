@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 
-type InlineEditProps = {
+interface InlineEditProps {
   value: string;
   setValue: (val: string) => void;
   textarea?: boolean;
   className?: string;
-};
+}
 
 function InlineEdit({
   value,
@@ -32,7 +32,7 @@ function InlineEdit({
     event.stopPropagation();
   };
 
-  const onBlur = async (
+  const onBlur = (
     event: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     setValue(event.target.value);
