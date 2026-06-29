@@ -5,8 +5,8 @@ import { cx } from "@emotion/css";
 
 import { useSelectionStore } from "../data/state";
 
+import Trunes from "./Trunes";
 import NGrams from "./NGrams";
-import Graphemes from "./Graphemes";
 
 const fullGlyphsSection = css`
   display: flex;
@@ -62,7 +62,7 @@ const filterDirectionSection = css`
   }
 `;
 
-function FullGlyphsSection() {
+function TrunesSection() {
   const selectedN = useSelectionStore((s) => s.n);
   const mode = useSelectionStore((s) => s.mode);
   const graphemeFilterDirection = useSelectionStore(
@@ -115,7 +115,7 @@ function FullGlyphsSection() {
             setMode("graphemes");
           }}
         >
-          Graphemes
+          Trunes
         </button>
         <button
           className={cx({ active: mode === "ngrams" })}
@@ -144,7 +144,7 @@ function FullGlyphsSection() {
       ) : null}
       <div css={ngramsGrid}>
         {mode === "graphemes" ? (
-          <Graphemes tileSize={tileSize} />
+          <Trunes tileSize={tileSize} />
         ) : (
           <NGrams tileSize={tileSize} />
         )}
@@ -153,4 +153,4 @@ function FullGlyphsSection() {
   );
 }
 
-export default FullGlyphsSection;
+export default TrunesSection;

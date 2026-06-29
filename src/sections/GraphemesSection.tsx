@@ -6,7 +6,7 @@ import { cx } from "@emotion/css";
 import { getGraphemeSoundGuess } from "../glyph";
 import { useSelectionStore } from "../data/state";
 import { useGraphemes } from "../data/queries";
-import { calcConsonantGlyphs, calcVowelGlyphs } from "../data/filters";
+import { calcConsonantGraphemes, calcVowelGraphemes } from "../data/filters";
 import Tile from "../components/Tile";
 import Glyph from "../components/Glyph";
 
@@ -102,7 +102,7 @@ function Filters() {
 
   const vowelGlyphs = useMemo(
     () =>
-      calcVowelGlyphs(
+      calcVowelGraphemes(
         {
           graphemeFilterDirection,
           selectedGrapheme,
@@ -123,7 +123,7 @@ function Filters() {
   );
   const consonantGlyphs = useMemo(
     () =>
-      calcConsonantGlyphs(
+      calcConsonantGraphemes(
         {
           graphemeFilterDirection,
           selectedGrapheme,

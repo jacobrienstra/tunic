@@ -23,8 +23,8 @@ import {
 import { addWord, updateContext, upsertContext } from "../data/mutations";
 import { db } from "../data/db";
 import Word from "../components/Word";
+import TruneTyper from "../components/TruneTyper";
 import InlineEdit from "../components/InlineEdit";
-import GlyphTyper from "../components/GlyphTyper";
 
 import Section from "./Section";
 
@@ -440,7 +440,7 @@ function EntrySection() {
                 <div css={wordWrapper}>
                   <Word word={curTrunicWord} width={20} inline />
                 </div>
-                <GlyphTyper
+                <TruneTyper
                   width={100}
                   emitGrapheme={addGraphemeToWord}
                   emitWord={addWordToText}

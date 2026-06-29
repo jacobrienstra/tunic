@@ -71,7 +71,7 @@ const getTotalPassValue = (
   return reverseSyllablePass && vowelConsonantCombinedPass;
 };
 
-export const calcVowelGlyphs = (
+export const calcVowelGraphemes = (
   {
     graphemeFilterDirection,
     selectedGrapheme,
@@ -117,7 +117,7 @@ export const calcVowelGlyphs = (
   } else return allVowelGlyphs;
 };
 
-export const calcConsonantGlyphs = (
+export const calcConsonantGraphemes = (
   {
     graphemeFilterDirection,
     selectedGrapheme,

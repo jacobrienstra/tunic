@@ -1,8 +1,8 @@
 import { css } from "@emotion/react";
 
+import TrunesSection from "./TrunesSection";
 import Section from "./Section";
-import GlyphPartsSection from "./GlyphPartsSection";
-import FullGlyphsSection from "./FullGlyphsSection";
+import GraphemesSection from "./GraphemesSection";
 
 const columnsWrapper = css`
   display: flex;
@@ -14,8 +14,8 @@ function GlyphsSection() {
   return (
     <Section title="Glyphs">
       <div css={columnsWrapper}>
-        <GlyphPartsSection />
-        <FullGlyphsSection />
+        <GraphemesSection />
+        <TrunesSection />
       </div>
     </Section>
   );

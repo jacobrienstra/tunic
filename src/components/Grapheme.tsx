@@ -4,7 +4,7 @@ import { css } from "@emotion/react";
 import { getGraphemeSoundGuess } from "../glyph";
 import { useGraphemes } from "../data/queries";
 import { updateGrapheme } from "../data/mutations";
-import { Grapheme as GraphemeProps } from "../data/db";
+import { Grapheme as GraphemeShape } from "../data/db";
 
 import InlineEdit from "./InlineEdit";
 import Glyph from "./Glyph";
@@ -32,7 +32,7 @@ const soundGuess = css`
   text-align: center;
 `;
 
-function Grapheme({ id, meaning }: GraphemeProps) {
+function Grapheme({ id, meaning }: GraphemeShape) {
   const graphemes = useGraphemes();
   return (
     <div css={graphemeWrapper}>

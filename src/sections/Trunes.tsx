@@ -3,15 +3,15 @@ import { useMemo } from "react";
 import { useSelectionStore } from "../data/state";
 import { useGraphemes, useWords } from "../data/queries";
 import { calcFilteredGraphemes } from "../data/filters";
-import { Grapheme as GraphemeData } from "../data/db";
+import { Grapheme } from "../data/db";
 import Tile from "../components/Tile";
-import Grapheme from "../components/Grapheme";
+import Trune from "../components/Grapheme";
 
-interface GraphemesProps {
+interface TrunesProps {
   tileSize: number;
 }
 
-function Graphemes({ tileSize }: GraphemesProps) {
+function Trunes({ tileSize }: TrunesProps) {
   const graphemes = useGraphemes();
   const words = useWords();
 
@@ -62,7 +62,7 @@ function Graphemes({ tileSize }: GraphemesProps) {
 
   return (
     <>
-      {filteredGraphemes.map((g: GraphemeData) => (
+      {filteredGraphemes.map((g: Grapheme) => (
         <Tile
           size={tileSize}
           key={g.id}
@@ -70,11 +70,11 @@ function Graphemes({ tileSize }: GraphemesProps) {
           toggleFn={toggleSelectedGrapheme}
           val={g.id}
         >
-          <Grapheme {...g} />
+          <Trune {...g} />
         </Tile>
       ))}
     </>
   );
 }
 
-export default Graphemes;
+export default Trunes;

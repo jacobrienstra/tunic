@@ -24,7 +24,7 @@ import {
   strokeLinejoin,
 } from "../glyph";
 
-interface GlyphTyperProps {
+interface TruneTyperProps {
   emitGrapheme: (val: number) => void;
   emitWord: () => void;
   popLastGrapheme: () => number;
@@ -32,13 +32,13 @@ interface GlyphTyperProps {
   width?: number;
 }
 
-function GlyphTyper({
+function TruneTyper({
   emitGrapheme,
   emitWord,
   popLastGrapheme,
   isActive,
   width = 150,
-}: GlyphTyperProps) {
+}: TruneTyperProps) {
   const [val, setVal] = useState(0);
 
   const unusedLines = [];
@@ -186,4 +186,4 @@ function GlyphTyper({
   );
 }
 
-export default GlyphTyper;
+export default TruneTyper;
