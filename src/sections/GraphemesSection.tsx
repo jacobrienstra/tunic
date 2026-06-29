@@ -1,7 +1,6 @@
 import { useMemo } from "react";
+import clsx from "clsx";
 import KeyboardDoubleArrowRightIcon from "@mui/icons-material/KeyboardDoubleArrowRight";
-import { css } from "@emotion/react";
-import { cx } from "@emotion/css";
 
 import { getGraphemeSoundGuess } from "../glyph";
 import { useSelectionStore } from "../data/state";
@@ -14,70 +13,11 @@ import FilterOptions from "./FilterOptions";
 
 const tileSize = 35;
 
-const glyphPartsSection = css`
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  flex: 1 0 50%;
-  padding: 0 8px;
-  border-right: 3px solid var(--slate-500);
-
-  span,
-  strong {
-    user-select: none;
-  }
-`;
-
-const filterGlyphsWrapper = css`
-  display: flex;
-  flex-direction: row;
-  align-items: stretch;
-  flex: 1 1 auto;
-`;
-
-const filterGlyphsColumn = css`
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  flex: 1 0 50%;
-`;
-
-const filterGlyphsHeader = css`
-  text-align: center;
-  width: 100%;
-  flex: 0 0 auto;
-`;
-
-const glyphsGrid = css`
-  padding: 8px;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(${tileSize}px, 1fr));
-  grid-auto-rows: min-content;
-  grid-gap: 0;
-  flex: 1 1 auto;
-  overflow-y: scroll;
-`;
-
-const filterDirectionSection = css`
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: end;
-  align-content: center;
-  flex-wrap: wrap;
-  flex: 0 0 auto;
-  margin: 4px 0;
-
-  button {
-    font-size: 16px;
-    margin: 0 0 2px 2px;
-  }
-`;
-
-const soundGuess = css`
-  color: var(--cyan-600);
-  text-align: center;
-`;
+const glyphsGrid =
+  "grid flex-[1_1_auto] auto-rows-min gap-0 overflow-y-scroll p-2";
+const gridTemplate = {
+  gridTemplateColumns: `repeat(auto-fit, minmax(${tileSize}px, 1fr))`,
+};
 
 function Filters() {
   const graphemes = useGraphemes();
@@ -144,28 +84,31 @@ function Filters() {
   );
 
   return (
-    <section css={glyphPartsSection}>
-      <div css={filterDirectionSection}>
+    <section className="flex flex-[1_0_50%] flex-col items-stretch border-r-[3px] border-slate-500 px-2 [&_span]:select-none [&_strong]:select-none">
+      <div className="my-1 flex flex-[0_0_auto] flex-row flex-wrap content-center items-center justify-end [&_button]:mb-0.5 [&_button]:ml-0.5 [&_button]:text-base">
         <button
-          className={cx({ active: glyphFilterDirection === "off" })}
+          className={clsx(glyphFilterDirection === "off" && "active")}
           onClick={() => setGlyphFilterDirection("off")}
         >
           Off
         </button>
         <button
-          className={cx({ active: glyphFilterDirection === "right" })}
+          className={clsx(glyphFilterDirection === "right" && "active")}
           onClick={() => setGlyphFilterDirection("right")}
         >
           <KeyboardDoubleArrowRightIcon />
         </button>
       </div>
       <FilterOptions />
-      <div css={filterGlyphsWrapper}>
-        <div css={filterGlyphsColumn}>
-          <h4 css={filterGlyphsHeader}>Vowels</h4>
+      <div className="flex flex-[1_1_auto] flex-row items-stretch">
+        <div className="flex flex-[1_0_50%] flex-col items-stretch">
+          <h4 className="w-full flex-[0_0_auto] text-center">Vowels</h4>
           <div
-            css={glyphsGrid}
-            style={{ borderRight: "2px solid var(--slate-500)" }}
+            className={clsx(
+              glyphsGrid,
+              "border-r-2 border-slate-500"
+            )}
+            style={gridTemplate}
           >
             {vowelGlyphs.map((val) => (
               <Tile
@@ -176,16 +119,16 @@ function Filters() {
                 val={val}
               >
                 <Glyph val={val} />
-                <div css={soundGuess}>
+                <div className="text-center text-cyan-600">
                   {getGraphemeSoundGuess(val, graphemes)}
                 </div>
               </Tile>
             ))}
           </div>
         </div>
-        <div css={filterGlyphsColumn}>
-          <h4 css={filterGlyphsHeader}>Consonants</h4>
-          <div css={glyphsGrid}>
+        <div className="flex flex-[1_0_50%] flex-col items-stretch">
+          <h4 className="w-full flex-[0_0_auto] text-center">Consonants</h4>
+          <div className={glyphsGrid} style={gridTemplate}>
             {consonantGlyphs.map((val) => (
               <Tile
                 size={tileSize}
@@ -195,7 +138,7 @@ function Filters() {
                 val={val}
               >
                 <Glyph val={val} />
-                <div css={soundGuess}>
+                <div className="text-center text-cyan-600">
                   {getGraphemeSoundGuess(val, graphemes)}
                 </div>
               </Tile>

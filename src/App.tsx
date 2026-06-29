@@ -1,5 +1,4 @@
 import { ReflexContainer, ReflexSplitter, ReflexElement } from "react-reflex";
-import { css } from "@emotion/react";
 
 import WordsSection from "./sections/WordsSection";
 import GlyphsSection from "./sections/GlyphsSection";
@@ -10,12 +9,6 @@ import GlyphDefs from "./components/GlyphDefs";
 import "react-inner-image-zoom/lib/InnerImageZoom/styles.min.css";
 import "react-reflex/styles.css";
 
-const rootLayout = css`
-  width: 100%;
-  margin: 0;
-  height: 100vh;
-`;
-
 function App() {
   return (
     <>
@@ -23,7 +16,7 @@ function App() {
       <ReflexContainer
         orientation="vertical"
         windowResizeAware={true}
-        css={rootLayout}
+        style={{ margin: 0, height: "100vh", width: "100%" }}
       >
         <ReflexElement flex={3} style={{ overflow: "hidden" }}>
           <GlyphsSection />

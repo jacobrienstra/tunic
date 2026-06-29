@@ -1,8 +1,7 @@
 import { InnerImageZoom } from "react-inner-image-zoom";
 import { isEmpty } from "lodash";
+import clsx from "clsx";
 import KeyboardDoubleArrowLeftIcon from "@mui/icons-material/KeyboardDoubleArrowLeft";
-import { css } from "@emotion/react";
-import { cx } from "@emotion/css";
 
 import { useSelectionStore } from "../data/state";
 import { useContexts, useDbImageUrl } from "../data/queries";
@@ -10,48 +9,18 @@ import Tile from "../components/Tile";
 
 import Section from "./Section";
 
-const contextsWrapper = css`
-  padding: 0 12px;
-  overflow-y: scroll;
-`;
-
-const imgRow = css`
-  max-width: 100%;
-  margin: 8px 0;
-`;
-
-const imgScrollWrapper = css`
-  max-width: 100%;
-  overflow-x: scroll;
-  height: 100%;
-`;
-
-const contextImg = css`
-  max-height: 100%;
-  border-radius: 6px;
-`;
-
-const filterDirectionSection = css`
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: center;
-  align-content: center;
-  flex-wrap: wrap;
-  flex: 0 0 auto;
-  margin: 8px 0;
-
-  button {
-    font-size: 16px;
-    margin: 0 0 2px 2px;
-  }
-`;
-
 function ContextImage(props: { imageId: number }) {
   const url = useDbImageUrl(props.imageId);
   if (!url) return null;
   // TODO: placeholder image box
-  return <InnerImageZoom hideHint css={contextImg} zoomScale={2} src={url} />;
+  return (
+    <InnerImageZoom
+      hideHint
+      className="max-h-full rounded-md"
+      zoomScale={2}
+      src={url}
+    />
+  );
 }
 
 function ContextsSection() {
@@ -86,21 +55,21 @@ function ContextsSection() {
 
   return (
     <Section title="Contexts">
-      <div css={filterDirectionSection}>
+      <div className="my-2 flex flex-[0_0_auto] flex-row flex-wrap content-center items-center justify-center [&_button]:mb-0.5 [&_button]:ml-0.5 [&_button]:text-base">
         <button
-          className={cx({ active: contextFilterDirection === "left" })}
+          className={clsx(contextFilterDirection === "left" && "active")}
           onClick={() => setContextFilterDirection("left")}
         >
           <KeyboardDoubleArrowLeftIcon />
         </button>
         <button
-          className={cx({ active: contextFilterDirection === "off" })}
+          className={clsx(contextFilterDirection === "off" && "active")}
           onClick={() => setContextFilterDirection("off")}
         >
           Off
         </button>
       </div>
-      <div css={contextsWrapper}>
+      <div className="overflow-y-scroll px-3">
         {ctxs.map((ctx) => (
           <Tile
             align="start"
@@ -110,10 +79,10 @@ function ContextsSection() {
             val={ctx.id}
           >
             <div
-              css={imgRow}
+              className="my-2 max-w-full"
               onClick={(event: React.MouseEvent) => event.stopPropagation()}
             >
-              <div css={imgScrollWrapper}>
+              <div className="h-full max-w-full overflow-x-scroll">
                 {ctx.imageId != null ? (
                   <ContextImage imageId={ctx.imageId} />
                 ) : null}

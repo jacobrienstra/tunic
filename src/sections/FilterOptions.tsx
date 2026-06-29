@@ -1,35 +1,13 @@
+import clsx from "clsx";
 import CheckBoxOutlineBlankIcon from "@mui/icons-material/CheckBoxOutlineBlank";
 import CheckBoxIcon from "@mui/icons-material/CheckBox";
-import { css } from "@emotion/react";
-import { cx } from "@emotion/css";
 
 import { useSelectionStore } from "../data/state";
 
-const filterToggles = css`
-  display: flex;
-  flex-direction: column;
-  align-items: start;
-  flex: 0 0 auto;
-  font-size: 12px;
-`;
+const filterOption =
+  "flex flex-[1_0_auto] flex-row flex-wrap content-center items-center [&_button]:mb-0.5 [&_button]:ml-0.5";
 
-const filterOption = css`
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  align-content: center;
-  flex-wrap: wrap;
-  flex: 1 0 auto;
-
-  button {
-    margin: 0 0 2px 2px;
-  }
-`;
-
-const toggleBox = css`
-  cursor: pointer;
-  padding: 4px;
-`;
+const toggleBox = "cursor-pointer p-1";
 
 function FilterOptions() {
   const reverseSyllableFilter = useSelectionStore(
@@ -44,12 +22,12 @@ function FilterOptions() {
   const toggleExclusive = useSelectionStore((s) => s.toggleExclusive);
 
   return (
-    <div css={filterToggles}>
+    <div className="flex flex-[0_0_auto] flex-col items-start text-xs">
       <h4>Filter By</h4>
-      <div css={filterOption}>
+      <div className={filterOption}>
         <span>Syllabled Reversed?</span>
         <button
-          className={cx({ active: reverseSyllableFilter === "present" })}
+          className={clsx(reverseSyllableFilter === "present" && "active")}
           onClick={() => setReverseSyllableFilter("present")}
         >
           Yes
@@ -60,7 +38,7 @@ function FilterOptions() {
           )}
         </button>
         <button
-          className={cx({ active: reverseSyllableFilter === "absent" })}
+          className={clsx(reverseSyllableFilter === "absent" && "active")}
           onClick={() => setReverseSyllableFilter("absent")}
         >
           No
@@ -71,7 +49,7 @@ function FilterOptions() {
           )}
         </button>
         <button
-          className={cx({ active: reverseSyllableFilter === "either" })}
+          className={clsx(reverseSyllableFilter === "either" && "active")}
           onClick={() => setReverseSyllableFilter("either")}
         >
           Either
@@ -82,23 +60,23 @@ function FilterOptions() {
           )}
         </button>
       </div>
-      <div css={filterOption}>
+      <div className={filterOption}>
         <span>Partial Match</span>
         {partial ? (
           <CheckBoxIcon
             fontSize="large"
-            css={toggleBox}
+            className={toggleBox}
             onClick={togglePartialFilter}
           />
         ) : (
           <CheckBoxOutlineBlankIcon
             fontSize="large"
-            css={toggleBox}
+            className={toggleBox}
             onClick={togglePartialFilter}
           />
         )}
       </div>
-      <div css={filterOption}>
+      <div className={filterOption}>
         <span>Logical Operator</span>
         <button onClick={toggleExclusive}>
           {exclusive ? <strong>AND</strong> : <strong>OR</strong>}

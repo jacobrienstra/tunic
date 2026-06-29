@@ -29,6 +29,7 @@ function Glyph({ width, val, inWord = false, inline = false }: GlyphProps) {
       xmlns="http://www.w3.org/2000/svg"
       xmlnsXlink="http://www.w3.org/1999/xlink"
       viewBox={inWord ? scriptViewBox : paddedViewBox}
+      className="overflow-visible"
       {...(inline ? { strokeWidth, strokeLinecap, strokeLinejoin } : null)}
     >
       {inline ? (

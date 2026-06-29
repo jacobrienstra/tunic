@@ -8,9 +8,8 @@ import React, {
   useState,
 } from "react";
 import { isEmpty, isEqual } from "lodash";
+import clsx from "clsx";
 import DownloadingIcon from "@mui/icons-material/Downloading";
-import { css } from "@emotion/react";
-import { cx, css as cssClass } from "@emotion/css";
 
 import { getGraphemeSoundGuess } from "../glyph";
 import { useSelectionStore } from "../data/state";
@@ -28,146 +27,8 @@ import InlineEdit from "../components/InlineEdit";
 
 import Section from "./Section";
 
-const trunicTextSection = css`
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  text-align: center;
-  height: 100%;
-  max-width: 100%;
-`;
-
-const trunicTextRenderSection = css`
-  display: flex;
-  flex-direction: column;
-  flex: 1 1 auto;
-  height: 100%;
-`;
-
-const trunicTextWrapper = css`
-  flex: 1 0 50%;
-  align-self: stretch;
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  justify-content: flex-start;
-  align-content: flex-start;
-  overflow-y: scroll;
-
-  border: 1px dotted var(--slate-500);
-
-  & > div {
-    padding: 2px 6px;
-  }
-`;
-
-const wordWrapper = css`
-  padding: 8px 0;
-  flex: 0 0 auto;
-`;
-
-const typerWrapper = css`
-  display: flex;
-  flex: 0 0 auto;
-  flex-direction: column;
-  align-items: center;
-  padding: 0 8px;
-  justify-content: flex-start;
-`;
-
-const imgSection = css`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  flex: 0 0 auto;
-  /* height: 100%; */
-  label {
-    margin: 8px;
-    flex: 0 0 auto;
-  }
-
-  input {
-    display: none;
-  }
-`;
-
-const imgSectionButtons = css`
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-`;
-
-const imgScrollWrapper = css`
-  overflow-x: scroll;
-  height: 100%;
-`;
-
-const contextImg = css`
-  width: 200%;
-`;
-
-const errorSection = css`
-  color: var(--red-700);
-  font-weight: 700;
-`;
-
-const loadingIcon = css`
-  @keyframes rotation {
-    from {
-      transform: rotate(0deg);
-    }
-    to {
-      transform: rotate(359deg);
-    }
-  }
-  animation: rotation 1s infinite linear;
-`;
-
-const clearButton = cssClass`
-  color: var(--red-900);
-
-  &:hover {
-    background: var(--red-400);
-  }
-`;
-
-const translationStyle = css`
-  color: var(--cyan-600);
-`;
-
-const headerSwitcher = css`
-  display: flex;
-  flex-direction: row;
-  flex: 0 0 auto;
-  padding: 8px;
-  font-size: 12px;
-
-  button:not(:last-child) {
-    margin-right: 8px;
-  }
-`;
-
-const textEditor = css`
-  width: 100%;
-  flex: 1 0 auto;
-  white-space: pre-wrap;
-  padding: 8px;
-  font-family:
-    "Noto Serif", Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
-  font-size: 16px;
-  line-height: 1.5;
-  cursor: text;
-  overflow-y: scroll;
-`;
-
-const editingWrapper = css`
-  display: flex;
-  flex-direction: column;
-  padding: 8px 12px;
-  height: 100%;
-`;
+const clearButton =
+  "text-red-900 hover:bg-red-400";
 
 type EntryMode = "enter" | "edit";
 
@@ -256,7 +117,7 @@ function EntrySection() {
             existingSpan ?? document.createElement("span");
           translatedTextEl.setAttribute("class", "translatedText");
           translatedTextEl.innerText = getWordTranslation(wordNums);
-          translatedTextEl.style.color = "var(--cyan-600)";
+          translatedTextEl.style.color = "var(--color-cyan-600)";
           child.appendChild(translatedTextEl);
         }
       });
@@ -376,9 +237,9 @@ function EntrySection() {
 
   return (
     <Section title="Entry">
-      <div css={headerSwitcher}>
+      <div className="flex flex-[0_0_auto] flex-row p-2 text-xs [&_button:not(:last-child)]:mr-2">
         <button
-          className={cx({ active: mode === "enter" })}
+          className={clsx(mode === "enter" && "active")}
           onClick={() => {
             setMode("enter");
           }}
@@ -386,7 +247,7 @@ function EntrySection() {
           Enter
         </button>
         <button
-          className={cx({ active: mode === "edit" })}
+          className={clsx(mode === "edit" && "active")}
           onClick={() => {
             setMode("edit");
           }}
@@ -396,14 +257,13 @@ function EntrySection() {
       </div>
       {mode === "enter" ? (
         <ReflexContainer orientation={"horizontal"} windowResizeAware={true}>
-          <ReflexElement
-            minSize={225}
-            size={225}
-            style={{ padding: "0px 12px 8px" }}
-          >
-            <div css={trunicTextSection}>
-              <div css={trunicTextRenderSection}>
-                <div css={trunicTextWrapper} ref={trunicTextWrapperRef}>
+          <ReflexElement minSize={225} size={225} className="px-3 pt-0 pb-2">
+            <div className="flex h-full max-w-full flex-row items-center text-center">
+              <div className="flex h-full flex-[1_1_auto] flex-col">
+                <div
+                  className="flex flex-[1_0_50%] flex-row flex-wrap content-start justify-start self-stretch overflow-y-scroll border border-dotted border-slate-500 [&>div]:px-1.5 [&>div]:py-0.5"
+                  ref={trunicTextWrapperRef}
+                >
                   {trunic.map((w, i) => (
                     <div className="wordWrapper" key={i}>
                       <Word word={w} width={18} inline />
@@ -411,25 +271,22 @@ function EntrySection() {
                   ))}
                 </div>
                 <button
-                  style={{ marginTop: "8px" }}
-                  className={cx({
-                    disabled: isEmpty(trunic),
-                  })}
+                  className={clsx("mt-2", isEmpty(trunic) && "disabled")}
                   onClick={() => {
                     submitTrunicFn().catch(console.error);
                   }}
                 >
                   Submit Trunic
                 </button>
-                <div style={{ flex: "0 0 50%" }}>
-                  <div css={translationStyle} style={{ overflowY: "scroll" }}>
+                <div className="flex-[0_0_50%]">
+                  <div className="overflow-y-scroll text-cyan-600">
                     {translation}
                   </div>
                 </div>
               </div>
               <div
                 tabIndex={0}
-                css={typerWrapper}
+                className="flex flex-[0_0_auto] flex-col items-center justify-start px-2"
                 onFocus={() => {
                   setIsTyping(true);
                 }}
@@ -437,7 +294,7 @@ function EntrySection() {
                   setIsTyping(false);
                 }}
               >
-                <div css={wordWrapper}>
+                <div className="flex-[0_0_auto] py-2">
                   <Word word={curTrunicWord} width={20} inline />
                 </div>
                 <TruneTyper
@@ -452,8 +309,8 @@ function EntrySection() {
           </ReflexElement>
           <ReflexSplitter propagate />
           <ReflexElement>
-            <div css={imgSection}>
-              <div css={imgSectionButtons}>
+            <div className="flex flex-[0_0_auto] flex-col items-center [&_input]:hidden [&_label]:m-2 [&_label]:flex-[0_0_auto]">
+              <div className="flex w-full flex-row items-center justify-center">
                 <label htmlFor="fileInput">
                   {curImageId != null ? `Image #${curImageId}` : "Add Context"}
                 </label>
@@ -469,10 +326,10 @@ function EntrySection() {
                   }}
                 />
                 <button
-                  className={cx({
-                    disabled: isEmpty(curImageId),
-                    [clearButton]: true,
-                  })}
+                  className={clsx(
+                    clearButton,
+                    isEmpty(curImageId) && "disabled"
+                  )}
                   onClick={() => {
                     if (curImageId) {
                       const clear = confirm("Clear Context?");
@@ -485,15 +342,19 @@ function EntrySection() {
                   Clear Context
                 </button>
               </div>
-              {error != null ? <div css={errorSection}>{error}</div> : null}
-              {uploading ? (
-                <DownloadingIcon fontSize="large" css={loadingIcon} />
+              {error != null ? (
+                <div className="font-bold text-red-700">
+                  {error}
+                </div>
               ) : null}
-              <div css={imgScrollWrapper}>
+              {uploading ? (
+                <DownloadingIcon fontSize="large" className="animate-spin" />
+              ) : null}
+              <div className="h-full overflow-x-scroll">
                 {curImageUrl ? (
                   <InnerImageZoom
                     hideHint
-                    css={contextImg}
+                    className="w-[200%]"
                     zoomScale={2}
                     zoomType="hover"
                     src={curImageUrl}
@@ -504,11 +365,11 @@ function EntrySection() {
           </ReflexElement>
         </ReflexContainer>
       ) : (
-        <div css={editingWrapper}>
-          <div css={translationStyle}>{translation}</div>
+        <div className="flex h-full flex-col px-3 py-2">
+          <div className="text-cyan-600">{translation}</div>
           <InlineEdit
             textarea
-            css={textEditor}
+            className="w-full flex-[1_0_auto] cursor-text overflow-y-scroll p-2 text-base leading-normal whitespace-pre-wrap"
             value={
               selectedContext && !isEmpty(selectedContext.text)
                 ? (selectedContext.text ?? "")

@@ -38,7 +38,7 @@ function GlyphSymbol({ val }: { val: number }) {
       id={glyphSymbolId(val)}
       viewBox={tightViewBox}
       preserveAspectRatio="xMidYMid meet"
-      style={{ overflow: "visible" }}
+      className="overflow-visible"
       strokeWidth={strokeWidth}
       strokeLinecap={strokeLinecap}
       strokeLinejoin={strokeLinejoin}
@@ -47,7 +47,7 @@ function GlyphSymbol({ val }: { val: number }) {
         <line className="stroke-black" {...l} key={i} />
       ))}
       {val & BCK ? (
-        <circle {...BC} className="[fill:transparent] stroke-black" />
+        <circle {...BC} className="fill-transparent stroke-black" />
       ) : null}
     </symbol>
   );
@@ -61,7 +61,7 @@ function GlyphDefs() {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
-      style={{ position: "absolute", width: 0, height: 0 }}
+      className="absolute h-0 w-0"
       aria-hidden
     >
       <defs>

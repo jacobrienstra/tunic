@@ -1,28 +1,4 @@
 import { PropsWithChildren } from "react";
-import { css } from "@emotion/react";
-
-const section = css`
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  align-content: center;
-  height: 100%;
-  /* &:not(:last-child) {
-    box-shadow: 10px 0px 15px -15px rgba(0, 0, 0, 0.5);
-  } */
-`;
-
-const header = css`
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: center;
-  background: var(--slate-300);
-  border-radius: 6px;
-  padding: 8px;
-  margin: 0 8px;
-  flex: 0 0 auto;
-`;
 
 type SectionProps = {
   title: string;
@@ -34,8 +10,13 @@ function Section({
   ...rest
 }: PropsWithChildren<SectionProps>) {
   return (
-    <section css={section} {...rest}>
-      <h3 css={header}>{title}</h3>
+    <section
+      className="flex h-full flex-col content-center items-stretch"
+      {...rest}
+    >
+      <h3 className="mx-2 flex flex-[0_0_auto] flex-row items-center justify-center rounded-md bg-slate-300 p-2">
+        {title}
+      </h3>
       {children}
     </section>
   );

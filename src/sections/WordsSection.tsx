@@ -1,8 +1,7 @@
 import { useMemo } from "react";
+import clsx from "clsx";
 import KeyboardDoubleArrowRightIcon from "@mui/icons-material/KeyboardDoubleArrowRight";
 import KeyboardDoubleArrowLeftIcon from "@mui/icons-material/KeyboardDoubleArrowLeft";
-import { css } from "@emotion/react";
-import { cx } from "@emotion/css";
 
 import { useSelectionStore } from "../data/state";
 import { useContexts, useWords } from "../data/queries";
@@ -11,33 +10,6 @@ import WordRow from "../components/WordRow";
 import Tile from "../components/Tile";
 
 import Section from "./Section";
-
-const wordsGrid = css`
-  padding: 8px;
-  margin-top: 8px;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-  grid-auto-rows: min-content;
-  flex: 0 1 auto;
-  width: 100%;
-  overflow-y: scroll;
-`;
-
-const filterDirectionSection = css`
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: center;
-  align-content: center;
-  flex-wrap: wrap;
-  flex: 0 0 auto;
-  margin: 4px 0;
-
-  button {
-    font-size: 16px;
-    margin: 0 0 2px 2px;
-  }
-`;
 
 function WordsSection() {
   const words = useWords();
@@ -88,27 +60,27 @@ function WordsSection() {
 
   return (
     <Section title="Words">
-      <div css={filterDirectionSection}>
+      <div className="my-1 flex flex-[0_0_auto] flex-row flex-wrap content-center items-center justify-center [&_button]:mb-0.5 [&_button]:ml-0.5 [&_button]:text-base">
         <button
-          className={cx({ active: wordFilterDirection === "left" })}
+          className={clsx(wordFilterDirection === "left" && "active")}
           onClick={() => setWordFilterDirection("left")}
         >
           <KeyboardDoubleArrowLeftIcon />
         </button>
         <button
-          className={cx({ active: wordFilterDirection === "off" })}
+          className={clsx(wordFilterDirection === "off" && "active")}
           onClick={() => setWordFilterDirection("off")}
         >
           Off
         </button>
         <button
-          className={cx({ active: wordFilterDirection === "right" })}
+          className={clsx(wordFilterDirection === "right" && "active")}
           onClick={() => setWordFilterDirection("right")}
         >
           <KeyboardDoubleArrowRightIcon />
         </button>
       </div>
-      <div css={wordsGrid}>
+      <div className="mt-2 grid w-full flex-[0_1_auto] auto-rows-min grid-cols-[repeat(auto-fit,minmax(100px,1fr))] overflow-y-scroll p-2">
         {filteredWords.map((w, i) => (
           <Tile
             align="start"

@@ -1,5 +1,4 @@
 import { memo } from "react";
-import { css } from "@emotion/react";
 
 import { getGraphemeSoundGuess } from "../glyph";
 import { useGraphemes } from "../data/queries";
@@ -9,42 +8,14 @@ import { Word as WordData } from "../data/db";
 import Word from "./Word";
 import InlineEdit from "./InlineEdit";
 
-const wordRowWrapper = css`
-  padding: 4px;
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  min-width: min-content;
-
-  input {
-    border-bottom: 1px solid var(--cyan-700);
-    color: var(--cyan-900);
-    text-align: start;
-    width: 100%;
-    min-width: min-content;
-  }
-`;
-
-const wordWrapper = css`
-  margin: 0px;
-  flex: 1 0 auto;
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-`;
-
-const wordGuess = css`
-  color: var(--cyan-600);
-`;
-
 function WordRow({ glyphs, meaning, id }: WordData) {
   const graphemes = useGraphemes();
   return (
-    <div css={wordRowWrapper}>
-      <div css={wordWrapper}>
+    <div className="flex min-w-min flex-col items-stretch p-1">
+      <div className="m-0 flex flex-[1_0_auto] flex-row justify-between">
         <Word word={glyphs} />
       </div>
-      <div css={wordGuess}>
+      <div className="text-cyan-600">
         {glyphs
           .map((val) => {
             const ival = parseInt(val);
@@ -64,6 +35,7 @@ function WordRow({ glyphs, meaning, id }: WordData) {
             meaning: val,
           }).catch(console.error);
         }}
+        className="w-full min-w-min border-b border-cyan-700 text-start text-cyan-900"
       />
     </div>
   );

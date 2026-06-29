@@ -10,12 +10,10 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@emotion/css": "^11.13.5",
-    "@emotion/react": "^11.14.0",
-    "@emotion/styled": "^11.14.0",
     "@mui/icons-material": "^6.4.6",
     "@mui/material": "^6.4.6",
     "@tailwindcss/vite": "^4.1.6",
+    "clsx": "^2.1.1",
     "dexie": "^4.4.4",
     "dexie-react-hooks": "^4.4.0",
     "lodash": "^4.17.21",
@@ -29,7 +27,6 @@
     "zustand": "^5.0.14"
   },
   "devDependencies": {
-    "@emotion/babel-plugin": "^11.13.5",
     "@eslint/js": "^9.27.0",
     "@types/eslint": "^9.6.1",
     "@types/lodash": "^4.17.16",
@@ -39,6 +36,7 @@
     "@vitejs/plugin-react": "^4.3.4",
     "eslint": "^9.27.0",
     "eslint-config-prettier": "^10.0.2",
+    "eslint-import-resolver-typescript": "^4.4.5",
     "eslint-plugin-import": "^2.31.0",
     "eslint-plugin-prettier": "^5.2.3",
     "eslint-plugin-react": "^7.37.4",

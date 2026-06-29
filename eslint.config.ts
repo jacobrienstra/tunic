@@ -20,6 +20,13 @@ export default tseslint.config(
         projectService: true,
       },
     },
+    settings: {
+      "import/resolver": {
+        typescript: {
+          project: ["./tsconfig.json", "./tsconfig.node.json"],
+        },
+      },
+    },
     extends: [
       tseslint.configs.recommendedTypeChecked,
       tseslint.configs.stylisticTypeChecked,

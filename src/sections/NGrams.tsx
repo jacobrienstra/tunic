@@ -1,6 +1,5 @@
 import { useMemo } from "react";
 import { isEqual } from "lodash";
-import { css } from "@emotion/react";
 
 import { getGraphemeSoundGuess } from "../glyph";
 import { useSelectionStore } from "../data/state";
@@ -8,10 +7,6 @@ import { useGraphemes, useWords } from "../data/queries";
 import { calcFilteredNGrams } from "../data/filters";
 import Word from "../components/Word";
 import Tile from "../components/Tile";
-
-const wordGuess = css`
-  color: var(--cyan-600);
-`;
 
 interface NGramsProps {
   tileSize: number;
@@ -75,7 +70,7 @@ function NGrams({ tileSize }: NGramsProps) {
           val={ng}
         >
           <Word word={ng} />
-          <div css={wordGuess}>
+          <div className="text-cyan-600">
             {ng
               .map((val) => {
                 const meaning = graphemes?.find(

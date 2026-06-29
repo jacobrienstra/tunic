@@ -1,66 +1,11 @@
+import clsx from "clsx";
 import KeyboardDoubleArrowRightIcon from "@mui/icons-material/KeyboardDoubleArrowRight";
 import KeyboardDoubleArrowLeftIcon from "@mui/icons-material/KeyboardDoubleArrowLeft";
-import { css } from "@emotion/react";
-import { cx } from "@emotion/css";
 
 import { useSelectionStore } from "../data/state";
 
 import Trunes from "./Trunes";
 import NGrams from "./NGrams";
-
-const fullGlyphsSection = css`
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  width: min-content;
-  flex: 1 1 50%;
-  padding: 0 8px;
-
-  span {
-    user-select: none;
-  }
-`;
-
-const headerSwitcher = css`
-  display: flex;
-  flex-direction: row;
-  flex: 0 0 auto;
-  padding: 8px;
-  font-size: 12px;
-
-  button:not(:last-child) {
-    margin-right: 8px;
-  }
-`;
-
-const nGramSize = css`
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  align-content: start;
-  flex-wrap: wrap;
-  flex: 0 0 auto;
-
-  button {
-    margin: 2px;
-  }
-`;
-
-const filterDirectionSection = css`
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: center;
-  align-content: center;
-  flex-wrap: wrap;
-  flex: 0 0 auto;
-  margin: 4px 0;
-
-  button {
-    font-size: 16px;
-    margin: 0 0 2px 2px;
-  }
-`;
 
 function TrunesSection() {
   const selectedN = useSelectionStore((s) => s.n);
@@ -76,41 +21,31 @@ function TrunesSection() {
 
   const tileSize = mode === "graphemes" ? 60 : (selectedN + 1) * 20;
 
-  const ngramsGrid = css`
-    padding: 4px;
-    margin-top: 8px;
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(${tileSize}px, 1fr));
-    grid-auto-rows: min-content;
-    flex: 0 1 auto;
-    overflow-y: scroll;
-  `;
-
   return (
-    <section css={fullGlyphsSection}>
-      <div css={filterDirectionSection}>
+    <section className="flex w-min flex-[1_1_50%] flex-col items-stretch px-2 [&_span]:select-none">
+      <div className="my-1 flex flex-[0_0_auto] flex-row flex-wrap content-center items-center justify-center [&_button]:mb-0.5 [&_button]:ml-0.5 [&_button]:text-base">
         <button
-          className={cx({ active: graphemeFilterDirection === "left" })}
+          className={clsx(graphemeFilterDirection === "left" && "active")}
           onClick={() => setGraphemeFilterDirection("left")}
         >
           <KeyboardDoubleArrowLeftIcon />
         </button>
         <button
-          className={cx({ active: graphemeFilterDirection === "off" })}
+          className={clsx(graphemeFilterDirection === "off" && "active")}
           onClick={() => setGraphemeFilterDirection("off")}
         >
           Off
         </button>
         <button
-          className={cx({ active: graphemeFilterDirection === "right" })}
+          className={clsx(graphemeFilterDirection === "right" && "active")}
           onClick={() => setGraphemeFilterDirection("right")}
         >
           <KeyboardDoubleArrowRightIcon />
         </button>
       </div>
-      <div css={headerSwitcher}>
+      <div className="flex flex-[0_0_auto] flex-row p-2 text-xs [&_button:not(:last-child)]:mr-2">
         <button
-          className={cx({ active: mode === "graphemes" })}
+          className={clsx(mode === "graphemes" && "active")}
           onClick={() => {
             setMode("graphemes");
           }}
@@ -118,7 +53,7 @@ function TrunesSection() {
           Trunes
         </button>
         <button
-          className={cx({ active: mode === "ngrams" })}
+          className={clsx(mode === "ngrams" && "active")}
           onClick={() => {
             setMode("ngrams");
           }}
@@ -127,12 +62,12 @@ function TrunesSection() {
         </button>
       </div>
       {mode === "ngrams" ? (
-        <div css={nGramSize}>
+        <div className="flex flex-[0_0_auto] flex-row flex-wrap content-start items-center [&_button]:m-0.5">
           <span>Size (n)</span>
           {[2, 3, 4].map((num) => {
             return (
               <button
-                className={cx({ active: selectedN === num })}
+                className={clsx(selectedN === num && "active")}
                 key={num}
                 onClick={() => setN(num)}
               >
@@ -142,7 +77,12 @@ function TrunesSection() {
           })}
         </div>
       ) : null}
-      <div css={ngramsGrid}>
+      <div
+        className="mt-2 grid flex-[0_1_auto] auto-rows-min overflow-y-scroll p-1"
+        style={{
+          gridTemplateColumns: `repeat(auto-fit, minmax(${tileSize}px, 1fr))`,
+        }}
+      >
         {mode === "graphemes" ? (
           <Trunes tileSize={tileSize} />
         ) : (
