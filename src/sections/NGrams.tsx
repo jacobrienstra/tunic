@@ -1,63 +1,21 @@
-import { useMemo } from "react";
 import { isEqual } from "lodash";
 
-import { getGraphemeSoundGuess } from "../glyph";
-import { useSelectionStore } from "../data/state";
-import { useTrunes, useWords } from "../data/queries";
-import { calcFilteredNGrams } from "../data/filters";
-import Word from "../components/Word";
+import { useSelectionStore } from "../data/selection";
+import { useDerivedMeaning } from "../data/ruleset";
+import { useTrunes } from "../data/queries";
+import { useFilteredNGrams } from "../data/filters";
+import TrunicWord from "../components/TrunicWord";
 import Tile from "../components/Tile";
 
 interface NGramsProps {
   tileSize: number;
 }
 function NGrams({ tileSize }: NGramsProps) {
-  const words = useWords();
   const trunes = useTrunes();
-
-  const vowelFilter = useSelectionStore((s) => s.vowelFilter);
-  const consonantFilter = useSelectionStore((s) => s.consonantFilter);
-  const reverseSyllableFilter = useSelectionStore(
-    (s) => s.reverseSyllableFilter
-  );
-  const partial = useSelectionStore((s) => s.partial);
-  const exclusive = useSelectionStore((s) => s.exclusive);
-  const n = useSelectionStore((s) => s.n);
-  const selectedWord = useSelectionStore((s) => s.selectedWord);
-  const glyphFilterDirection = useSelectionStore((s) => s.glyphFilterDirection);
-  const wordFilterDirection = useSelectionStore((s) => s.wordFilterDirection);
   const selectedNGram = useSelectionStore((s) => s.selectedNGram);
   const toggleSelectedNGram = useSelectionStore((s) => s.toggleSelectedNGram);
-
-  const filteredNGrams = useMemo(
-    () =>
-      calcFilteredNGrams(
-        {
-          vowelFilter,
-          consonantFilter,
-          reverseSyllableFilter,
-          partial,
-          exclusive,
-          n,
-          selectedWord,
-          glyphFilterDirection,
-          wordFilterDirection,
-        },
-        words
-      ),
-    [
-      vowelFilter,
-      consonantFilter,
-      reverseSyllableFilter,
-      partial,
-      exclusive,
-      n,
-      selectedWord,
-      glyphFilterDirection,
-      wordFilterDirection,
-      words,
-    ]
-  );
+  const filteredNGrams = useFilteredNGrams();
+  const deriveMeaning = useDerivedMeaning();
 
   return (
     <>
@@ -69,15 +27,13 @@ function NGrams({ tileSize }: NGramsProps) {
           toggleFn={toggleSelectedNGram}
           val={ng}
         >
-          <Word word={ng} />
+          <TrunicWord wordTrunes={ng} />
           <div className="text-cyan-600">
             {ng
               .map((val) => {
-                const meaning = trunes?.find(
-                  (g) => g.id === parseInt(val)
-                )?.meaning;
+                const meaning = trunes?.find((g) => g.id === val)?.meaning;
                 if (meaning === "" || meaning === undefined) {
-                  return getGraphemeSoundGuess(parseInt(val), trunes);
+                  return deriveMeaning(val);
                 }
                 return meaning.replace("?", "");
               })

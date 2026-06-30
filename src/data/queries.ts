@@ -15,9 +15,20 @@ export function useContexts() {
   return useLiveQuery(() => db.contexts.toArray(), []);
 }
 
-export function useContext(id: number | null | undefined) {
+export function useGlyphSubsets() {
+  return useLiveQuery(() => db.glyphSubsets.toArray(), []);
+}
+
+export function useContext(id: number | null) {
   return useLiveQuery(
     () => (id == null ? undefined : db.contexts.get(id)),
+    [id]
+  );
+}
+
+export function useGlyphSubset(id: number) {
+  return useLiveQuery(
+    () => (id == null ? undefined : db.glyphSubsets.get(id)),
     [id]
   );
 }

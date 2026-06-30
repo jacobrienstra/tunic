@@ -1,61 +1,14 @@
-import { useMemo } from "react";
-import clsx from "clsx";
-import KeyboardDoubleArrowUpIcon from "@mui/icons-material/KeyboardDoubleArrowUp";
-import KeyboardDoubleArrowDownIcon from "@mui/icons-material/KeyboardDoubleArrowDown";
-
-import { useSelectionStore } from "../data/state";
-import { useContexts, useWords } from "../data/queries";
-import { calcFilteredWords } from "../data/filters";
+import { useSelectionStore } from "../data/selection";
+import { useFilteredWords } from "../data/filters";
 import WordRow from "../components/WordRow";
 import Tile from "../components/Tile";
 
 import Section from "./Section";
 
 function WordsSection() {
-  const words = useWords();
-  const contexts = useContexts();
-
-  const selectedTrune = useSelectionStore((s) => s.selectedTrune);
-  const selectedNGram = useSelectionStore((s) => s.selectedNGram);
-  const selectedContext = useSelectionStore((s) => s.selectedContext);
-  const mode = useSelectionStore((s) => s.mode);
-  const truneFilterDirection = useSelectionStore((s) => s.truneFilterDirection);
-  const contextFilterDirection = useSelectionStore(
-    (s) => s.contextFilterDirection
-  );
   const selectedWord = useSelectionStore((s) => s.selectedWord);
-  const wordFilterDirection = useSelectionStore((s) => s.wordFilterDirection);
   const toggleSelectedWord = useSelectionStore((s) => s.toggleSelectedWord);
-  const setWordFilterDirection = useSelectionStore(
-    (s) => s.setWordFilterDirection
-  );
-
-  const filteredWords = useMemo(
-    () =>
-      calcFilteredWords(
-        {
-          selectedTrune,
-          selectedNGram,
-          selectedContext,
-          mode,
-          truneFilterDirection,
-          contextFilterDirection,
-        },
-        words,
-        contexts
-      ),
-    [
-      selectedTrune,
-      selectedNGram,
-      selectedContext,
-      mode,
-      truneFilterDirection,
-      contextFilterDirection,
-      words,
-      contexts,
-    ]
-  );
-
+  const filteredWords = useFilteredWords();
   return (
     <Section title="Words">
       {/* <div className="my-1 flex flex-[0_0_auto] flex-row flex-wrap content-center items-center justify-start [&_button]:mb-0.5 [&_button]:ml-0.5 [&_button]:text-base">

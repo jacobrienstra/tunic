@@ -1,16 +1,13 @@
-import { useMemo } from "react";
 import clsx from "clsx";
-import KeyboardDoubleArrowDownIcon from "@mui/icons-material/KeyboardDoubleArrowDown";
 
-import { getGraphemeSoundGuess } from "../glyph";
-import { useSelectionStore } from "../data/state";
-import { useTrunes } from "../data/queries";
-import { calcConsonantGraphemes, calcVowelGraphemes } from "../data/filters";
+// import { useSelectionStore } from "../data/selection";
+import { useDerivedMeaning } from "../data/ruleset";
+import { useGlyphSubsets } from "../data/queries";
+import { useDerivedGraphemes } from "../data/filters";
 import Tile from "../components/Tile";
 import Glyph from "../components/Glyph";
 
 import Section from "./Section";
-import FilterOptions from "./FilterOptions";
 
 const tileSize = 35;
 
@@ -21,52 +18,12 @@ const gridTemplate = {
 };
 
 function Filters() {
-  const trunes = useTrunes();
-
-  const vowelFilter = useSelectionStore((s) => s.vowelFilter);
-  const consonantFilter = useSelectionStore((s) => s.consonantFilter);
-  const glyphFilterDirection = useSelectionStore((s) => s.glyphFilterDirection);
-  const truneFilterDirection = useSelectionStore((s) => s.truneFilterDirection);
-  const selectedTrune = useSelectionStore((s) => s.selectedTrune);
-  const selectedNGram = useSelectionStore((s) => s.selectedNGram);
-  const partial = useSelectionStore((s) => s.partial);
-  const mode = useSelectionStore((s) => s.mode);
-  const setGlyphFilterDirection = useSelectionStore(
-    (s) => s.setGlyphFilterDirection
-  );
-  const toggleVowelFilter = useSelectionStore((s) => s.toggleVowelFilter);
-  const toggleConsonantFilter = useSelectionStore(
-    (s) => s.toggleConsonantFilter
-  );
-
-  const vowelGlyphs = useMemo(
-    () =>
-      calcVowelGraphemes(
-        {
-          truneFilterDirection,
-          selectedTrune,
-          selectedNGram,
-          partial,
-          mode,
-        },
-        trunes
-      ),
-    [truneFilterDirection, selectedTrune, selectedNGram, partial, mode, trunes]
-  );
-  const consonantGlyphs = useMemo(
-    () =>
-      calcConsonantGraphemes(
-        {
-          truneFilterDirection,
-          selectedTrune,
-          selectedNGram,
-          partial,
-          mode,
-        },
-        trunes
-      ),
-    [truneFilterDirection, selectedTrune, selectedNGram, partial, mode, trunes]
-  );
+  // const graphemesFilterDirection = useSelectionStore(
+  //   (s) => s.graphemesFilterDirection
+  // );
+  const derivedGraphemes = useDerivedGraphemes();
+  const glyphSubsets = useGlyphSubsets();
+  const derivedMeaning = useDerivedMeaning();
 
   return (
     <Section
@@ -89,47 +46,34 @@ function Filters() {
         <FilterOptions />
       </div> */}
       <div className="flex flex-[1_1_auto] flex-row items-stretch">
-        <div className="flex flex-[1_0_50%] flex-col items-stretch">
-          <h4 className="w-full flex-[0_0_auto] text-center">Vowels</h4>
-          <div
-            className={clsx(glyphsGrid, "border-r-2 border-slate-500")}
-            style={gridTemplate}
-          >
-            {vowelGlyphs.map((val) => (
-              <Tile
-                size={tileSize}
-                key={val}
-                active={vowelFilter === val}
-                toggleFn={toggleVowelFilter}
-                val={val}
-              >
-                <Glyph val={val} />
-                <div className="text-center text-cyan-600">
-                  {getGraphemeSoundGuess(val, trunes)}
-                </div>
-              </Tile>
-            ))}
+        {[...derivedGraphemes].map(([id, graphemes]) => (
+          <div className="flex flex-col items-stretch" key={id}>
+            <h4 className="w-full flex-[0_0_auto] text-center">
+              {glyphSubsets?.find((s) => s.id === id)?.name}
+            </h4>
+            <div
+              className={clsx(glyphsGrid, "border-r-2 border-slate-500")}
+              style={gridTemplate}
+            >
+              {graphemes.map((g) => (
+                <Tile
+                  size={tileSize}
+                  key={g.id}
+                  active={false}
+                  toggleFn={() => {
+                    return;
+                  }}
+                  val={g.id}
+                >
+                  <Glyph val={g.id} />
+                  <div className="text-center text-cyan-600">
+                    {derivedMeaning(g.id)}
+                  </div>
+                </Tile>
+              ))}
+            </div>
           </div>
-        </div>
-        <div className="flex flex-[1_0_50%] flex-col items-stretch">
-          <h4 className="w-full flex-[0_0_auto] text-center">Consonants</h4>
-          <div className={glyphsGrid} style={gridTemplate}>
-            {consonantGlyphs.map((val) => (
-              <Tile
-                size={tileSize}
-                key={val}
-                active={consonantFilter === val}
-                toggleFn={toggleConsonantFilter}
-                val={val}
-              >
-                <Glyph val={val} />
-                <div className="text-center text-cyan-600">
-                  {getGraphemeSoundGuess(val, trunes)}
-                </div>
-              </Tile>
-            ))}
-          </div>
-        </div>
+        ))}
       </div>
     </Section>
   );

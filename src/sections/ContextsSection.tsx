@@ -1,10 +1,10 @@
 import { InnerImageZoom } from "react-inner-image-zoom";
-import { isEmpty } from "lodash";
 import clsx from "clsx";
 import KeyboardDoubleArrowLeftIcon from "@mui/icons-material/KeyboardDoubleArrowLeft";
 
-import { useSelectionStore } from "../data/state";
-import { useContexts, useDbImageUrl } from "../data/queries";
+import { useSelectionStore } from "../data/selection";
+import { useDbImageUrl } from "../data/queries";
+import { useFilteredContexts } from "../data/filters";
 import Tile from "../components/Tile";
 
 import Section from "./Section";
@@ -24,8 +24,6 @@ function ContextImage(props: { imageId: number }) {
 }
 
 function ContextsSection() {
-  const selectedWord = useSelectionStore((s) => s.selectedWord);
-  const wordFilterDirection = useSelectionStore((s) => s.wordFilterDirection);
   const selectedContext = useSelectionStore((s) => s.selectedContext);
   const contextFilterDirection = useSelectionStore(
     (s) => s.contextFilterDirection
@@ -37,28 +35,14 @@ function ContextsSection() {
     (s) => s.setContextFilterDirection
   );
 
-  const allCtxs = useContexts();
-
-  let filteredContexts = allCtxs;
-  if (allCtxs && selectedWord) {
-    filteredContexts = allCtxs.filter((ctx) =>
-      ctx.words.includes(selectedWord)
-    );
-  }
-
-  let ctxs =
-    selectedWord && wordFilterDirection === "right"
-      ? filteredContexts
-      : allCtxs;
-  if (isEmpty(ctxs) || ctxs == undefined) ctxs = [];
-  ctxs = ctxs.slice().reverse();
+  const filteredContexts = useFilteredContexts();
 
   return (
     <Section title="Contexts">
       <div className="my-2 flex flex-[0_0_auto] flex-row flex-wrap content-center items-center justify-center [&_button]:mb-0.5 [&_button]:ml-0.5 [&_button]:text-base">
         <button
-          className={clsx(contextFilterDirection === "left" && "active")}
-          onClick={() => setContextFilterDirection("left")}
+          className={clsx(contextFilterDirection === "backward" && "active")}
+          onClick={() => setContextFilterDirection("backward")}
         >
           <KeyboardDoubleArrowLeftIcon />
         </button>
@@ -70,7 +54,7 @@ function ContextsSection() {
         </button>
       </div>
       <div className="overflow-y-scroll px-3">
-        {ctxs.map((ctx) => (
+        {filteredContexts.map((ctx) => (
           <Tile
             align="start"
             key={ctx.id}

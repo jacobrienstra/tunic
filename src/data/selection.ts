@@ -2,39 +2,28 @@ import { persist } from "zustand/middleware";
 import { create } from "zustand";
 import { isEqual } from "lodash";
 
-export type ReverseSyllableStatus = "present" | "absent" | "either";
 export type Mode = "trunes" | "ngrams";
-export type FilterDirection = "off" | "left" | "right";
+export type FilterDirection = "off" | "backward" | "forward";
 
 export interface SelectionState {
-  reverseSyllableFilter: ReverseSyllableStatus;
-  vowelFilter: number | null;
-  consonantFilter: number | null;
-  partial: boolean;
-  exclusive: boolean;
   n: number;
   mode: Mode;
-  glyphFilterDirection: FilterDirection;
+  graphemesFilterDirection: FilterDirection;
   truneFilterDirection: FilterDirection;
   wordFilterDirection: FilterDirection;
   contextFilterDirection: FilterDirection;
   selectedTrune: number | null;
-  selectedNGram: string[] | null;
+  selectedNGram: number[] | null;
   selectedWord: number | null;
   selectedContext: number | null;
 }
 
 const initialState: SelectionState = {
-  vowelFilter: null,
-  consonantFilter: null,
-  reverseSyllableFilter: "either",
-  partial: false,
-  exclusive: true,
   n: 2,
   mode: "trunes",
-  glyphFilterDirection: "right",
-  truneFilterDirection: "right",
-  wordFilterDirection: "right",
+  graphemesFilterDirection: "forward",
+  truneFilterDirection: "forward",
+  wordFilterDirection: "forward",
   contextFilterDirection: "off",
   selectedTrune: null,
   selectedNGram: null,
@@ -43,19 +32,14 @@ const initialState: SelectionState = {
 };
 
 interface SelectionActions {
-  toggleVowelFilter: (v: number | null) => void;
-  toggleConsonantFilter: (v: number | null) => void;
-  setReverseSyllableFilter: (v: ReverseSyllableStatus) => void;
-  togglePartialFilter: () => void;
-  toggleExclusive: () => void;
   setN: (v: number) => void;
   setMode: (v: Mode) => void;
-  setGlyphFilterDirection: (v: FilterDirection) => void;
+  setGraphemesFilterDirection: (v: FilterDirection) => void;
   setTruneFilterDirection: (v: FilterDirection) => void;
   setWordFilterDirection: (v: FilterDirection) => void;
   setContextFilterDirection: (v: FilterDirection) => void;
   toggleSelectedTrune: (v: number | null) => void;
-  toggleSelectedNGram: (v: string[] | null) => void;
+  toggleSelectedNGram: (v: number[] | null) => void;
   toggleSelectedWord: (v: number | null) => void;
   toggleSelectedContext: (v: number | null) => void;
 }
@@ -64,31 +48,15 @@ export const useSelectionStore = create<SelectionState & SelectionActions>()(
   persist(
     (set) => ({
       ...initialState,
-      toggleVowelFilter: (vowelFilter) =>
-        set((s) => {
-          if (s.vowelFilter === vowelFilter) {
-            return { vowelFilter: null };
-          } else return { vowelFilter };
-        }),
-      toggleConsonantFilter: (consonantFilter) =>
-        set((s) => {
-          if (s.consonantFilter === consonantFilter) {
-            return { consonantFilter: null };
-          } else return { consonantFilter };
-        }),
-      setReverseSyllableFilter: (reverseSyllableFilter) =>
-        set({ reverseSyllableFilter }),
-      togglePartialFilter: () => set((s) => ({ partial: !s.partial })),
-      toggleExclusive: () => set((s) => ({ exclusive: !s.exclusive })),
       setN: (n) => set({ n }),
       setMode: (mode) => set({ mode }),
-      setGlyphFilterDirection: (v) =>
+      setGraphemesFilterDirection: (v) =>
         set((s) => {
-          const next: Partial<SelectionState> = { glyphFilterDirection: v };
-          if (v === "right") {
-            if (s.truneFilterDirection === "left")
+          const next: Partial<SelectionState> = { graphemesFilterDirection: v };
+          if (v === "forward") {
+            if (s.truneFilterDirection === "backward")
               next.truneFilterDirection = "off";
-            else if (s.wordFilterDirection === "left")
+            else if (s.wordFilterDirection === "backward")
               next.wordFilterDirection = "off";
           }
           return next;
@@ -96,12 +64,12 @@ export const useSelectionStore = create<SelectionState & SelectionActions>()(
       setTruneFilterDirection: (v) =>
         set((s) => {
           const next: Partial<SelectionState> = { truneFilterDirection: v };
-          if (v === "left" && s.glyphFilterDirection === "right")
-            next.glyphFilterDirection = "off";
-          if (v === "right") {
-            if (s.wordFilterDirection === "left")
+          if (v === "backward" && s.graphemesFilterDirection === "forward")
+            next.graphemesFilterDirection = "off";
+          if (v === "forward") {
+            if (s.wordFilterDirection === "backward")
               next.wordFilterDirection = "off";
-            if (s.contextFilterDirection === "left")
+            if (s.contextFilterDirection === "backward")
               next.contextFilterDirection = "off";
           }
           return next;
@@ -109,23 +77,23 @@ export const useSelectionStore = create<SelectionState & SelectionActions>()(
       setWordFilterDirection: (v) =>
         set((s) => {
           const next: Partial<SelectionState> = { wordFilterDirection: v };
-          if (v === "left") {
-            if (s.truneFilterDirection === "right")
+          if (v === "backward") {
+            if (s.truneFilterDirection === "forward")
               next.truneFilterDirection = "off";
-            if (s.glyphFilterDirection === "right")
-              next.glyphFilterDirection = "off";
+            if (s.graphemesFilterDirection === "forward")
+              next.graphemesFilterDirection = "off";
           }
-          if (v === "right" && s.contextFilterDirection === "left")
+          if (v === "forward" && s.contextFilterDirection === "backward")
             next.contextFilterDirection = "off";
           return next;
         }),
       setContextFilterDirection: (v) =>
         set((s) => {
           const next: Partial<SelectionState> = { contextFilterDirection: v };
-          if (v === "left") {
-            if (s.wordFilterDirection === "right")
+          if (v === "backward") {
+            if (s.wordFilterDirection === "forward")
               next.wordFilterDirection = "off";
-            if (s.truneFilterDirection === "right")
+            if (s.truneFilterDirection === "forward")
               next.truneFilterDirection = "off";
           }
           return next;
@@ -156,22 +124,46 @@ export const useSelectionStore = create<SelectionState & SelectionActions>()(
         }),
     }),
     {
-      name: "tunic-selection-state",
-      version: 1,
+      name: "tunic-selection",
+      version: 3,
       migrate: (persisted, version) => {
-        if (version < 1 && persisted && typeof persisted === "object") {
+        let p = persisted as Record<string, unknown>;
+        if (version < 1 && p && typeof p === "object") {
           const { selectedGrapheme, graphemeFilterDirection, ...rest } =
-            persisted as Record<string, unknown> & {
+            p as Record<string, unknown> & {
               selectedGrapheme?: number | null;
               graphemeFilterDirection?: FilterDirection;
             };
-          return {
+          p = {
             ...rest,
             selectedTrune: selectedGrapheme ?? null,
-            truneFilterDirection: graphemeFilterDirection ?? "right",
-          } as SelectionState & SelectionActions;
+            truneFilterDirection: graphemeFilterDirection ?? "forward",
+          };
         }
-        return persisted as SelectionState & SelectionActions;
+        if (version < 2 && p && typeof p === "object") {
+          const idOf = (v: unknown): number | null => {
+            if (v == null) return null;
+            if (typeof v === "number") return v;
+            if (typeof v === "object" && "id" in v) {
+              const id = (v as { id: unknown }).id;
+              return typeof id === "number" ? id : null;
+            }
+            return null;
+          };
+          p = {
+            ...p,
+            selectedTrune: idOf(p.selectedTrune),
+            selectedWord: idOf(p.selectedWord),
+            selectedContext: idOf(p.selectedContext),
+          };
+        }
+        if (version < 3 && p && typeof p === "object") {
+          const ng = p.selectedNGram;
+          if (Array.isArray(ng)) {
+            p = { ...p, selectedNGram: ng.map((v) => Number(v)) };
+          }
+        }
+        return p as unknown as SelectionState & SelectionActions;
       },
     }
   )

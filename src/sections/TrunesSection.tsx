@@ -1,8 +1,6 @@
 import clsx from "clsx";
-import KeyboardDoubleArrowUpIcon from "@mui/icons-material/KeyboardDoubleArrowUp";
-import KeyboardDoubleArrowDownIcon from "@mui/icons-material/KeyboardDoubleArrowDown";
 
-import { useSelectionStore } from "../data/state";
+import { useSelectionStore } from "../data/selection";
 
 import Trunes from "./Trunes";
 import Section from "./Section";
@@ -11,10 +9,10 @@ import NGrams from "./NGrams";
 function TrunesSection() {
   const selectedN = useSelectionStore((s) => s.n);
   const mode = useSelectionStore((s) => s.mode);
-  const truneFilterDirection = useSelectionStore((s) => s.truneFilterDirection);
-  const setTruneFilterDirection = useSelectionStore(
-    (s) => s.setTruneFilterDirection
-  );
+  // const truneFilterDirection = useSelectionStore((s) => s.truneFilterDirection);
+  // const setTruneFilterDirection = useSelectionStore(
+  //   (s) => s.setTruneFilterDirection
+  // );
   const setMode = useSelectionStore((s) => s.setMode);
   const setN = useSelectionStore((s) => s.setN);
 

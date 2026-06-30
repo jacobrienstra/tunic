@@ -11,17 +11,12 @@ import { isEmpty, isEqual } from "lodash";
 import clsx from "clsx";
 import DownloadingIcon from "@mui/icons-material/Downloading";
 
-import { getGraphemeSoundGuess } from "../glyph";
-import { useSelectionStore } from "../data/state";
-import {
-  useContext,
-  useDbImageUrl,
-  useTrunes,
-  useWords,
-} from "../data/queries";
+import { useSelectionStore } from "../data/selection";
+import { useDerivedMeaning } from "../data/ruleset";
+import { useContext, useDbImageUrl, useWords } from "../data/queries";
 import { addWord, updateContext, upsertContext } from "../data/mutations";
 import { db } from "../data/db";
-import Word from "../components/Word";
+import TrunicWord from "../components/TrunicWord";
 import TruneTyper from "../components/TruneTyper";
 import InlineEdit from "../components/InlineEdit";
 
@@ -82,23 +77,21 @@ function EntrySection() {
 
   const fileInput = useRef<HTMLInputElement>(null);
 
-  const trunes = useTrunes();
   const words = useWords();
+  const deriveMeaning = useDerivedMeaning();
 
   const trunicTextWrapperRef = useRef<HTMLDivElement>(null);
 
   const getWordTranslation = useCallback(
     (w: number[]): string => {
-      const existingWord = words?.find((word) =>
-        isEqual(word.glyphs.join(","), w.join(","))
-      );
+      const existingWord = words?.find((word) => isEqual(word.truneIds, w));
       if (existingWord && !isEmpty(existingWord.meaning)) {
         return existingWord.meaning ?? "";
       } else {
-        return w.map((val) => getGraphemeSoundGuess(val, trunes)).join("");
+        return w.map((val) => deriveMeaning(val)).join("");
       }
     },
-    [words, trunes]
+    [words, deriveMeaning]
   );
 
   useEffect(() => {
@@ -153,30 +146,28 @@ function EntrySection() {
     return mode === "enter"
       ? trunic.map(getWordTranslation).join(" ")
       : selectedContext
-        ? selectedContext.words
+        ? selectedContext.wordIds
             .map((wordId) => words?.find((word) => word.id === wordId))
             .map((w) => {
               if (!w) return "???";
               else if (!isEmpty(w.meaning)) {
                 return w.meaning;
               } else {
-                return w.glyphs
-                  .map((val) => getGraphemeSoundGuess(parseInt(val), trunes))
-                  .join("");
+                return w.truneIds.map((val) => deriveMeaning(val)).join("");
               }
             })
             .join(" ")
         : "";
-  }, [selectedContext, trunic, mode, getWordTranslation, trunes, words]);
+  }, [selectedContext, trunic, mode, getWordTranslation, deriveMeaning, words]);
 
   useEffect(() => {
     if (words) {
       if (selectedContext != null) {
         setTrunic(
-          selectedContext.words
+          selectedContext.wordIds
             .map((wordId) => words.find((word) => word.id === wordId))
             .filter((wd) => wd !== undefined)
-            .map((wd) => wd.glyphs.map((g) => parseInt(g, 10)))
+            .map((wd) => wd.truneIds)
         );
       } else setTrunic([]);
     }
@@ -265,7 +256,7 @@ function EntrySection() {
                 >
                   {trunic.map((w, i) => (
                     <div className="wordWrapper" key={i}>
-                      <Word word={w} width={18} inline />
+                      <TrunicWord wordTrunes={w} width={18} inline />
                     </div>
                   ))}
                 </div>
@@ -294,7 +285,7 @@ function EntrySection() {
                 }}
               >
                 <div className="flex-[0_0_auto] py-2">
-                  <Word word={curTrunicWord} width={20} inline />
+                  <TrunicWord wordTrunes={curTrunicWord} width={20} inline />
                 </div>
                 <TruneTyper
                   width={100}

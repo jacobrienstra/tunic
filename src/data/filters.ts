@@ -1,222 +1,61 @@
-import { has, isEqual, uniq } from "lodash";
+import { useMemo } from "react";
+import { isEqual, uniq } from "lodash";
+import { useLiveQuery } from "dexie-react-hooks";
 
-import { getConsonant, getVowel, BCK } from "../glyph";
+import { useSelectionStore } from "./selection";
+import { useTrunes, useGlyphSubsets } from "./queries";
+import { Context, Trune, Word, db } from "./db";
 
-import { ReverseSyllableStatus, SelectionState } from "./state";
-import { Context, Trune, Word } from "./db";
+export function getGrapheme(trune: number, mask: number) {
+  return trune & mask;
+}
 
-const graphemeMatchesFilters = (
-  g: number,
-  vowelFilter: number | null,
-  consonantFilter: number | null,
-  reverseSyllableFilter: ReverseSyllableStatus,
-  partial: boolean
-): {
-  matchesVowel: boolean;
-  matchesConsonant: boolean;
-  reverseSyllablePass: boolean;
-} => {
-  let matchesVowel = true;
-  let matchesConsonant = true;
-  if (vowelFilter != null) {
-    matchesVowel = false;
-    if (partial) {
-      matchesVowel = (getVowel(g) | vowelFilter) === getVowel(g);
-    } else {
-      matchesVowel = getVowel(g) === vowelFilter;
-    }
-  }
-  if (consonantFilter != null) {
-    matchesConsonant = false;
-    if (partial) {
-      matchesConsonant =
-        (getConsonant(g) | consonantFilter) === getConsonant(g);
-    } else {
-      matchesConsonant = getConsonant(g) === consonantFilter;
-    }
-  }
-  let reverseSyllablePass = true;
-  if (reverseSyllableFilter === "present") {
-    reverseSyllablePass = (g | BCK) === g;
-  } else if (reverseSyllableFilter === "absent") {
-    reverseSyllablePass = (g | BCK) !== g;
-  }
-  return { matchesVowel, matchesConsonant, reverseSyllablePass };
-};
+export function useDerivedGraphemes(): Map<number, Trune[]> {
+  const trunes = useTrunes();
+  const glyphSubsets = useGlyphSubsets();
 
-const getTotalPassValue = (
-  vowelFilter: number | null,
-  consonantFilter: number | null,
-  matchesVowel: boolean,
-  matchesConsonant: boolean,
-  reverseSyllablePass: boolean,
-  exclusive: boolean
-): boolean => {
-  let vowelConsonantCombinedPass = false;
-  if (vowelFilter === null && consonantFilter === null) {
-    vowelConsonantCombinedPass = true;
-  } else {
-    if (vowelFilter === null) {
-      vowelConsonantCombinedPass = matchesConsonant;
-    } else if (consonantFilter === null) {
-      vowelConsonantCombinedPass = matchesVowel;
-    } else {
-      if (exclusive) {
-        vowelConsonantCombinedPass = matchesVowel && matchesConsonant;
-      } else {
-        vowelConsonantCombinedPass = matchesVowel || matchesConsonant;
-      }
-    }
-  }
-  return reverseSyllablePass && vowelConsonantCombinedPass;
-};
-
-export const calcVowelGraphemes = (
-  {
-    truneFilterDirection,
-    selectedTrune,
-    selectedNGram,
-    partial,
-    mode,
-  }: Pick<
-    SelectionState,
-    | "truneFilterDirection"
-    | "selectedTrune"
-    | "selectedNGram"
-    | "partial"
-    | "mode"
-  >,
-  trunes: Trune[] | undefined
-): number[] => {
-  if (!trunes) return [];
-  const allVowelGlyphs = uniq(trunes.map((g) => getVowel(g.id))).sort(
-    (a, b) => a - b
-  );
-  if (truneFilterDirection === "left") {
-    return allVowelGlyphs.filter((g) => {
-      if (mode === "ngrams" && selectedNGram) {
-        return selectedNGram.reduce((acc, val) => {
-          if (partial) {
-            return (
-              acc || (g | getVowel(parseInt(val))) === getVowel(parseInt(val))
-            );
-          } else {
-            return acc || g === getVowel(parseInt(val));
-          }
-        }, false);
-      } else if (mode === "trunes" && selectedTrune) {
-        if (partial) {
-          return (g | getVowel(selectedTrune)) === getVowel(selectedTrune);
-        } else {
-          return g === getVowel(selectedTrune);
-        }
-      } else return true;
-    });
-  } else return allVowelGlyphs;
-};
-
-export const calcConsonantGraphemes = (
-  {
-    truneFilterDirection,
-    selectedTrune,
-    selectedNGram,
-    partial,
-    mode,
-  }: Pick<
-    SelectionState,
-    | "truneFilterDirection"
-    | "selectedTrune"
-    | "selectedNGram"
-    | "partial"
-    | "mode"
-  >,
-  trunes: Trune[] | undefined
-): number[] => {
-  if (!trunes) return [];
-  const allConsonantGlyphs = uniq(trunes.map((g) => getConsonant(g.id))).sort(
-    (a, b) => a - b
-  );
-  if (truneFilterDirection === "left") {
-    return allConsonantGlyphs.filter((g) => {
-      if (mode === "ngrams" && selectedNGram) {
-        return selectedNGram.reduce((acc, val) => {
-          if (partial) {
-            return (
-              acc ||
-              (g | getConsonant(parseInt(val))) === getConsonant(parseInt(val))
-            );
-          } else {
-            return acc || g === getConsonant(parseInt(val));
-          }
-        }, false);
-      } else if (mode === "trunes" && selectedTrune) {
-        if (partial) {
-          return (
-            (g | getConsonant(selectedTrune)) === getConsonant(selectedTrune)
-          );
-        } else {
-          return g === getConsonant(selectedTrune);
-        }
-      } else return true;
-    });
-  } else return allConsonantGlyphs;
-};
-
-export const calcFilteredGraphemes = (
-  {
-    vowelFilter,
-    consonantFilter,
-    reverseSyllableFilter,
-    partial,
-    exclusive,
-    selectedWord,
-    glyphFilterDirection,
-    wordFilterDirection,
-  }: Pick<
-    SelectionState,
-    | "vowelFilter"
-    | "consonantFilter"
-    | "reverseSyllableFilter"
-    | "partial"
-    | "exclusive"
-    | "selectedWord"
-    | "glyphFilterDirection"
-    | "wordFilterDirection"
-  >,
-  trunes: Trune[] | undefined,
-  words: Word[] | undefined
-): Trune[] => {
-  if (!trunes || !words) return [];
-  if (glyphFilterDirection === "right") {
-    return trunes.filter((gd) => {
-      const { matchesVowel, matchesConsonant, reverseSyllablePass } =
-        graphemeMatchesFilters(
-          gd.id,
-          vowelFilter,
-          consonantFilter,
-          reverseSyllableFilter,
-          partial
-        );
-      return getTotalPassValue(
-        vowelFilter,
-        consonantFilter,
-        matchesVowel,
-        matchesConsonant,
-        reverseSyllablePass,
-        exclusive
+  return useMemo(() => {
+    const result = new Map<number, Trune[]>();
+    if (!trunes || !glyphSubsets) return result;
+    const byId = new Map(trunes.map((t) => [t.id, t]));
+    for (const subset of glyphSubsets) {
+      if (subset.modifier) continue;
+      result.set(
+        subset.id,
+        uniq(trunes.map((t) => getGrapheme(t.id, subset.mask)))
+          .filter((g) => g !== 0)
+          .sort((a, b) => a - b)
+          .map((g) => byId.get(g) ?? { id: g, derived: true })
       );
-    });
-  } else if (wordFilterDirection === "left" && selectedWord != null) {
-    return trunes.filter((gd) =>
-      words
-        .find((w) => w.id === selectedWord)
-        ?.glyphs.includes(gd.id.toString())
-    );
-  }
-  return trunes;
-};
+    }
+    return result;
+  }, [trunes, glyphSubsets]);
+}
 
-const wordContainsNGram = (word: string[], nGram: string[]): boolean => {
+export function useFilteredTrunes(): Trune[] {
+  const selectedWordId = useSelectionStore((s) => s.selectedWord);
+  const wordFilterDirection = useSelectionStore((s) => s.wordFilterDirection);
+  const graphemesFilterDirection = useSelectionStore(
+    (s) => s.graphemesFilterDirection
+  );
+
+  const result = useLiveQuery(async () => {
+    if (wordFilterDirection === "backward" && selectedWordId != null) {
+      const word = await db.words.get(selectedWordId);
+      if (!word) return [];
+      const rows = await db.trunes.bulkGet(word.truneIds);
+      return rows.filter((t): t is Trune => !!t);
+    }
+    if (graphemesFilterDirection === "forward") {
+      // TODO: filter trunes by selected graphemes across subsets —
+      // requires defining how per-subset selections combine (union vs intersection).
+    }
+    return db.trunes.toArray();
+  }, [wordFilterDirection, selectedWordId, graphemesFilterDirection]);
+
+  return result ?? [];
+}
+const wordContainsNGram = (word: number[], nGram: number[]): boolean => {
   const n = nGram.length;
   for (let i = 0; i < word.length - (n - 1); i++) {
     const nGramSlice = word.slice(i, i + n);
@@ -227,123 +66,93 @@ const wordContainsNGram = (word: string[], nGram: string[]): boolean => {
   return false;
 };
 
-export const calcFilteredNGrams = (
-  {
-    vowelFilter,
-    consonantFilter,
-    reverseSyllableFilter,
-    partial,
-    exclusive,
-    n,
-    selectedWord,
-    glyphFilterDirection,
-    wordFilterDirection,
-  }: Pick<
-    SelectionState,
-    | "vowelFilter"
-    | "consonantFilter"
-    | "reverseSyllableFilter"
-    | "partial"
-    | "exclusive"
-    | "n"
-    | "selectedWord"
-    | "glyphFilterDirection"
-    | "wordFilterDirection"
-  >,
-  words: Word[] | undefined
-): string[][] => {
-  if (!words) return [];
-  const filteredNGrams = {} as Record<
-    string,
-    { count: number; ngram: string[] }
-  >;
+export function useFilteredNGrams(): number[][] {
+  const n = useSelectionStore((s) => s.n);
+  const selectedWordId = useSelectionStore((s) => s.selectedWord);
+  const wordFilterDirection = useSelectionStore((s) => s.wordFilterDirection);
+  const graphemesFilterDirection = useSelectionStore(
+    (s) => s.graphemesFilterDirection
+  );
 
-  for (const w of words) {
-    for (let i = 0; i < w.glyphs.length - (n - 1); i++) {
-      const nGramSlice = w.glyphs.slice(i, i + n);
-      let nGramMatches = true;
-      if (glyphFilterDirection === "right") {
-        const results = nGramSlice.map((g) =>
-          graphemeMatchesFilters(
-            parseInt(g),
-            vowelFilter,
-            consonantFilter,
-            reverseSyllableFilter,
-            partial
-          )
-        );
-        const reverseSyllablePassExists = results.some(
-          (r) => r.reverseSyllablePass
-        );
-        const consonantMatchExists = results.some((r) => r.matchesConsonant);
-        const vowelMatchExists = results.some((r) => r.matchesVowel);
-        nGramMatches = getTotalPassValue(
-          vowelFilter,
-          consonantFilter,
-          vowelMatchExists,
-          consonantMatchExists,
-          reverseSyllablePassExists,
-          exclusive
-        );
-      } else if (wordFilterDirection === "left" && selectedWord != null) {
-        const selectedWordData = words.find((w) => w.id === selectedWord);
-        if (selectedWordData)
-          nGramMatches = wordContainsNGram(selectedWordData.glyphs, nGramSlice);
-      }
-      if (nGramMatches) {
-        const id = nGramSlice.join("_");
-        if (!has(filteredNGrams, id)) {
-          filteredNGrams[id] = { count: 1, ngram: nGramSlice };
-        } else {
-          filteredNGrams[id].count++;
-        }
+  const result = useLiveQuery(async () => {
+    let source: Word[];
+    if (wordFilterDirection === "backward" && selectedWordId != null) {
+      const selectedWord = await db.words.get(selectedWordId);
+      source = selectedWord ? [selectedWord] : [];
+    } else {
+      source = await db.words.toArray();
+    }
+    const counts = new Map<string, { ngram: number[]; count: number }>();
+    for (const w of source) {
+      for (let i = 0; i <= w.truneIds.length - n; i++) {
+        const slice = w.truneIds.slice(i, i + n);
+        const key = slice.join("_");
+        const existing = counts.get(key);
+        if (existing) existing.count++;
+        else counts.set(key, { ngram: slice, count: 1 });
       }
     }
-  }
+    if (graphemesFilterDirection === "forward") {
+      // TODO: filter ngrams by selected graphemes across subsets —
+      // requires defining how per-subset selections combine (union vs intersection).
+    }
+    return [...counts.values()]
+      .sort((a, b) => b.count - a.count)
+      .map((v) => v.ngram);
+  }, [n, selectedWordId, wordFilterDirection, graphemesFilterDirection]);
 
-  return Object.values(filteredNGrams)
-    .map((ng) => ng.ngram)
-    .sort(
-      (a, b) =>
-        filteredNGrams[b.join("_")].count - filteredNGrams[a.join("_")].count
-    );
-};
+  return result ?? [];
+}
 
-export const calcFilteredWords = (
-  {
+export function useFilteredWords(): Word[] {
+  const selectedContextId = useSelectionStore((s) => s.selectedContext);
+  const selectedTrune = useSelectionStore((s) => s.selectedTrune);
+  const selectedNGram = useSelectionStore((s) => s.selectedNGram);
+  const contextFilterDirection = useSelectionStore(
+    (s) => s.contextFilterDirection
+  );
+  const truneFilterDirection = useSelectionStore((s) => s.truneFilterDirection);
+  const mode = useSelectionStore((s) => s.mode);
+
+  const result = useLiveQuery(async () => {
+    if (contextFilterDirection === "backward" && selectedContextId != null) {
+      const ctx = await db.contexts.get(selectedContextId);
+      if (!ctx) return [];
+      const rows = await db.words.bulkGet(ctx.wordIds);
+      return rows.filter((w): w is Word => !!w);
+    }
+    if (truneFilterDirection === "forward") {
+      if (mode === "trunes" && selectedTrune != null) {
+        return db.words.where("truneIds").equals(selectedTrune).toArray();
+      }
+      if (mode === "ngrams" && selectedNGram) {
+        const all = await db.words.toArray();
+        return all.filter((w) => wordContainsNGram(w.truneIds, selectedNGram));
+      }
+    }
+    return db.words.toArray();
+  }, [
+    contextFilterDirection,
+    selectedContextId,
+    truneFilterDirection,
+    mode,
     selectedTrune,
     selectedNGram,
-    selectedContext,
-    mode,
-    truneFilterDirection,
-    contextFilterDirection,
-  }: Pick<
-    SelectionState,
-    | "selectedTrune"
-    | "selectedNGram"
-    | "selectedContext"
-    | "mode"
-    | "truneFilterDirection"
-    | "contextFilterDirection"
-  >,
-  words: Word[] | undefined,
-  contexts: Context[] | undefined
-): Word[] => {
-  if (!words) return [];
-  if (contextFilterDirection === "left" && selectedContext) {
-    const ctx = contexts?.find((c) => c.id === selectedContext);
-    if (!ctx) return words;
-    return ctx.words.reduce((acc, word) => {
-      const existingWord = words.find((w) => w.id === word);
-      if (existingWord) acc.push(existingWord);
-      return acc;
-    }, [] as Word[]);
-  } else if (truneFilterDirection === "right") {
-    if (mode === "trunes" && selectedTrune) {
-      return words.filter((w) => w.glyphs.includes(selectedTrune.toString()));
-    } else if (mode === "ngrams" && selectedNGram) {
-      return words.filter((w) => wordContainsNGram(w.glyphs, selectedNGram));
+  ]);
+
+  return result ?? [];
+}
+
+export function useFilteredContexts(): Context[] {
+  const selectedWordId = useSelectionStore((s) => s.selectedWord);
+  const wordFilterDirection = useSelectionStore((s) => s.wordFilterDirection);
+
+  const result = useLiveQuery(async () => {
+    if (wordFilterDirection === "forward" && selectedWordId != null) {
+      return db.contexts.where("wordIds").equals(selectedWordId).toArray();
     }
-  }
-  return words;
-};
+    return db.contexts.toArray();
+  }, [wordFilterDirection, selectedWordId]);
+
+  return result ?? [];
+}

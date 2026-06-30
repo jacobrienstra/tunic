@@ -2,30 +2,34 @@ import { W, pad } from "../glyph";
 
 import Glyph from "./Glyph";
 
-interface WordProps {
-  word: string[] | number[];
+interface TrunicWordProps {
+  wordTrunes: number[];
   width?: number;
   inline?: boolean;
 }
 
-function Word({ word, width = 20, inline = false }: WordProps) {
+function TrunicWord({
+  wordTrunes,
+  width = 20,
+  inline = false,
+}: TrunicWordProps) {
   return (
     <div
-      data-word={word}
+      data-word={wordTrunes}
       className="word flex flex-row"
       style={{ paddingInline: `${(pad / W) * width}px` }}
     >
-      {word.map((w, i) => (
+      {wordTrunes.map((t) => (
         <Glyph
-          val={w}
+          val={t}
           width={width}
           inWord={true}
           inline={inline}
-          key={[w, i].join("_")}
+          key={[t].join("_")}
         />
       ))}
     </div>
   );
 }
 
-export default Word;
+export default TrunicWord;

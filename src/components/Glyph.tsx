@@ -15,14 +15,13 @@ import {
 import { glyphSymbolId, computeGlyphLines } from "./GlyphDefs";
 
 interface GlyphProps {
-  val: number | string;
+  val: number;
   width?: number;
   inWord?: boolean;
   inline?: boolean;
 }
 
 function Glyph({ width, val, inWord = false, inline = false }: GlyphProps) {
-  const id = typeof val === "string" ? parseInt(val) : val;
   return (
     <svg
       width={width ?? "100%"}
@@ -34,15 +33,15 @@ function Glyph({ width, val, inWord = false, inline = false }: GlyphProps) {
     >
       {inline ? (
         <>
-          {computeGlyphLines(id).map((l, i) => (
+          {computeGlyphLines(val).map((l, i) => (
             <line className="stroke-black" {...l} key={i} />
           ))}
-          {id & BCK ? (
+          {val & BCK ? (
             <circle {...BC} className="[fill:transparent] stroke-black" />
           ) : null}
         </>
       ) : (
-        <use href={`#${glyphSymbolId(id)}`} width={W} height={H} />
+        <use href={`#${glyphSymbolId(val)}`} width={W} height={H} />
       )}
     </svg>
   );
