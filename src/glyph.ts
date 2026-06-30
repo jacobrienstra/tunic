@@ -1,4 +1,4 @@
-import type { Grapheme } from "./data/db";
+import type { Trune } from "./data/db";
 
 /* Tinkered with these values to get them just right.
  * They're based on a regular hexagon with sides of 100,
@@ -117,15 +117,14 @@ export function getConsonant(val: number | string) {
 
 export const getGraphemeSoundGuess = (
   val: number,
-  graphemes?: Grapheme[]
+  trunes?: Trune[]
 ): string => {
-  let vowelGuess =
-    graphemes?.find((g) => g.id === getVowel(val))?.meaning ?? "?";
+  let vowelGuess = trunes?.find((g) => g.id === getVowel(val))?.meaning ?? "?";
   if (!getVowel(val) && vowelGuess === "?") {
     vowelGuess = "";
   }
   let consonantGuess =
-    graphemes?.find((g) => g.id === getConsonant(val))?.meaning ?? "?";
+    trunes?.find((g) => g.id === getConsonant(val))?.meaning ?? "?";
   if (!getConsonant(val) && consonantGuess === "?") {
     consonantGuess = "";
   }

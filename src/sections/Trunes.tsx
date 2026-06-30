@@ -1,18 +1,18 @@
 import { useMemo } from "react";
 
 import { useSelectionStore } from "../data/state";
-import { useGraphemes, useWords } from "../data/queries";
+import { useTrunes, useWords } from "../data/queries";
 import { calcFilteredGraphemes } from "../data/filters";
-import { Grapheme } from "../data/db";
+import { Trune as TruneShape } from "../data/db";
+import Trune from "../components/Trune";
 import Tile from "../components/Tile";
-import Trune from "../components/Grapheme";
 
 interface TrunesProps {
   tileSize: number;
 }
 
 function Trunes({ tileSize }: TrunesProps) {
-  const graphemes = useGraphemes();
+  const trunes = useTrunes();
   const words = useWords();
 
   const vowelFilter = useSelectionStore((s) => s.vowelFilter);
@@ -25,12 +25,10 @@ function Trunes({ tileSize }: TrunesProps) {
   const selectedWord = useSelectionStore((s) => s.selectedWord);
   const glyphFilterDirection = useSelectionStore((s) => s.glyphFilterDirection);
   const wordFilterDirection = useSelectionStore((s) => s.wordFilterDirection);
-  const selectedGrapheme = useSelectionStore((s) => s.selectedGrapheme);
-  const toggleSelectedGrapheme = useSelectionStore(
-    (s) => s.toggleSelectedGrapheme
-  );
+  const selectedTrune = useSelectionStore((s) => s.selectedTrune);
+  const toggleSelectedTrune = useSelectionStore((s) => s.toggleSelectedTrune);
 
-  const filteredGraphemes = useMemo(
+  const filteredTrunes = useMemo(
     () =>
       calcFilteredGraphemes(
         {
@@ -43,7 +41,7 @@ function Trunes({ tileSize }: TrunesProps) {
           glyphFilterDirection,
           wordFilterDirection,
         },
-        graphemes,
+        trunes,
         words
       ),
     [
@@ -55,19 +53,19 @@ function Trunes({ tileSize }: TrunesProps) {
       selectedWord,
       glyphFilterDirection,
       wordFilterDirection,
-      graphemes,
+      trunes,
       words,
     ]
   );
 
   return (
     <>
-      {filteredGraphemes.map((g: Grapheme) => (
+      {filteredTrunes.map((g: TruneShape) => (
         <Tile
           size={tileSize}
           key={g.id}
-          active={selectedGrapheme === g.id}
-          toggleFn={toggleSelectedGrapheme}
+          active={selectedTrune === g.id}
+          toggleFn={toggleSelectedTrune}
           val={g.id}
         >
           <Trune {...g} />

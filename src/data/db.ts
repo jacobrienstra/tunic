@@ -1,6 +1,6 @@
 import { Dexie, type EntityTable, type Table } from "dexie";
 
-export interface Grapheme {
+export interface Trune {
   id: number;
   meaning?: string;
 }
@@ -24,7 +24,7 @@ export interface Image {
 }
 
 export const db = new Dexie("tunic") as Dexie & {
-  graphemes: Table<Grapheme, number>;
+  trunes: Table<Trune, number>;
   words: EntityTable<Word, "id">;
   contexts: EntityTable<Context, "id">;
   images: EntityTable<Image, "id">;
@@ -36,5 +36,15 @@ db.version(1).stores({
   contexts: "++id, imageId, *words",
   images: "++id",
 });
+
+db.version(2)
+  .stores({
+    trunes: "id",
+    graphemes: null,
+  })
+  .upgrade(async (tx) => {
+    const old = await tx.table<Trune, number>("graphemes").toArray();
+    if (old.length) await tx.table<Trune, number>("trunes").bulkPut(old);
+  });
 
 export default db;

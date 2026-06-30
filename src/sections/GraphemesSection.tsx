@@ -4,7 +4,7 @@ import KeyboardDoubleArrowDownIcon from "@mui/icons-material/KeyboardDoubleArrow
 
 import { getGraphemeSoundGuess } from "../glyph";
 import { useSelectionStore } from "../data/state";
-import { useGraphemes } from "../data/queries";
+import { useTrunes } from "../data/queries";
 import { calcConsonantGraphemes, calcVowelGraphemes } from "../data/filters";
 import Tile from "../components/Tile";
 import Glyph from "../components/Glyph";
@@ -21,15 +21,13 @@ const gridTemplate = {
 };
 
 function Filters() {
-  const graphemes = useGraphemes();
+  const trunes = useTrunes();
 
   const vowelFilter = useSelectionStore((s) => s.vowelFilter);
   const consonantFilter = useSelectionStore((s) => s.consonantFilter);
   const glyphFilterDirection = useSelectionStore((s) => s.glyphFilterDirection);
-  const graphemeFilterDirection = useSelectionStore(
-    (s) => s.graphemeFilterDirection
-  );
-  const selectedGrapheme = useSelectionStore((s) => s.selectedGrapheme);
+  const truneFilterDirection = useSelectionStore((s) => s.truneFilterDirection);
+  const selectedTrune = useSelectionStore((s) => s.selectedTrune);
   const selectedNGram = useSelectionStore((s) => s.selectedNGram);
   const partial = useSelectionStore((s) => s.partial);
   const mode = useSelectionStore((s) => s.mode);
@@ -45,43 +43,29 @@ function Filters() {
     () =>
       calcVowelGraphemes(
         {
-          graphemeFilterDirection,
-          selectedGrapheme,
+          truneFilterDirection,
+          selectedTrune,
           selectedNGram,
           partial,
           mode,
         },
-        graphemes
+        trunes
       ),
-    [
-      graphemeFilterDirection,
-      selectedGrapheme,
-      selectedNGram,
-      partial,
-      mode,
-      graphemes,
-    ]
+    [truneFilterDirection, selectedTrune, selectedNGram, partial, mode, trunes]
   );
   const consonantGlyphs = useMemo(
     () =>
       calcConsonantGraphemes(
         {
-          graphemeFilterDirection,
-          selectedGrapheme,
+          truneFilterDirection,
+          selectedTrune,
           selectedNGram,
           partial,
           mode,
         },
-        graphemes
+        trunes
       ),
-    [
-      graphemeFilterDirection,
-      selectedGrapheme,
-      selectedNGram,
-      partial,
-      mode,
-      graphemes,
-    ]
+    [truneFilterDirection, selectedTrune, selectedNGram, partial, mode, trunes]
   );
 
   return (
@@ -121,7 +105,7 @@ function Filters() {
               >
                 <Glyph val={val} />
                 <div className="text-center text-cyan-600">
-                  {getGraphemeSoundGuess(val, graphemes)}
+                  {getGraphemeSoundGuess(val, trunes)}
                 </div>
               </Tile>
             ))}
@@ -140,7 +124,7 @@ function Filters() {
               >
                 <Glyph val={val} />
                 <div className="text-center text-cyan-600">
-                  {getGraphemeSoundGuess(val, graphemes)}
+                  {getGraphemeSoundGuess(val, trunes)}
                 </div>
               </Tile>
             ))}

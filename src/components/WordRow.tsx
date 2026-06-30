@@ -1,7 +1,7 @@
 import { memo } from "react";
 
 import { getGraphemeSoundGuess } from "../glyph";
-import { useGraphemes } from "../data/queries";
+import { useTrunes } from "../data/queries";
 import { updateWord } from "../data/mutations";
 import { Word as WordData } from "../data/db";
 
@@ -9,7 +9,7 @@ import Word from "./Word";
 import InlineEdit from "./InlineEdit";
 
 function WordRow({ glyphs, meaning, id }: WordData) {
-  const graphemes = useGraphemes();
+  const trunes = useTrunes();
   return (
     <div className="flex flex-col items-stretch p-1">
       <Word word={glyphs} />
@@ -17,9 +17,9 @@ function WordRow({ glyphs, meaning, id }: WordData) {
         {glyphs
           .map((val) => {
             const ival = parseInt(val);
-            let meaning = graphemes?.find((g) => g.id === ival)?.meaning;
+            let meaning = trunes?.find((g) => g.id === ival)?.meaning;
             if (meaning === "" || meaning === undefined) {
-              meaning = getGraphemeSoundGuess(ival, graphemes);
+              meaning = getGraphemeSoundGuess(ival, trunes);
             }
             return meaning.replace("?", "");
           })

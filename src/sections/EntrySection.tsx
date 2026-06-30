@@ -16,7 +16,7 @@ import { useSelectionStore } from "../data/state";
 import {
   useContext,
   useDbImageUrl,
-  useGraphemes,
+  useTrunes,
   useWords,
 } from "../data/queries";
 import { addWord, updateContext, upsertContext } from "../data/mutations";
@@ -82,7 +82,7 @@ function EntrySection() {
 
   const fileInput = useRef<HTMLInputElement>(null);
 
-  const graphemes = useGraphemes();
+  const trunes = useTrunes();
   const words = useWords();
 
   const trunicTextWrapperRef = useRef<HTMLDivElement>(null);
@@ -95,10 +95,10 @@ function EntrySection() {
       if (existingWord && !isEmpty(existingWord.meaning)) {
         return existingWord.meaning ?? "";
       } else {
-        return w.map((val) => getGraphemeSoundGuess(val, graphemes)).join("");
+        return w.map((val) => getGraphemeSoundGuess(val, trunes)).join("");
       }
     },
-    [words, graphemes]
+    [words, trunes]
   );
 
   useEffect(() => {
@@ -161,13 +161,13 @@ function EntrySection() {
                 return w.meaning;
               } else {
                 return w.glyphs
-                  .map((val) => getGraphemeSoundGuess(parseInt(val), graphemes))
+                  .map((val) => getGraphemeSoundGuess(parseInt(val), trunes))
                   .join("");
               }
             })
             .join(" ")
         : "";
-  }, [selectedContext, trunic, mode, getWordTranslation, graphemes, words]);
+  }, [selectedContext, trunic, mode, getWordTranslation, trunes, words]);
 
   useEffect(() => {
     if (words) {

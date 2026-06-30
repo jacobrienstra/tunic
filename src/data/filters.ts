@@ -3,7 +3,7 @@ import { has, isEqual, uniq } from "lodash";
 import { getConsonant, getVowel, BCK } from "../glyph";
 
 import { ReverseSyllableStatus, SelectionState } from "./state";
-import { Context, Grapheme, Word } from "./db";
+import { Context, Trune, Word } from "./db";
 
 const graphemeMatchesFilters = (
   g: number,
@@ -73,26 +73,26 @@ const getTotalPassValue = (
 
 export const calcVowelGraphemes = (
   {
-    graphemeFilterDirection,
-    selectedGrapheme,
+    truneFilterDirection,
+    selectedTrune,
     selectedNGram,
     partial,
     mode,
   }: Pick<
     SelectionState,
-    | "graphemeFilterDirection"
-    | "selectedGrapheme"
+    | "truneFilterDirection"
+    | "selectedTrune"
     | "selectedNGram"
     | "partial"
     | "mode"
   >,
-  graphemes: Grapheme[] | undefined
+  trunes: Trune[] | undefined
 ): number[] => {
-  if (!graphemes) return [];
-  const allVowelGlyphs = uniq(graphemes.map((g) => getVowel(g.id))).sort(
+  if (!trunes) return [];
+  const allVowelGlyphs = uniq(trunes.map((g) => getVowel(g.id))).sort(
     (a, b) => a - b
   );
-  if (graphemeFilterDirection === "left") {
+  if (truneFilterDirection === "left") {
     return allVowelGlyphs.filter((g) => {
       if (mode === "ngrams" && selectedNGram) {
         return selectedNGram.reduce((acc, val) => {
@@ -104,13 +104,11 @@ export const calcVowelGraphemes = (
             return acc || g === getVowel(parseInt(val));
           }
         }, false);
-      } else if (mode === "graphemes" && selectedGrapheme) {
+      } else if (mode === "trunes" && selectedTrune) {
         if (partial) {
-          return (
-            (g | getVowel(selectedGrapheme)) === getVowel(selectedGrapheme)
-          );
+          return (g | getVowel(selectedTrune)) === getVowel(selectedTrune);
         } else {
-          return g === getVowel(selectedGrapheme);
+          return g === getVowel(selectedTrune);
         }
       } else return true;
     });
@@ -119,26 +117,26 @@ export const calcVowelGraphemes = (
 
 export const calcConsonantGraphemes = (
   {
-    graphemeFilterDirection,
-    selectedGrapheme,
+    truneFilterDirection,
+    selectedTrune,
     selectedNGram,
     partial,
     mode,
   }: Pick<
     SelectionState,
-    | "graphemeFilterDirection"
-    | "selectedGrapheme"
+    | "truneFilterDirection"
+    | "selectedTrune"
     | "selectedNGram"
     | "partial"
     | "mode"
   >,
-  graphemes: Grapheme[] | undefined
+  trunes: Trune[] | undefined
 ): number[] => {
-  if (!graphemes) return [];
-  const allConsonantGlyphs = uniq(
-    graphemes.map((g) => getConsonant(g.id))
-  ).sort((a, b) => a - b);
-  if (graphemeFilterDirection === "left") {
+  if (!trunes) return [];
+  const allConsonantGlyphs = uniq(trunes.map((g) => getConsonant(g.id))).sort(
+    (a, b) => a - b
+  );
+  if (truneFilterDirection === "left") {
     return allConsonantGlyphs.filter((g) => {
       if (mode === "ngrams" && selectedNGram) {
         return selectedNGram.reduce((acc, val) => {
@@ -151,14 +149,13 @@ export const calcConsonantGraphemes = (
             return acc || g === getConsonant(parseInt(val));
           }
         }, false);
-      } else if (mode === "graphemes" && selectedGrapheme) {
+      } else if (mode === "trunes" && selectedTrune) {
         if (partial) {
           return (
-            (g | getConsonant(selectedGrapheme)) ===
-            getConsonant(selectedGrapheme)
+            (g | getConsonant(selectedTrune)) === getConsonant(selectedTrune)
           );
         } else {
-          return g === getConsonant(selectedGrapheme);
+          return g === getConsonant(selectedTrune);
         }
       } else return true;
     });
@@ -186,12 +183,12 @@ export const calcFilteredGraphemes = (
     | "glyphFilterDirection"
     | "wordFilterDirection"
   >,
-  graphemes: Grapheme[] | undefined,
+  trunes: Trune[] | undefined,
   words: Word[] | undefined
-): Grapheme[] => {
-  if (!graphemes || !words) return [];
+): Trune[] => {
+  if (!trunes || !words) return [];
   if (glyphFilterDirection === "right") {
-    return graphemes.filter((gd) => {
+    return trunes.filter((gd) => {
       const { matchesVowel, matchesConsonant, reverseSyllablePass } =
         graphemeMatchesFilters(
           gd.id,
@@ -210,13 +207,13 @@ export const calcFilteredGraphemes = (
       );
     });
   } else if (wordFilterDirection === "left" && selectedWord != null) {
-    return graphemes.filter((gd) =>
+    return trunes.filter((gd) =>
       words
         .find((w) => w.id === selectedWord)
         ?.glyphs.includes(gd.id.toString())
     );
   }
-  return graphemes;
+  return trunes;
 };
 
 const wordContainsNGram = (word: string[], nGram: string[]): boolean => {
@@ -314,19 +311,19 @@ export const calcFilteredNGrams = (
 
 export const calcFilteredWords = (
   {
-    selectedGrapheme,
+    selectedTrune,
     selectedNGram,
     selectedContext,
     mode,
-    graphemeFilterDirection,
+    truneFilterDirection,
     contextFilterDirection,
   }: Pick<
     SelectionState,
-    | "selectedGrapheme"
+    | "selectedTrune"
     | "selectedNGram"
     | "selectedContext"
     | "mode"
-    | "graphemeFilterDirection"
+    | "truneFilterDirection"
     | "contextFilterDirection"
   >,
   words: Word[] | undefined,
@@ -341,11 +338,9 @@ export const calcFilteredWords = (
       if (existingWord) acc.push(existingWord);
       return acc;
     }, [] as Word[]);
-  } else if (graphemeFilterDirection === "right") {
-    if (mode === "graphemes" && selectedGrapheme) {
-      return words.filter((w) =>
-        w.glyphs.includes(selectedGrapheme.toString())
-      );
+  } else if (truneFilterDirection === "right") {
+    if (mode === "trunes" && selectedTrune) {
+      return words.filter((w) => w.glyphs.includes(selectedTrune.toString()));
     } else if (mode === "ngrams" && selectedNGram) {
       return words.filter((w) => wordContainsNGram(w.glyphs, selectedNGram));
     }

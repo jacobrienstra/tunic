@@ -3,7 +3,7 @@ import { isEqual } from "lodash";
 
 import { getGraphemeSoundGuess } from "../glyph";
 import { useSelectionStore } from "../data/state";
-import { useGraphemes, useWords } from "../data/queries";
+import { useTrunes, useWords } from "../data/queries";
 import { calcFilteredNGrams } from "../data/filters";
 import Word from "../components/Word";
 import Tile from "../components/Tile";
@@ -13,7 +13,7 @@ interface NGramsProps {
 }
 function NGrams({ tileSize }: NGramsProps) {
   const words = useWords();
-  const graphemes = useGraphemes();
+  const trunes = useTrunes();
 
   const vowelFilter = useSelectionStore((s) => s.vowelFilter);
   const consonantFilter = useSelectionStore((s) => s.consonantFilter);
@@ -73,11 +73,11 @@ function NGrams({ tileSize }: NGramsProps) {
           <div className="text-cyan-600">
             {ng
               .map((val) => {
-                const meaning = graphemes?.find(
+                const meaning = trunes?.find(
                   (g) => g.id === parseInt(val)
                 )?.meaning;
                 if (meaning === "" || meaning === undefined) {
-                  return getGraphemeSoundGuess(parseInt(val), graphemes);
+                  return getGraphemeSoundGuess(parseInt(val), trunes);
                 }
                 return meaning.replace("?", "");
               })

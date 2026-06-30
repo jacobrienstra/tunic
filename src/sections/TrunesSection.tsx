@@ -11,11 +11,9 @@ import NGrams from "./NGrams";
 function TrunesSection() {
   const selectedN = useSelectionStore((s) => s.n);
   const mode = useSelectionStore((s) => s.mode);
-  const graphemeFilterDirection = useSelectionStore(
-    (s) => s.graphemeFilterDirection
-  );
-  const setGraphemeFilterDirection = useSelectionStore(
-    (s) => s.setGraphemeFilterDirection
+  const truneFilterDirection = useSelectionStore((s) => s.truneFilterDirection);
+  const setTruneFilterDirection = useSelectionStore(
+    (s) => s.setTruneFilterDirection
   );
   const setMode = useSelectionStore((s) => s.setMode);
   const setN = useSelectionStore((s) => s.setN);
@@ -29,20 +27,20 @@ function TrunesSection() {
     >
       {/* <div className="my-1 flex flex-row flex-wrap content-center items-center justify-start [&_button]:mx-0.5 [&_button]:mb-0.5 [&_button]:text-base">
         <button
-          className={clsx(graphemeFilterDirection === "left" && "active")}
-          onClick={() => setGraphemeFilterDirection("left")}
+          className={clsx(truneFilterDirection === "left" && "active")}
+          onClick={() => setTruneFilterDirection("left")}
         >
           <KeyboardDoubleArrowUpIcon />
         </button>
         <button
-          className={clsx(graphemeFilterDirection === "off" && "active")}
-          onClick={() => setGraphemeFilterDirection("off")}
+          className={clsx(truneFilterDirection === "off" && "active")}
+          onClick={() => setTruneFilterDirection("off")}
         >
           Off
         </button>
         <button
-          className={clsx(graphemeFilterDirection === "right" && "active")}
-          onClick={() => setGraphemeFilterDirection("right")}
+          className={clsx(truneFilterDirection === "right" && "active")}
+          onClick={() => setTruneFilterDirection("right")}
         >
           <KeyboardDoubleArrowDownIcon />
         </button>

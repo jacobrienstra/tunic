@@ -1,27 +1,27 @@
 import { memo } from "react";
 
 import { getGraphemeSoundGuess } from "../glyph";
-import { useGraphemes } from "../data/queries";
-import { updateGrapheme } from "../data/mutations";
-import { Grapheme as GraphemeShape } from "../data/db";
+import { useTrunes } from "../data/queries";
+import { updateTrune } from "../data/mutations";
+import { Trune as TruneShape } from "../data/db";
 
 import InlineEdit from "./InlineEdit";
 import Glyph from "./Glyph";
 
-function Grapheme({ id, meaning }: GraphemeShape) {
-  const graphemes = useGraphemes();
+function Trune({ id, meaning }: TruneShape) {
+  const trunes = useTrunes();
   return (
     <div className="flex max-w-full flex-col items-stretch p-1">
       <div className="mx-[17%] flex-[1_0_auto]">
         <Glyph val={id} />
       </div>
       <div className="text-center text-cyan-600">
-        {getGraphemeSoundGuess(id, graphemes)}
+        {getGraphemeSoundGuess(id, trunes)}
       </div>
       <InlineEdit
         value={meaning ?? ""}
         setValue={(val: string) => {
-          updateGrapheme(id, { meaning: val }).catch(console.error);
+          updateTrune(id, { meaning: val }).catch(console.error);
         }}
         className="border-b border-cyan-700 text-cyan-900"
       />
@@ -29,4 +29,4 @@ function Grapheme({ id, meaning }: GraphemeShape) {
   );
 }
 
-export default memo(Grapheme);
+export default memo(Trune);

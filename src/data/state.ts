@@ -15,10 +15,10 @@ export interface SelectionState {
   n: number;
   mode: Mode;
   glyphFilterDirection: FilterDirection;
-  graphemeFilterDirection: FilterDirection;
+  truneFilterDirection: FilterDirection;
   wordFilterDirection: FilterDirection;
   contextFilterDirection: FilterDirection;
-  selectedGrapheme: number | null;
+  selectedTrune: number | null;
   selectedNGram: string[] | null;
   selectedWord: number | null;
   selectedContext: number | null;
@@ -33,10 +33,10 @@ const initialState: SelectionState = {
   n: 2,
   mode: "trunes",
   glyphFilterDirection: "right",
-  graphemeFilterDirection: "right",
+  truneFilterDirection: "right",
   wordFilterDirection: "right",
   contextFilterDirection: "off",
-  selectedGrapheme: null,
+  selectedTrune: null,
   selectedNGram: null,
   selectedWord: null,
   selectedContext: null,
@@ -51,10 +51,10 @@ interface SelectionActions {
   setN: (v: number) => void;
   setMode: (v: Mode) => void;
   setGlyphFilterDirection: (v: FilterDirection) => void;
-  setGraphemeFilterDirection: (v: FilterDirection) => void;
+  setTruneFilterDirection: (v: FilterDirection) => void;
   setWordFilterDirection: (v: FilterDirection) => void;
   setContextFilterDirection: (v: FilterDirection) => void;
-  toggleSelectedGrapheme: (v: number | null) => void;
+  toggleSelectedTrune: (v: number | null) => void;
   toggleSelectedNGram: (v: string[] | null) => void;
   toggleSelectedWord: (v: number | null) => void;
   toggleSelectedContext: (v: number | null) => void;
@@ -86,16 +86,16 @@ export const useSelectionStore = create<SelectionState & SelectionActions>()(
         set((s) => {
           const next: Partial<SelectionState> = { glyphFilterDirection: v };
           if (v === "right") {
-            if (s.graphemeFilterDirection === "left")
-              next.graphemeFilterDirection = "off";
+            if (s.truneFilterDirection === "left")
+              next.truneFilterDirection = "off";
             else if (s.wordFilterDirection === "left")
               next.wordFilterDirection = "off";
           }
           return next;
         }),
-      setGraphemeFilterDirection: (v) =>
+      setTruneFilterDirection: (v) =>
         set((s) => {
-          const next: Partial<SelectionState> = { graphemeFilterDirection: v };
+          const next: Partial<SelectionState> = { truneFilterDirection: v };
           if (v === "left" && s.glyphFilterDirection === "right")
             next.glyphFilterDirection = "off";
           if (v === "right") {
@@ -110,8 +110,8 @@ export const useSelectionStore = create<SelectionState & SelectionActions>()(
         set((s) => {
           const next: Partial<SelectionState> = { wordFilterDirection: v };
           if (v === "left") {
-            if (s.graphemeFilterDirection === "right")
-              next.graphemeFilterDirection = "off";
+            if (s.truneFilterDirection === "right")
+              next.truneFilterDirection = "off";
             if (s.glyphFilterDirection === "right")
               next.glyphFilterDirection = "off";
           }
@@ -125,16 +125,16 @@ export const useSelectionStore = create<SelectionState & SelectionActions>()(
           if (v === "left") {
             if (s.wordFilterDirection === "right")
               next.wordFilterDirection = "off";
-            if (s.graphemeFilterDirection === "right")
-              next.graphemeFilterDirection = "off";
+            if (s.truneFilterDirection === "right")
+              next.truneFilterDirection = "off";
           }
           return next;
         }),
-      toggleSelectedGrapheme: (selectedGrapheme) =>
+      toggleSelectedTrune: (selectedTrune) =>
         set((s) => {
-          if (s.selectedGrapheme === selectedGrapheme) {
-            return { selectedGrapheme: null };
-          } else return { selectedGrapheme };
+          if (s.selectedTrune === selectedTrune) {
+            return { selectedTrune: null };
+          } else return { selectedTrune };
         }),
       toggleSelectedNGram: (selectedNGram) =>
         set((s) => {
@@ -155,6 +155,24 @@ export const useSelectionStore = create<SelectionState & SelectionActions>()(
           } else return { selectedContext };
         }),
     }),
-    { name: "tunic-selection-state" }
+    {
+      name: "tunic-selection-state",
+      version: 1,
+      migrate: (persisted, version) => {
+        if (version < 1 && persisted && typeof persisted === "object") {
+          const { selectedGrapheme, graphemeFilterDirection, ...rest } =
+            persisted as Record<string, unknown> & {
+              selectedGrapheme?: number | null;
+              graphemeFilterDirection?: FilterDirection;
+            };
+          return {
+            ...rest,
+            selectedTrune: selectedGrapheme ?? null,
+            truneFilterDirection: graphemeFilterDirection ?? "right",
+          } as SelectionState & SelectionActions;
+        }
+        return persisted as SelectionState & SelectionActions;
+      },
+    }
   )
 );

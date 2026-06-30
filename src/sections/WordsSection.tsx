@@ -15,13 +15,11 @@ function WordsSection() {
   const words = useWords();
   const contexts = useContexts();
 
-  const selectedGrapheme = useSelectionStore((s) => s.selectedGrapheme);
+  const selectedTrune = useSelectionStore((s) => s.selectedTrune);
   const selectedNGram = useSelectionStore((s) => s.selectedNGram);
   const selectedContext = useSelectionStore((s) => s.selectedContext);
   const mode = useSelectionStore((s) => s.mode);
-  const graphemeFilterDirection = useSelectionStore(
-    (s) => s.graphemeFilterDirection
-  );
+  const truneFilterDirection = useSelectionStore((s) => s.truneFilterDirection);
   const contextFilterDirection = useSelectionStore(
     (s) => s.contextFilterDirection
   );
@@ -36,22 +34,22 @@ function WordsSection() {
     () =>
       calcFilteredWords(
         {
-          selectedGrapheme,
+          selectedTrune,
           selectedNGram,
           selectedContext,
           mode,
-          graphemeFilterDirection,
+          truneFilterDirection,
           contextFilterDirection,
         },
         words,
         contexts
       ),
     [
-      selectedGrapheme,
+      selectedTrune,
       selectedNGram,
       selectedContext,
       mode,
-      graphemeFilterDirection,
+      truneFilterDirection,
       contextFilterDirection,
       words,
       contexts,

@@ -3,8 +3,8 @@ import { useLiveQuery } from "dexie-react-hooks";
 
 import { db } from "./db";
 
-export function useGraphemes() {
-  return useLiveQuery(() => db.graphemes.toArray(), []);
+export function useTrunes() {
+  return useLiveQuery(() => db.trunes.toArray(), []);
 }
 
 export function useWords() {

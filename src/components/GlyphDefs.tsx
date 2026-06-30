@@ -14,7 +14,7 @@ import {
   strokeLinejoin,
   tightViewBox,
 } from "../glyph";
-import { useGraphemes } from "../data/queries";
+import { useTrunes } from "../data/queries";
 
 export function computeGlyphLines(val: number): GlyphLine[] {
   const lines: GlyphLine[] = [];
@@ -56,8 +56,8 @@ function GlyphSymbol({ val }: { val: number }) {
 const MemoGlyphSymbol = memo(GlyphSymbol);
 
 function GlyphDefs() {
-  const graphemes = useGraphemes();
-  if (!graphemes) return null;
+  const trunes = useTrunes();
+  if (!trunes) return null;
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -65,7 +65,7 @@ function GlyphDefs() {
       aria-hidden
     >
       <defs>
-        {graphemes.map((g) => (
+        {trunes.map((g) => (
           <MemoGlyphSymbol key={g.id} val={g.id} />
         ))}
       </defs>
