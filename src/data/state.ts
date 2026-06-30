@@ -3,7 +3,7 @@ import { create } from "zustand";
 import { isEqual } from "lodash";
 
 export type ReverseSyllableStatus = "present" | "absent" | "either";
-export type Mode = "graphemes" | "ngrams";
+export type Mode = "trunes" | "ngrams";
 export type FilterDirection = "off" | "left" | "right";
 
 export interface SelectionState {
@@ -31,7 +31,7 @@ const initialState: SelectionState = {
   partial: false,
   exclusive: true,
   n: 2,
-  mode: "graphemes",
+  mode: "trunes",
   glyphFilterDirection: "right",
   graphemeFilterDirection: "right",
   wordFilterDirection: "right",

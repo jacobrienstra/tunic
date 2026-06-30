@@ -22,8 +22,8 @@ function FilterOptions() {
   const toggleExclusive = useSelectionStore((s) => s.toggleExclusive);
 
   return (
-    <div className="flex flex-[0_0_auto] flex-col items-start text-xs">
-      <h4>Filter By</h4>
+    <div className="flex flex-row items-center gap-4 text-xs">
+      <h2>Filter By: </h2>
       <div className={filterOption}>
         <span>Syllabled Reversed?</span>
         <button

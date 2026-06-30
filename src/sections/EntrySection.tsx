@@ -27,8 +27,7 @@ import InlineEdit from "../components/InlineEdit";
 
 import Section from "./Section";
 
-const clearButton =
-  "text-red-900 hover:bg-red-400";
+const clearButton = "text-red-900 hover:bg-red-400";
 
 type EntryMode = "enter" | "edit";
 
@@ -343,9 +342,7 @@ function EntrySection() {
                 </button>
               </div>
               {error != null ? (
-                <div className="font-bold text-red-700">
-                  {error}
-                </div>
+                <div className="font-bold text-red-700">{error}</div>
               ) : null}
               {uploading ? (
                 <DownloadingIcon fontSize="large" className="animate-spin" />

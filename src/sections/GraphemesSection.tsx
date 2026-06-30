@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import clsx from "clsx";
-import KeyboardDoubleArrowRightIcon from "@mui/icons-material/KeyboardDoubleArrowRight";
+import KeyboardDoubleArrowDownIcon from "@mui/icons-material/KeyboardDoubleArrowDown";
 
 import { getGraphemeSoundGuess } from "../glyph";
 import { useSelectionStore } from "../data/state";
@@ -9,6 +9,7 @@ import { calcConsonantGraphemes, calcVowelGraphemes } from "../data/filters";
 import Tile from "../components/Tile";
 import Glyph from "../components/Glyph";
 
+import Section from "./Section";
 import FilterOptions from "./FilterOptions";
 
 const tileSize = 35;
@@ -84,8 +85,11 @@ function Filters() {
   );
 
   return (
-    <section className="flex flex-[1_0_50%] flex-col items-stretch border-r-[3px] border-slate-500 px-2 [&_span]:select-none [&_strong]:select-none">
-      <div className="my-1 flex flex-[0_0_auto] flex-row flex-wrap content-center items-center justify-end [&_button]:mb-0.5 [&_button]:ml-0.5 [&_button]:text-base">
+    <Section
+      title="Graphemes"
+      className="flex flex-[1_0_50%] flex-col items-stretch border-b-4 border-slate-500 px-2 [&_span]:select-none [&_strong]:select-none"
+    >
+      {/* <div className="my-1 flex flex-row flex-wrap content-center items-center justify-start [&_button]:mx-1 [&_button]:mb-0.5 [&_button]:text-base">
         <button
           className={clsx(glyphFilterDirection === "off" && "active")}
           onClick={() => setGlyphFilterDirection("off")}
@@ -96,18 +100,15 @@ function Filters() {
           className={clsx(glyphFilterDirection === "right" && "active")}
           onClick={() => setGlyphFilterDirection("right")}
         >
-          <KeyboardDoubleArrowRightIcon />
+          <KeyboardDoubleArrowDownIcon />
         </button>
-      </div>
-      <FilterOptions />
+        <FilterOptions />
+      </div> */}
       <div className="flex flex-[1_1_auto] flex-row items-stretch">
         <div className="flex flex-[1_0_50%] flex-col items-stretch">
           <h4 className="w-full flex-[0_0_auto] text-center">Vowels</h4>
           <div
-            className={clsx(
-              glyphsGrid,
-              "border-r-2 border-slate-500"
-            )}
+            className={clsx(glyphsGrid, "border-r-2 border-slate-500")}
             style={gridTemplate}
           >
             {vowelGlyphs.map((val) => (
@@ -146,7 +147,7 @@ function Filters() {
           </div>
         </div>
       </div>
-    </section>
+    </Section>
   );
 }
 

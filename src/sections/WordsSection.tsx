@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import clsx from "clsx";
-import KeyboardDoubleArrowRightIcon from "@mui/icons-material/KeyboardDoubleArrowRight";
-import KeyboardDoubleArrowLeftIcon from "@mui/icons-material/KeyboardDoubleArrowLeft";
+import KeyboardDoubleArrowUpIcon from "@mui/icons-material/KeyboardDoubleArrowUp";
+import KeyboardDoubleArrowDownIcon from "@mui/icons-material/KeyboardDoubleArrowDown";
 
 import { useSelectionStore } from "../data/state";
 import { useContexts, useWords } from "../data/queries";
@@ -60,12 +60,12 @@ function WordsSection() {
 
   return (
     <Section title="Words">
-      <div className="my-1 flex flex-[0_0_auto] flex-row flex-wrap content-center items-center justify-center [&_button]:mb-0.5 [&_button]:ml-0.5 [&_button]:text-base">
+      {/* <div className="my-1 flex flex-[0_0_auto] flex-row flex-wrap content-center items-center justify-start [&_button]:mb-0.5 [&_button]:ml-0.5 [&_button]:text-base">
         <button
           className={clsx(wordFilterDirection === "left" && "active")}
           onClick={() => setWordFilterDirection("left")}
         >
-          <KeyboardDoubleArrowLeftIcon />
+          <KeyboardDoubleArrowUpIcon />
         </button>
         <button
           className={clsx(wordFilterDirection === "off" && "active")}
@@ -77,10 +77,10 @@ function WordsSection() {
           className={clsx(wordFilterDirection === "right" && "active")}
           onClick={() => setWordFilterDirection("right")}
         >
-          <KeyboardDoubleArrowRightIcon />
+          <KeyboardDoubleArrowDownIcon />
         </button>
-      </div>
-      <div className="mt-2 grid w-full flex-[0_1_auto] auto-rows-min grid-cols-[repeat(auto-fit,minmax(100px,1fr))] overflow-y-scroll p-2">
+      </div> */}
+      <div className="mt-2 flex flex-[1_0_100%] flex-row overflow-x-scroll p-2">
         {filteredWords.map((w, i) => (
           <Tile
             align="start"

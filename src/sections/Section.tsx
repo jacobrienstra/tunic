@@ -1,4 +1,5 @@
 import { PropsWithChildren } from "react";
+import clsx from "clsx";
 
 type SectionProps = {
   title: string;
@@ -7,11 +8,15 @@ type SectionProps = {
 function Section({
   title,
   children,
+  className,
   ...rest
 }: PropsWithChildren<SectionProps>) {
   return (
     <section
-      className="flex h-full flex-col content-center items-stretch"
+      className={clsx(
+        "flex h-full flex-col content-center items-stretch",
+        className
+      )}
       {...rest}
     >
       <h3 className="mx-2 flex flex-[0_0_auto] flex-row items-center justify-center rounded-md bg-slate-300 p-2">

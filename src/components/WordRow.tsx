@@ -11,10 +11,8 @@ import InlineEdit from "./InlineEdit";
 function WordRow({ glyphs, meaning, id }: WordData) {
   const graphemes = useGraphemes();
   return (
-    <div className="flex min-w-min flex-col items-stretch p-1">
-      <div className="m-0 flex flex-[1_0_auto] flex-row justify-between">
-        <Word word={glyphs} />
-      </div>
+    <div className="flex flex-col items-stretch p-1">
+      <Word word={glyphs} />
       <div className="text-cyan-600">
         {glyphs
           .map((val) => {
@@ -35,7 +33,7 @@ function WordRow({ glyphs, meaning, id }: WordData) {
             meaning: val,
           }).catch(console.error);
         }}
-        className="w-full min-w-min border-b border-cyan-700 text-start text-cyan-900"
+        className="field-sizing-content min-w-min border-b border-cyan-700 text-start text-cyan-900"
       />
     </div>
   );
