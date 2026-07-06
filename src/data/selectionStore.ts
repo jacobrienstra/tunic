@@ -14,8 +14,8 @@ export interface SelectionState {
   contextFilterDirection: FilterDirection;
   selectedTrune: number | null;
   selectedNGram: number[] | null;
-  selectedWord: number | null;
-  selectedContext: number | null;
+  selectedWord: string | null;
+  selectedContext: string | null;
 }
 
 const initialState: SelectionState = {
@@ -40,8 +40,8 @@ interface SelectionActions {
   setContextFilterDirection: (v: FilterDirection) => void;
   toggleSelectedTrune: (v: number | null) => void;
   toggleSelectedNGram: (v: number[] | null) => void;
-  toggleSelectedWord: (v: number | null) => void;
-  toggleSelectedContext: (v: number | null) => void;
+  toggleSelectedWord: (v: string | null) => void;
+  toggleSelectedContext: (v: string | null) => void;
 }
 
 export const useSelectionStore = create<SelectionState & SelectionActions>()(
@@ -125,46 +125,6 @@ export const useSelectionStore = create<SelectionState & SelectionActions>()(
     }),
     {
       name: "tunic-selection",
-      version: 3,
-      migrate: (persisted, version) => {
-        let p = persisted as Record<string, unknown>;
-        if (version < 1 && p && typeof p === "object") {
-          const { selectedGrapheme, graphemeFilterDirection, ...rest } =
-            p as Record<string, unknown> & {
-              selectedGrapheme?: number | null;
-              graphemeFilterDirection?: FilterDirection;
-            };
-          p = {
-            ...rest,
-            selectedTrune: selectedGrapheme ?? null,
-            truneFilterDirection: graphemeFilterDirection ?? "forward",
-          };
-        }
-        if (version < 2 && p && typeof p === "object") {
-          const idOf = (v: unknown): number | null => {
-            if (v == null) return null;
-            if (typeof v === "number") return v;
-            if (typeof v === "object" && "id" in v) {
-              const id = (v as { id: unknown }).id;
-              return typeof id === "number" ? id : null;
-            }
-            return null;
-          };
-          p = {
-            ...p,
-            selectedTrune: idOf(p.selectedTrune),
-            selectedWord: idOf(p.selectedWord),
-            selectedContext: idOf(p.selectedContext),
-          };
-        }
-        if (version < 3 && p && typeof p === "object") {
-          const ng = p.selectedNGram;
-          if (Array.isArray(ng)) {
-            p = { ...p, selectedNGram: ng.map((v) => Number(v)) };
-          }
-        }
-        return p as unknown as SelectionState & SelectionActions;
-      },
     }
   )
 );

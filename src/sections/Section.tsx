@@ -14,7 +14,7 @@ function Section({
   return (
     <section
       className={clsx(
-        "flex h-full flex-col content-center items-stretch",
+        "flex flex-col content-center items-stretch",
         className
       )}
       {...rest}

@@ -1,5 +1,3 @@
-import type { Trune } from "./data/db";
-
 /* Tinkered with these values to get them just right.
  * They're based on a regular hexagon with sides of 100,
  * plus some white space padding and tweaks

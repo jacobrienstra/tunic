@@ -1,6 +1,6 @@
 import clsx from "clsx";
 
-import { useSelectionStore } from "../data/selection";
+import { useSelectionStore } from "../data/selectionStore";
 
 import Trunes from "./Trunes";
 import Section from "./Section";
@@ -21,28 +21,8 @@ function TrunesSection() {
   return (
     <Section
       title="Trunes"
-      className="flex flex-col items-stretch border-b-4 px-2 [&_span]:select-none"
+      className="flex flex-none flex-col items-stretch border-b-4 px-2 [&_span]:select-none"
     >
-      {/* <div className="my-1 flex flex-row flex-wrap content-center items-center justify-start [&_button]:mx-0.5 [&_button]:mb-0.5 [&_button]:text-base">
-        <button
-          className={clsx(truneFilterDirection === "left" && "active")}
-          onClick={() => setTruneFilterDirection("left")}
-        >
-          <KeyboardDoubleArrowUpIcon />
-        </button>
-        <button
-          className={clsx(truneFilterDirection === "off" && "active")}
-          onClick={() => setTruneFilterDirection("off")}
-        >
-          Off
-        </button>
-        <button
-          className={clsx(truneFilterDirection === "right" && "active")}
-          onClick={() => setTruneFilterDirection("right")}
-        >
-          <KeyboardDoubleArrowDownIcon />
-        </button>
-      </div> */}
       <div className="flex flex-row p-2">
         <button
           className={clsx(mode === "trunes" && "active")}

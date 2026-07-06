@@ -11,11 +11,10 @@ import { isEmpty, isEqual } from "lodash";
 import clsx from "clsx";
 import DownloadingIcon from "@mui/icons-material/Downloading";
 
-import { useSelectionStore } from "../data/selection";
+import { useSelectionStore } from "../data/selectionStore";
 import { useDerivedMeaning } from "../data/ruleset";
-import { useContext, useDbImageUrl, useWords } from "../data/queries";
-import { addWord, updateContext, upsertContext } from "../data/mutations";
-import { db } from "../data/db";
+import { upsertWord, updateContextText } from "../data/mutations";
+import { saveImage, useImageUrl } from "../data/images";
 import TrunicWord from "../components/TrunicWord";
 import TruneTyper from "../components/TruneTyper";
 import InlineEdit from "../components/InlineEdit";
@@ -64,7 +63,7 @@ function EntrySection() {
     else localStorage.removeItem("tunic-EntryCurImageId");
   }, [curImageId]);
 
-  const curImageUrl = useDbImageUrl(curImageId);
+  const curImageUrl = useImageUrl(curImageId);
 
   const selectedContextId = useSelectionStore((s) => s.selectedContext);
 
@@ -84,7 +83,12 @@ function EntrySection() {
 
   const getWordTranslation = useCallback(
     (w: number[]): string => {
-      const existingWord = words?.find((word) => isEqual(word.truneIds, w));
+      const existingWord = words?.find((word) =>
+        isEqual(
+          word.trunes.map((t) => t.id),
+          w
+        )
+      );
       if (existingWord && !isEmpty(existingWord.meaning)) {
         return existingWord.meaning ?? "";
       } else {
@@ -118,24 +122,20 @@ function EntrySection() {
 
   const setContextTranslationFn = (val: string) => {
     if (selectedContext?.id) {
-      updateContext(selectedContext.id, { text: val }).catch(console.error);
+      updateContextText(selectedContext.id, val);
     }
   };
 
-  const submitTrunicFn = async () => {
-    if (!isEmpty(trunic)) {
-      const submit = confirm("Submit Text with Context?");
-      if (submit) {
-        const context = await upsertContext(curImageId ?? undefined);
-        if (context?.id) {
-          for (const w of trunic) {
-            await addWord(w, context.id);
-          }
-        }
-        setTrunic([]);
-        setCurImageId(null);
-      }
+  const submitTrunicFn = () => {
+    if (isEmpty(trunic) || curImageId == null) return;
+    const submit = confirm("Submit Text with Context?");
+    if (!submit) return;
+    const context = upsertContextWithImage(curImageId);
+    for (const [order, w] of trunic.entries()) {
+      upsertWord(w, context.id, order);
     }
+    setTrunic([]);
+    setCurImageId(null);
   };
 
   const addGraphemeToWord = (val: number) => {
@@ -147,13 +147,13 @@ function EntrySection() {
       ? trunic.map(getWordTranslation).join(" ")
       : selectedContext
         ? selectedContext.wordIds
-            .map((wordId) => words?.find((word) => word.id === wordId))
+            .map((id) => words?.find((word) => word.id === id))
             .map((w) => {
               if (!w) return "???";
               else if (!isEmpty(w.meaning)) {
                 return w.meaning;
               } else {
-                return w.truneIds.map((val) => deriveMeaning(val)).join("");
+                return w.trunes.map((t) => deriveMeaning(t.id)).join("");
               }
             })
             .join(" ")
@@ -165,9 +165,9 @@ function EntrySection() {
       if (selectedContext != null) {
         setTrunic(
           selectedContext.wordIds
-            .map((wordId) => words.find((word) => word.id === wordId))
+            .map((id) => words.find((word) => word.id === id))
             .filter((wd) => wd !== undefined)
-            .map((wd) => wd.truneIds)
+            .map((wd) => wd.trunes.map((t) => t.id))
         );
       } else setTrunic([]);
     }
@@ -212,7 +212,7 @@ function EntrySection() {
         return;
       }
       try {
-        const id = await db.images.add({ blob: file });
+        const id = await saveImage(file);
         setCurImageId(id);
       } catch (e) {
         setError(e instanceof Error ? e.message : String(e));
@@ -261,9 +261,12 @@ function EntrySection() {
                   ))}
                 </div>
                 <button
-                  className={clsx("mt-2", isEmpty(trunic) && "disabled")}
+                  className={clsx(
+                    "mt-2",
+                    (isEmpty(trunic) || curImageId == null) && "disabled"
+                  )}
                   onClick={() => {
-                    submitTrunicFn().catch(console.error);
+                    submitTrunicFn();
                   }}
                 >
                   Submit Trunic

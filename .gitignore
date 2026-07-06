@@ -13,7 +13,16 @@
 /build
 /dist/*
 
-*.db 
+*.db
+*.tsbuildinfo
+
+# dev-only migrator (see src/data/db.ts)
+/src/data/dev-migrate.ts
+
+# dev-only seed importer (see src/main.tsx)
+/src/data/importSeed.ts
+
+/seed-data
 
 # misc
 .DS_Store

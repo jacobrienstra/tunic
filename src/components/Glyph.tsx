@@ -1,5 +1,3 @@
-import { memo } from "react";
-
 import {
   W,
   H,
@@ -47,4 +45,4 @@ function Glyph({ width, val, inWord = false, inline = false }: GlyphProps) {
   );
 }
 
-export default memo(Glyph);
+export default Glyph;

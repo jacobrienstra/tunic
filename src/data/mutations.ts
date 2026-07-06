@@ -1,91 +1,110 @@
-import { isEqual } from "lodash";
+import _ from "lodash";
+import { safeRandomUUID } from "@tanstack/react-db";
 
-import { Context, GlyphSubset, Trune, Word, db } from "./db";
+import {
+  trunes,
+  words,
+  contexts,
+  glyphSubsets,
+  contextWordsJunction,
+  wordTrunesJunction,
+  WORD_KEY_SEP,
+} from "./store";
+import type { GlyphSubset, Trune } from "./store";
 
-export function updateTrune(id: number, patch: Partial<Trune>) {
-  return db.trunes.update(id, patch);
-}
+// Writes are optimistic against each collection's in-memory state; the SQLite
+// persister writes through in the background.
 
-export function updateWord(id: number, patch: Partial<Word>) {
-  return db.words.update(id, patch);
-}
-
-export function updateContext(id: number, patch: Partial<Context>) {
-  return db.contexts.update(id, patch);
-}
-
-export function addGlyphSubset(s: Omit<GlyphSubset, "id">) {
-  return db.glyphSubsets.add(s as GlyphSubset);
-}
-
-export async function updateGlyphSubset(
+export function updateTrune(
   id: number,
+  patch: Partial<Omit<Trune, "id">>
+): void {
+  if (!trunes.has(id)) return;
+  const cleaned = _.pickBy(patch, (v) => v !== undefined);
+  trunes.update(id, (d) => Object.assign(d, cleaned));
+}
+
+export function updateWordMeaning(id: string, meaning: string | null): void {
+  if (!words.has(id)) return;
+  words.update(id, (draft) => {
+    draft.meaning = meaning;
+  });
+}
+
+export function updateContextText(id: string, text: string | null): void {
+  if (!contexts.has(id)) return;
+  contexts.update(id, (draft) => {
+    draft.text = text;
+  });
+}
+
+export function addGlyphSubset(s: Omit<GlyphSubset, "id">): void {
+  glyphSubsets.insert({ id: safeRandomUUID(), ...s });
+}
+
+export function updateGlyphSubset(
+  id: string,
   patch: Partial<Omit<GlyphSubset, "id">>
-) {
-  return db.transaction("rw", db.glyphSubsets, async () => {
-    const existing = await db.glyphSubsets.get(id);
-    if (!existing) return;
-    await db.glyphSubsets.update(id, patch);
-    if (patch.name != null && patch.name !== existing.name) {
-      const oldRef = `{${existing.name}}`;
-      const newRef = `{${patch.name}}`;
-      const all = await db.glyphSubsets.toArray();
-      const references = all.filter(
-        (s) => s.id !== id && s.modifier && s.rule?.includes(oldRef)
-      );
-      for (const s of references) {
-        await db.glyphSubsets.update(s.id, {
-          rule: s.rule!.replaceAll(oldRef, newRef),
-        });
-      }
-    }
-  });
-}
+): void {
+  if (!glyphSubsets.has(id)) return;
+  const oldName = glyphSubsets.get(id)!.name;
 
-export function removeGlyphSubset(id: number) {
-  return db.glyphSubsets.delete(id);
-}
+  const cleaned = _.pickBy(patch, (v) => v !== undefined);
+  glyphSubsets.update(id, (draft) => Object.assign(draft, cleaned));
 
-export async function upsertContext(imageId?: number): Promise<Context> {
-  return db.transaction("rw", db.contexts, async () => {
-    if (imageId != null) {
-      const found = await db.contexts.where("imageId").equals(imageId).first();
-      if (found) return found;
-    }
-    const id = await db.contexts.add({ imageId, wordIds: [] });
-    return (await db.contexts.get(id))!;
-  });
-}
-
-export async function addWord(
-  word: number[],
-  ctxId: number
-): Promise<{ wordId: number }> {
-  return db.transaction("rw", [db.words, db.contexts, db.trunes], async () => {
-    let existingWord = await db.words
-      .where("truneIds")
-      .equals(word[0])
-      .and((w) => isEqual(w.truneIds, word))
-      .first();
-    if (!existingWord) {
-      const wordId = await db.words.add({ truneIds: word });
-      existingWord = (await db.words.get(wordId))!;
-    }
-
-    const context = await db.contexts.get(ctxId);
-    if (context) {
-      await db.contexts.update(ctxId, {
-        wordIds: [...context.wordIds, existingWord.id],
+  if (
+    patch.name != null &&
+    patch.name.toLowerCase() !== oldName.toLowerCase()
+  ) {
+    const oldRef = `{${oldName}}`.toLowerCase();
+    const newRef = `{${patch.name}}`;
+    const oldRefPattern = new RegExp(`\\{${oldName}\\}`, "gi");
+    // Snapshot before iterating: updates below mutate the collection.
+    for (const r of [...glyphSubsets.values()]) {
+      if (r.id === id) continue;
+      if (!r.modifier || !r.rule) continue;
+      if (!r.rule.toLowerCase().includes(oldRef)) continue;
+      const newRule = r.rule.replace(oldRefPattern, newRef);
+      glyphSubsets.update(r.id, (draft) => {
+        draft.rule = newRule;
       });
     }
+  }
+}
 
-    for (const trune of word) {
-      const existing = await db.trunes.get(trune);
-      if (!existing) {
-        await db.trunes.put({ id: trune, derived: false });
-      }
-    }
+export function removeGlyphSubset(id: string): void {
+  glyphSubsets.delete(id);
+}
 
-    return { wordId: existingWord.id };
-  });
+export function upsertWord(
+  wordTrunes: number[],
+  ctxId: string,
+  order: number
+): { wordId: string } {
+  for (const truneId of wordTrunes) {
+    if (!trunes.has(truneId))
+      trunes.insert({ id: truneId, derived: false, meaning: null });
+  }
+
+  // The word's id is its ordered trune ids joined; same sequence -> same id.
+  const wordId = wordTrunes.join(WORD_KEY_SEP);
+  if (!words.has(wordId)) {
+    words.insert({ id: wordId, meaning: null });
+    wordTrunes.forEach((truneId, o) => {
+      wordTrunesJunction.insert({ wordId, order: o, truneId });
+    });
+  }
+
+  const junctionKey: `${string}:${number}` = `${ctxId}:${order}`;
+  if (contextWordsJunction.has(junctionKey)) {
+    contextWordsJunction.update(junctionKey, (d) => {
+      d.contextId = ctxId;
+      d.order = order;
+      d.wordId = wordId;
+    });
+  } else {
+    contextWordsJunction.insert({ contextId: ctxId, order, wordId });
+  }
+
+  return { wordId };
 }

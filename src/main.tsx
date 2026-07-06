@@ -1,12 +1,18 @@
 import ReactDOM from "react-dom/client";
-import React from "react";
+import { StrictMode } from "react";
 
+import * as store from "./data/store";
+import { importSeed } from "./data/importSeed";
 import App from "./App";
+
+if (import.meta.env.DEV) {
+  Object.assign(window, { importSeed, store });
+}
 
 import "./index.css";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
-  <React.StrictMode>
+  <StrictMode>
     <App />
-  </React.StrictMode>
+  </StrictMode>
 );

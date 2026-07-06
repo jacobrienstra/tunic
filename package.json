@@ -10,24 +10,27 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@journeyapps/wa-sqlite": "^1.7.0",
     "@mui/icons-material": "^6.4.6",
     "@mui/material": "^6.4.6",
     "@tailwindcss/vite": "^4.1.6",
+    "@tanstack/browser-db-sqlite-persistence": "^0.2.6",
+    "@tanstack/react-db": "^0.1.92",
     "clsx": "^2.1.1",
-    "dexie": "^4.4.4",
-    "dexie-react-hooks": "^4.4.0",
+    "idb": "^8.0.3",
     "lodash": "^4.17.21",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-image-zooom": "^1.4.0",
     "react-inner-image-zoom": "^3.0.2",
     "react-reflex": "^4.2.7",
-    "redux": "^5.0.1",
     "tailwindcss": "^4.1.6",
+    "zod": "^4.4.3",
     "zustand": "^5.0.14"
   },
   "devDependencies": {
     "@eslint/js": "^9.27.0",
+    "@types/emscripten": "^1.41.5",
     "@types/eslint": "^9.6.1",
     "@types/lodash": "^4.17.16",
     "@types/react": "^19.0.10",
@@ -68,6 +71,7 @@
       "vue-demi"
     ],
     "onlyBuiltDependencies": [
+      "@journeyapps/wa-sqlite",
       "@tailwindcss/oxide"
     ]
   }

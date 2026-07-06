@@ -1,60 +1,62 @@
 import { useMemo } from "react";
 import { isEqual, uniq } from "lodash";
-import { useLiveQuery } from "dexie-react-hooks";
+import { useLiveQuery, eq } from "@tanstack/react-db";
 
-import { useSelectionStore } from "./selection";
-import { useTrunes, useGlyphSubsets } from "./queries";
-import { Context, Trune, Word, db } from "./db";
+import type { WordWithTruneIds, Trune, Context } from "./store";
+import {
+  useGlyphSubsets,
+  contexts,
+  trunes,
+  wordTrunesJunction,
+  contextWordsJunction,
+  allTrunes,
+  allContexts,
+  useTruneIds,
+  wordsWithTruneIds,
+} from "./store";
+import { useSelectionStore } from "./selectionStore";
 
 export function getGrapheme(trune: number, mask: number) {
   return trune & mask;
 }
 
-export function useDerivedGraphemes(): Map<number, Trune[]> {
-  const trunes = useTrunes();
-  const glyphSubsets = useGlyphSubsets();
+export function useDerivedGraphemeIds(): Map<string, number[]> {
+  const { data: subsets } = useGlyphSubsets();
+  const { data: truneIds } = useTruneIds();
 
   return useMemo(() => {
-    const result = new Map<number, Trune[]>();
-    if (!trunes || !glyphSubsets) return result;
-    const byId = new Map(trunes.map((t) => [t.id, t]));
-    for (const subset of glyphSubsets) {
-      if (subset.modifier) continue;
+    const result = new Map<string, number[]>();
+    for (const subset of subsets.filter((s) => !s.modifier)) {
       result.set(
         subset.id,
-        uniq(trunes.map((t) => getGrapheme(t.id, subset.mask)))
+        uniq(truneIds.map((t) => getGrapheme(t.id, subset.mask)))
           .filter((g) => g !== 0)
           .sort((a, b) => a - b)
-          .map((g) => byId.get(g) ?? { id: g, derived: true })
       );
     }
     return result;
-  }, [trunes, glyphSubsets]);
+  }, [subsets, truneIds]);
 }
 
 export function useFilteredTrunes(): Trune[] {
-  const selectedWordId = useSelectionStore((s) => s.selectedWord);
+  const selectedWord = useSelectionStore((s) => s.selectedWord);
   const wordFilterDirection = useSelectionStore((s) => s.wordFilterDirection);
-  const graphemesFilterDirection = useSelectionStore(
-    (s) => s.graphemesFilterDirection
-  );
+  const byWord = wordFilterDirection === "backward" && selectedWord != null;
 
-  const result = useLiveQuery(async () => {
-    if (wordFilterDirection === "backward" && selectedWordId != null) {
-      const word = await db.words.get(selectedWordId);
-      if (!word) return [];
-      const rows = await db.trunes.bulkGet(word.truneIds);
-      return rows.filter((t): t is Trune => !!t);
-    }
-    if (graphemesFilterDirection === "forward") {
-      // TODO: filter trunes by selected graphemes across subsets —
-      // requires defining how per-subset selections combine (union vs intersection).
-    }
-    return db.trunes.toArray();
-  }, [wordFilterDirection, selectedWordId, graphemesFilterDirection]);
-
-  return result ?? [];
+  return (useLiveQuery(
+    (q) => {
+      if (!byWord) return allTrunes;
+      return q
+        .from({ j: wordTrunesJunction })
+        .where(({ j }) => eq(j.wordId, selectedWord))
+        .innerJoin({ t: trunes }, ({ j, t }) => eq(t.id, j.truneId))
+        .orderBy(({ j }) => j.order)
+        .select(({ t }) => t);
+    },
+    [byWord, selectedWord]
+  ).data ?? []) as Trune[];
 }
+
 const wordContainsNGram = (word: number[], nGram: number[]): boolean => {
   const n = nGram.length;
   for (let i = 0; i < word.length - (n - 1); i++) {
@@ -68,20 +70,22 @@ const wordContainsNGram = (word: number[], nGram: number[]): boolean => {
 
 export function useFilteredNGrams(): number[][] {
   const n = useSelectionStore((s) => s.n);
-  const selectedWordId = useSelectionStore((s) => s.selectedWord);
+  const selectedWord = useSelectionStore((s) => s.selectedWord);
   const wordFilterDirection = useSelectionStore((s) => s.wordFilterDirection);
-  const graphemesFilterDirection = useSelectionStore(
-    (s) => s.graphemesFilterDirection
-  );
+  const byWord = wordFilterDirection === "backward" && selectedWord != null;
 
-  const result = useLiveQuery(async () => {
-    let source: Word[];
-    if (wordFilterDirection === "backward" && selectedWordId != null) {
-      const selectedWord = await db.words.get(selectedWordId);
-      source = selectedWord ? [selectedWord] : [];
-    } else {
-      source = await db.words.toArray();
-    }
+  const source =
+    useLiveQuery(
+      (q) => {
+        if (!byWord) return wordsWithTruneIds;
+        return q
+          .from({ w: wordsWithTruneIds })
+          .where(({ w }) => eq(w.id, selectedWord));
+      },
+      [byWord, selectedWord]
+    ).data ?? [];
+
+  return useMemo(() => {
     const counts = new Map<string, { ngram: number[]; count: number }>();
     for (const w of source) {
       for (let i = 0; i <= w.truneIds.length - n; i++) {
@@ -92,21 +96,15 @@ export function useFilteredNGrams(): number[][] {
         else counts.set(key, { ngram: slice, count: 1 });
       }
     }
-    if (graphemesFilterDirection === "forward") {
-      // TODO: filter ngrams by selected graphemes across subsets —
-      // requires defining how per-subset selections combine (union vs intersection).
-    }
     return [...counts.values()]
       .sort((a, b) => b.count - a.count)
       .map((v) => v.ngram);
-  }, [n, selectedWordId, wordFilterDirection, graphemesFilterDirection]);
-
-  return result ?? [];
+  }, [source, n]);
 }
 
-export function useFilteredWords(): Word[] {
+export function useFilteredWords(): WordWithTruneIds[] {
   const selectedContextId = useSelectionStore((s) => s.selectedContext);
-  const selectedTrune = useSelectionStore((s) => s.selectedTrune);
+  const selectedTruneId = useSelectionStore((s) => s.selectedTrune);
   const selectedNGram = useSelectionStore((s) => s.selectedNGram);
   const contextFilterDirection = useSelectionStore(
     (s) => s.contextFilterDirection
@@ -114,45 +112,86 @@ export function useFilteredWords(): Word[] {
   const truneFilterDirection = useSelectionStore((s) => s.truneFilterDirection);
   const mode = useSelectionStore((s) => s.mode);
 
-  const result = useLiveQuery(async () => {
-    if (contextFilterDirection === "backward" && selectedContextId != null) {
-      const ctx = await db.contexts.get(selectedContextId);
-      if (!ctx) return [];
-      const rows = await db.words.bulkGet(ctx.wordIds);
-      return rows.filter((w): w is Word => !!w);
-    }
-    if (truneFilterDirection === "forward") {
-      if (mode === "trunes" && selectedTrune != null) {
-        return db.words.where("truneIds").equals(selectedTrune).toArray();
-      }
-      if (mode === "ngrams" && selectedNGram) {
-        const all = await db.words.toArray();
-        return all.filter((w) => wordContainsNGram(w.truneIds, selectedNGram));
-      }
-    }
-    return db.words.toArray();
-  }, [
-    contextFilterDirection,
-    selectedContextId,
-    truneFilterDirection,
-    mode,
-    selectedTrune,
-    selectedNGram,
-  ]);
+  const byContext =
+    contextFilterDirection === "backward" && selectedContextId != null;
+  const byTrune =
+    truneFilterDirection === "forward" &&
+    mode === "trunes" &&
+    selectedTruneId != null;
+  const byNGram =
+    truneFilterDirection === "forward" &&
+    mode === "ngrams" &&
+    selectedNGram != null;
 
-  return result ?? [];
+  // Every branch joins wordsWithTruneIds and projects the full row so
+  // consumers get { id, meaning, truneIds } and can render without a per-row
+  // subscription. byContext/byTrune can both be on (different filter
+  // directions); byNGram and byTrune are mutually exclusive by mode. byNGram
+  // narrows in memory below via wordContainsNGram.
+  const rows = (useLiveQuery(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (q): any => {
+      if (byContext && byTrune) {
+        return q
+          .from({ cwj: contextWordsJunction })
+          .where(({ cwj }) => eq(cwj.contextId, selectedContextId))
+          .innerJoin({ j: wordTrunesJunction }, ({ cwj, j }) =>
+            eq(j.wordId, cwj.wordId)
+          )
+          .where(({ j }) => eq(j.truneId, selectedTruneId))
+          .innerJoin({ w: wordsWithTruneIds }, ({ cwj, w }) =>
+            eq(w.id, cwj.wordId)
+          )
+          .orderBy(({ w }) => w.id)
+          .select(({ w }) => w)
+          .distinct();
+      } else if (byContext) {
+        return q
+          .from({ cw: contextWordsJunction })
+          .where(({ cw }) => eq(cw.contextId, selectedContextId))
+          .innerJoin({ w: wordsWithTruneIds }, ({ cw, w }) =>
+            eq(w.id, cw.wordId)
+          )
+          .orderBy(({ w }) => w.id)
+          .select(({ w }) => w);
+      } else if (byTrune) {
+        return q
+          .from({ j: wordTrunesJunction })
+          .where(({ j }) => eq(j.truneId, selectedTruneId))
+          .innerJoin({ w: wordsWithTruneIds }, ({ j, w }) => eq(w.id, j.wordId))
+          .orderBy(({ w }) => w.id)
+          .select(({ w }) => w)
+          .distinct();
+      }
+      return wordsWithTruneIds;
+    },
+    [byContext, byTrune, selectedContextId, selectedTruneId]
+  ).data ?? []) as WordWithTruneIds[];
+
+  return useMemo(() => {
+    if (byNGram && selectedNGram) {
+      return rows.filter((w) => wordContainsNGram(w.truneIds, selectedNGram));
+    }
+    return rows;
+  }, [rows, byNGram, selectedNGram]);
 }
 
 export function useFilteredContexts(): Context[] {
-  const selectedWordId = useSelectionStore((s) => s.selectedWord);
+  const selectedWord = useSelectionStore((s) => s.selectedWord);
   const wordFilterDirection = useSelectionStore((s) => s.wordFilterDirection);
+  const byWord = wordFilterDirection === "forward" && selectedWord != null;
 
-  const result = useLiveQuery(async () => {
-    if (wordFilterDirection === "forward" && selectedWordId != null) {
-      return db.contexts.where("wordIds").equals(selectedWordId).toArray();
-    }
-    return db.contexts.toArray();
-  }, [wordFilterDirection, selectedWordId]);
-
-  return result ?? [];
+  return (useLiveQuery(
+    (q) => {
+      if (!byWord) return allContexts;
+      return q
+        .from({ cw: contextWordsJunction })
+        .where(({ cw }) => eq(cw.wordId, selectedWord))
+        .innerJoin({ c: contexts }, ({ cw, c }) => eq(c.id, cw.contextId))
+        .orderBy(({ c }) => c.order)
+        .select(({ c }) => c)
+        .distinct();
+    },
+    [byWord, selectedWord]
+  ).data ?? []) as Context[];
 }

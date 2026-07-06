@@ -1,8 +1,6 @@
 import { isEqual } from "lodash";
 
-import { useSelectionStore } from "../data/selection";
-import { useDerivedMeaning } from "../data/ruleset";
-import { useTrunes } from "../data/queries";
+import { useSelectionStore } from "../data/selectionStore";
 import { useFilteredNGrams } from "../data/filters";
 import TrunicWord from "../components/TrunicWord";
 import Tile from "../components/Tile";
@@ -11,11 +9,9 @@ interface NGramsProps {
   tileSize: number;
 }
 function NGrams({ tileSize }: NGramsProps) {
-  const trunes = useTrunes();
   const selectedNGram = useSelectionStore((s) => s.selectedNGram);
   const toggleSelectedNGram = useSelectionStore((s) => s.toggleSelectedNGram);
   const filteredNGrams = useFilteredNGrams();
-  const deriveMeaning = useDerivedMeaning();
 
   return (
     <>
@@ -28,17 +24,17 @@ function NGrams({ tileSize }: NGramsProps) {
           val={ng}
         >
           <TrunicWord wordTrunes={ng} />
-          <div className="text-cyan-600">
+          {/* <div className="text-cyan-600">
             {ng
               .map((val) => {
                 const meaning = trunes?.find((g) => g.id === val)?.meaning;
-                if (meaning === "" || meaning === undefined) {
+                if (!meaning) {
                   return deriveMeaning(val);
                 }
                 return meaning.replace("?", "");
               })
               .join("")}
-          </div>
+          </div> */}
         </Tile>
       ))}
     </>

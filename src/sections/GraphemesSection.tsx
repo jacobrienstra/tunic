@@ -1,9 +1,8 @@
 import clsx from "clsx";
 
-// import { useSelectionStore } from "../data/selection";
-import { useDerivedMeaning } from "../data/ruleset";
-import { useGlyphSubsets } from "../data/queries";
-import { useDerivedGraphemes } from "../data/filters";
+import { useGlyphSubsets } from "../data/store";
+// import { useSelectionStore } from "../data/selectionStore";
+import { useDerivedGraphemeIds } from "../data/filters";
 import Tile from "../components/Tile";
 import Glyph from "../components/Glyph";
 
@@ -17,37 +16,21 @@ const gridTemplate = {
   gridTemplateColumns: `repeat(auto-fit, minmax(${tileSize}px, 1fr))`,
 };
 
-function Filters() {
+function GraphemesSection() {
   // const graphemesFilterDirection = useSelectionStore(
   //   (s) => s.graphemesFilterDirection
   // );
-  const derivedGraphemes = useDerivedGraphemes();
-  const glyphSubsets = useGlyphSubsets();
-  const derivedMeaning = useDerivedMeaning();
+  const derivedGraphemeIds = useDerivedGraphemeIds();
+  const { data: glyphSubsets } = useGlyphSubsets();
 
   return (
     <Section
       title="Graphemes"
-      className="flex flex-[1_0_50%] flex-col items-stretch border-b-4 border-slate-500 px-2 [&_span]:select-none [&_strong]:select-none"
+      className="flex flex-none flex-col border-b-4 border-slate-500 px-2"
     >
-      {/* <div className="my-1 flex flex-row flex-wrap content-center items-center justify-start [&_button]:mx-1 [&_button]:mb-0.5 [&_button]:text-base">
-        <button
-          className={clsx(glyphFilterDirection === "off" && "active")}
-          onClick={() => setGlyphFilterDirection("off")}
-        >
-          Off
-        </button>
-        <button
-          className={clsx(glyphFilterDirection === "right" && "active")}
-          onClick={() => setGlyphFilterDirection("right")}
-        >
-          <KeyboardDoubleArrowDownIcon />
-        </button>
-        <FilterOptions />
-      </div> */}
-      <div className="flex flex-[1_1_auto] flex-row items-stretch">
-        {[...derivedGraphemes].map(([id, graphemes]) => (
-          <div className="flex flex-col items-stretch" key={id}>
+      <div className="flex w-full flex-[1_0_100%] flex-row items-stretch">
+        {[...derivedGraphemeIds].map(([id, graphemes]) => (
+          <div className="flex flex-grow flex-col items-stretch" key={id}>
             <h4 className="w-full flex-[0_0_auto] text-center">
               {glyphSubsets?.find((s) => s.id === id)?.name}
             </h4>
@@ -58,16 +41,16 @@ function Filters() {
               {graphemes.map((g) => (
                 <Tile
                   size={tileSize}
-                  key={g.id}
+                  key={g}
                   active={false}
                   toggleFn={() => {
                     return;
                   }}
-                  val={g.id}
+                  val={g}
                 >
-                  <Glyph val={g.id} />
+                  <Glyph val={g} />
                   <div className="text-center text-cyan-600">
-                    {derivedMeaning(g.id)}
+                    {/* {derivedMeaning(g)} */}
                   </div>
                 </Tile>
               ))}
@@ -79,4 +62,4 @@ function Filters() {
   );
 }
 
-export default Filters;
+export default GraphemesSection;

@@ -1,6 +1,5 @@
-import { useSelectionStore } from "../data/selection";
+import { useSelectionStore } from "../data/selectionStore";
 import { useFilteredTrunes } from "../data/filters";
-import { Trune as TruneShape } from "../data/db";
 import Trune from "../components/Trune";
 import Tile from "../components/Tile";
 
@@ -14,7 +13,7 @@ function Trunes({ tileSize }: TrunesProps) {
   const filteredTrunes = useFilteredTrunes();
   return (
     <>
-      {filteredTrunes.map((t: TruneShape) => (
+      {filteredTrunes.map((t) => (
         <Tile
           size={tileSize}
           key={t.id}

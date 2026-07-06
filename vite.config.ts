@@ -5,4 +5,11 @@ import tailwindcss from "@tailwindcss/vite";
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [tailwindcss(), react()],
+  optimizeDeps: {
+    exclude: [
+      "@electric-sql/pglite",
+      "@tanstack/browser-db-sqlite-persistence",
+      "@journeyapps/wa-sqlite",
+    ],
+  },
 });
