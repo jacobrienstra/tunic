@@ -2,7 +2,8 @@ import clsx from "clsx";
 
 import { useGlyphSubsets } from "../data/store";
 // import { useSelectionStore } from "../data/selectionStore";
-import { useDerivedGraphemeIds } from "../data/filters";
+import { useDerivedMeaning } from "../data/ruleset";
+import { useDerivedGraphemeIds } from "../data/filtered";
 import Tile from "../components/Tile";
 import Glyph from "../components/Glyph";
 
@@ -22,6 +23,7 @@ function GraphemesSection() {
   // );
   const derivedGraphemeIds = useDerivedGraphemeIds();
   const { data: glyphSubsets } = useGlyphSubsets();
+  const derivedMeaning = useDerivedMeaning();
 
   return (
     <Section
@@ -50,7 +52,7 @@ function GraphemesSection() {
                 >
                   <Glyph val={g} />
                   <div className="text-center text-cyan-600">
-                    {/* {derivedMeaning(g)} */}
+                    {derivedMeaning(g)}
                   </div>
                 </Tile>
               ))}

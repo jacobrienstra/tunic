@@ -1,14 +1,15 @@
 import { z } from "zod";
-import { useCallback, useSyncExternalStore } from "react";
 import {
   BasicIndex,
   createCollection,
   createLiveQueryCollection,
   useLiveQuery,
   eq,
+  and,
+  add,
+  concat,
   toArray,
 } from "@tanstack/react-db";
-import type { Collection } from "@tanstack/react-db";
 import {
   createBrowserWASQLitePersistence,
   openBrowserWASQLiteOPFSDatabase,
@@ -29,6 +30,12 @@ export const SUBSET_COLORS = [
 ] as const;
 
 export const WORD_KEY_SEP = "_";
+export function wordKeyFromTruneIds(ids: number[]): string {
+  return ids.join(WORD_KEY_SEP);
+}
+export function truneIdsFromWordKey(key: string): number[] {
+  return key.split(WORD_KEY_SEP).map(Number);
+}
 
 // Tanstack DB Setup Functions
 /*
@@ -226,6 +233,88 @@ export const wordsWithTruneIds = createLiveQueryCollection((q) =>
     }))
 );
 
+// One row per (word, starting position) for a fixed n-gram length. Built via
+// n-1 self-joins of wordTrunesJunction on consecutive order offsets, so
+// filtering by ngKey is a query
+export const biGrams = createLiveQueryCollection((q) =>
+  q
+    .from({ j0: wordTrunesJunction })
+    .innerJoin({ j1: wordTrunesJunction }, ({ j0, j1 }) =>
+      eq(j1.wordId, j0.wordId)
+    )
+    .where(({ j0, j1 }) => eq(j1.order, add(j0.order, 1)))
+    .select(({ j0, j1 }) => ({
+      wordId: j0.wordId,
+      position: j0.order,
+      ngKey: concat(j0.truneId, WORD_KEY_SEP, j1.truneId),
+    }))
+);
+
+export const triGrams = createLiveQueryCollection((q) =>
+  q
+    .from({ j0: wordTrunesJunction })
+    .innerJoin({ j1: wordTrunesJunction }, ({ j0, j1 }) =>
+      eq(j1.wordId, j0.wordId)
+    )
+    .innerJoin({ j2: wordTrunesJunction }, ({ j0, j2 }) =>
+      eq(j2.wordId, j0.wordId)
+    )
+    .where(({ j0, j1, j2 }) =>
+      and(eq(j1.order, add(j0.order, 1)), eq(j2.order, add(j0.order, 2)))
+    )
+    .select(({ j0, j1, j2 }) => ({
+      wordId: j0.wordId,
+      position: j0.order,
+      ngKey: concat(
+        j0.truneId,
+        WORD_KEY_SEP,
+        j1.truneId,
+        WORD_KEY_SEP,
+        j2.truneId
+      ),
+    }))
+);
+
+export const quadGrams = createLiveQueryCollection((q) =>
+  q
+    .from({ j0: wordTrunesJunction })
+    .innerJoin({ j1: wordTrunesJunction }, ({ j0, j1 }) =>
+      eq(j1.wordId, j0.wordId)
+    )
+    .innerJoin({ j2: wordTrunesJunction }, ({ j0, j2 }) =>
+      eq(j2.wordId, j0.wordId)
+    )
+    .innerJoin({ j3: wordTrunesJunction }, ({ j0, j3 }) =>
+      eq(j3.wordId, j0.wordId)
+    )
+    .where(({ j0, j1, j2, j3 }) =>
+      and(
+        eq(j1.order, add(j0.order, 1)),
+        eq(j2.order, add(j0.order, 2)),
+        eq(j3.order, add(j0.order, 3))
+      )
+    )
+    .select(({ j0, j1, j2, j3 }) => ({
+      wordId: j0.wordId,
+      position: j0.order,
+      ngKey: concat(
+        j0.truneId,
+        WORD_KEY_SEP,
+        j1.truneId,
+        WORD_KEY_SEP,
+        j2.truneId,
+        WORD_KEY_SEP,
+        j3.truneId
+      ),
+    }))
+);
+
+export const NGRAM_COLLECTIONS = {
+  2: biGrams,
+  3: triGrams,
+  4: quadGrams,
+} as const;
+
 export const contextsWithWords = createLiveQueryCollection((q) =>
   q
     .from({ c: contexts })
@@ -257,20 +346,6 @@ export const allSettings = createLiveQueryCollection((q) =>
     .findOne()
 );
 
-// Block module resolution until every persisted collection has restored from
-// OPFS. Prevents derived queries (e.g. wordsWithTruneIds) from emitting rows
-// with empty child arrays during the window where one source has loaded but
-// its correlated junction/trunes hasn't.
-await Promise.all([
-  trunes.preload(),
-  words.preload(),
-  wordTrunesJunction.preload(),
-  contexts.preload(),
-  contextWordsJunction.preload(),
-  glyphSubsets.preload(),
-  settings.preload(),
-]);
-
 // Resuable hooks
 
 export function useTrunes() {
@@ -281,50 +356,12 @@ export function useTruneIds() {
   return useLiveQuery(allTruneIds);
 }
 
-/*
- * Per-key subscription against an already-materialized collection. Avoids
- * building a fresh IVM pipeline per hook instance (as `useLiveQuery` with a
- * callback would): rendering N rows costs N tiny change-stream subscribers,
- * not N compiled query graphs. Granular reactivity is preserved — only the
- * row whose key matches re-renders.
- */
-function useCollectionRow<K extends string | number, T extends { id: K }>(
-  collection: Collection<T, K>,
-  id: K
-): { data: T | undefined } {
-  const subscribe = useCallback(
-    (cb: () => void) => {
-      const sub = collection.subscribeChanges(() => cb(), {
-        where: (row) => eq(row.id, id),
-        // Fire immediately with current state so React re-reads getSnapshot
-        // when the collection was already populated before we subscribed —
-        // otherwise subscribeChanges only emits future changes and we'd stay
-        // stuck on the undefined that getSnapshot returned on first call.
-        includeInitialState: true,
-      });
-      return () => sub.unsubscribe();
-    },
-    [collection, id]
-  );
-  const getSnapshot = useCallback(() => collection.get(id), [collection, id]);
-  const data = useSyncExternalStore(subscribe, getSnapshot);
-  return { data };
-}
-
-export function useTrune(id: number) {
-  return useCollectionRow(trunes, id);
-}
-
 export function useWords() {
   return useLiveQuery(wordsWithTruneIds);
 }
 
 export function useContexts() {
   return useLiveQuery(contextsWithWords);
-}
-
-export function useContext(id: string) {
-  return useCollectionRow(contextsWithWords, id);
 }
 
 export function useGlyphSubsets() {
@@ -334,3 +371,17 @@ export function useGlyphSubsets() {
 export function useSettings() {
   return useLiveQuery(allSettings);
 }
+
+/* Block module resolution until every persisted collection has restored from
+OPFS. Prevents derived queries (e.g. wordsWithTruneIds) from emitting rows
+with empty child arrays during the window where one source has loaded but
+its correlated junction/trunes hasn't. */
+await Promise.all([
+  trunes.preload(),
+  words.preload(),
+  wordTrunesJunction.preload(),
+  contexts.preload(),
+  contextWordsJunction.preload(),
+  glyphSubsets.preload(),
+  settings.preload(),
+]);

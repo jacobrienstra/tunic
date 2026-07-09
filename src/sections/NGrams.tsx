@@ -1,7 +1,10 @@
 import { isEqual } from "lodash";
+import { useLiveQuery } from "@tanstack/react-db";
 
+import { NGRAM_COLLECTIONS, truneIdsFromWordKey } from "../data/store";
 import { useSelectionStore } from "../data/selectionStore";
-import { useFilteredNGrams } from "../data/filters";
+import { useDerivedMeaning } from "../data/ruleset";
+import { useFilteredNGrams } from "../data/filtered";
 import TrunicWord from "../components/TrunicWord";
 import Tile from "../components/Tile";
 
@@ -11,30 +14,30 @@ interface NGramsProps {
 function NGrams({ tileSize }: NGramsProps) {
   const selectedNGram = useSelectionStore((s) => s.selectedNGram);
   const toggleSelectedNGram = useSelectionStore((s) => s.toggleSelectedNGram);
+  const n = useSelectionStore((s) => s.n);
   const filteredNGrams = useFilteredNGrams();
+  const allNGrams = useLiveQuery(NGRAM_COLLECTIONS[n]);
+  const derivedMeaning = useDerivedMeaning();
 
   return (
     <>
-      {filteredNGrams.map((ng) => (
+      {allNGrams.data.map((ng) => (
         <Tile
           size={tileSize}
-          key={ng.join("_")}
+          key={ng.ngKey}
           active={isEqual(selectedNGram, ng)}
           toggleFn={toggleSelectedNGram}
-          val={ng}
+          val={ng.ngKey}
+          hidden={!filteredNGrams.collection.has(ng.ngKey)}
         >
-          <TrunicWord wordTrunes={ng} />
-          {/* <div className="text-cyan-600">
-            {ng
+          <TrunicWord wordTrunes={truneIdsFromWordKey(ng.ngKey)} />
+          <div className="text-cyan-600">
+            {truneIdsFromWordKey(ng.ngKey)
               .map((val) => {
-                const meaning = trunes?.find((g) => g.id === val)?.meaning;
-                if (!meaning) {
-                  return deriveMeaning(val);
-                }
-                return meaning.replace("?", "");
+                derivedMeaning(val);
               })
               .join("")}
-          </div> */}
+          </div>
         </Tile>
       ))}
     </>

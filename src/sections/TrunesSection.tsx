@@ -1,6 +1,6 @@
 import clsx from "clsx";
 
-import { useSelectionStore } from "../data/selectionStore";
+import { NGramSize, useSelectionStore } from "../data/selectionStore";
 
 import Trunes from "./Trunes";
 import Section from "./Section";
@@ -23,24 +23,6 @@ function TrunesSection() {
       title="Trunes"
       className="flex flex-none flex-col items-stretch border-b-4 px-2 [&_span]:select-none"
     >
-      <div className="flex flex-row p-2">
-        <button
-          className={clsx(mode === "trunes" && "active")}
-          onClick={() => {
-            setMode("trunes");
-          }}
-        >
-          Trunes
-        </button>
-        <button
-          className={clsx(mode === "ngrams" && "active")}
-          onClick={() => {
-            setMode("ngrams");
-          }}
-        >
-          NGrams
-        </button>
-      </div>
       {mode === "ngrams" ? (
         <div className="flex flex-row flex-wrap content-start items-center [&_button]:m-0.5">
           <span>Size (n)</span>
@@ -49,7 +31,7 @@ function TrunesSection() {
               <button
                 className={clsx(selectedN === num && "active")}
                 key={num}
-                onClick={() => setN(num)}
+                onClick={() => setN(num as NGramSize)}
               >
                 {num}
               </button>

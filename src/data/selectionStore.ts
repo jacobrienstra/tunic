@@ -4,16 +4,17 @@ import { isEqual } from "lodash";
 
 export type Mode = "trunes" | "ngrams";
 export type FilterDirection = "off" | "backward" | "forward";
+export type NGramSize = 2 | 3 | 4;
 
 export interface SelectionState {
-  n: number;
+  n: NGramSize;
   mode: Mode;
   graphemesFilterDirection: FilterDirection;
   truneFilterDirection: FilterDirection;
   wordFilterDirection: FilterDirection;
   contextFilterDirection: FilterDirection;
   selectedTrune: number | null;
-  selectedNGram: number[] | null;
+  selectedNGram: string | null;
   selectedWord: string | null;
   selectedContext: string | null;
 }
@@ -32,14 +33,14 @@ const initialState: SelectionState = {
 };
 
 interface SelectionActions {
-  setN: (v: number) => void;
+  setN: (v: NGramSize) => void;
   setMode: (v: Mode) => void;
   setGraphemesFilterDirection: (v: FilterDirection) => void;
   setTruneFilterDirection: (v: FilterDirection) => void;
   setWordFilterDirection: (v: FilterDirection) => void;
   setContextFilterDirection: (v: FilterDirection) => void;
   toggleSelectedTrune: (v: number | null) => void;
-  toggleSelectedNGram: (v: number[] | null) => void;
+  toggleSelectedNGram: (v: string | null) => void;
   toggleSelectedWord: (v: string | null) => void;
   toggleSelectedContext: (v: string | null) => void;
 }

@@ -1,10 +1,10 @@
 import { memo } from "react";
 import clsx from "clsx";
-import KeyboardDoubleArrowLeftIcon from "@mui/icons-material/KeyboardDoubleArrowLeft";
 
+import { useContexts } from "../data/store";
 import { useSelectionStore } from "../data/selectionStore";
 import { useImageUrl } from "../data/images";
-import { useFilteredContexts } from "../data/filters";
+import { useFilteredContexts } from "../data/filtered";
 import Tile from "../components/Tile";
 
 import Section from "./Section";
@@ -33,11 +33,12 @@ function ContextsSection() {
   );
 
   const filteredContexts = useFilteredContexts();
+  const allContexts = useContexts();
 
   return (
     <Section title="Contexts" className="min-h-0 flex-1">
       <div className="mt-2 flex min-h-0 flex-1 flex-row overflow-x-scroll p-2">
-        {filteredContexts.map((ctx) => (
+        {allContexts.data.map((ctx) => (
           <Tile
             align="start"
             key={ctx.id}
@@ -45,6 +46,7 @@ function ContextsSection() {
             toggleFn={toggleSelectedContext}
             val={ctx.id}
             className="h-full shrink-0"
+            hidden={!filteredContexts.collection?.has(ctx.id)}
           >
             <ContextImage imageId={ctx.imageId} />
           </Tile>

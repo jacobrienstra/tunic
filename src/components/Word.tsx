@@ -1,18 +1,19 @@
 import { memo } from "react";
 
 import { type WordWithTruneIds } from "../data/store";
+import { useDerivedMeaning } from "../data/ruleset";
 import { updateWordMeaning } from "../data/mutations";
 
 import TrunicWord from "./TrunicWord";
 import InlineEdit from "./InlineEdit";
 
-function WordRow({ id, meaning, truneIds }: WordWithTruneIds) {
-  console.log(truneIds);
+function Word({ id, meaning, truneIds }: WordWithTruneIds) {
+  const derivedMeaning = useDerivedMeaning();
   return (
     <div className="flex flex-col items-stretch p-1">
       <TrunicWord wordTrunes={truneIds} />
       <div className="text-cyan-600">
-        {/* {word.truneIds.map((t) => derivedMeaning(t.id)).join("")} */}
+        {truneIds.map((t) => derivedMeaning(t)).join("")}
       </div>
       <InlineEdit
         value={meaning ?? ""}
@@ -25,4 +26,4 @@ function WordRow({ id, meaning, truneIds }: WordWithTruneIds) {
   );
 }
 
-export default memo(WordRow);
+export default memo(Word);

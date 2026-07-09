@@ -13,10 +13,7 @@ function Section({
 }: PropsWithChildren<SectionProps>) {
   return (
     <section
-      className={clsx(
-        "flex flex-col content-center items-stretch",
-        className
-      )}
+      className={clsx("flex flex-col content-center items-stretch", className)}
       {...rest}
     >
       <h3 className="mx-2 flex flex-[0_0_auto] flex-row items-center justify-center rounded-md bg-slate-300 p-2">
