@@ -14,7 +14,7 @@ export const strokeLinejoin = "round" as const;
 export const tightViewBox = `0 0 ${W} ${H}`;
 // Visible SVG's viewBox pads so thick strokes stay visible.
 export const pad = strokeWidth / 2 + 5;
-export const scriptViewBox = `0 ${-pad} ${W} ${H + pad * 2}`;
+// export const scriptViewBox = `0 ${-pad} ${W} ${H + pad * 2}`;
 export const paddedViewBox = `${-pad} ${-pad} ${W + pad * 2} ${H + pad * 2}`;
 
 export const vowelMask = 0b11100000011;

@@ -7,13 +7,11 @@ const STORE = "images";
 
 let dbPromise: Promise<IDBPDatabase> | null = null;
 function getDB() {
-  if (!dbPromise) {
-    dbPromise = openDB(DB_NAME, 1, {
-      upgrade(db) {
-        db.createObjectStore(STORE);
-      },
-    });
-  }
+  dbPromise ??= openDB(DB_NAME, 1, {
+    upgrade(db) {
+      db.createObjectStore(STORE);
+    },
+  });
   return dbPromise;
 }
 
@@ -26,6 +24,7 @@ export async function saveImage(blob: Blob): Promise<string> {
 
 export async function getImage(id: string): Promise<Blob> {
   const db = await getDB();
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const blob = await db.get(STORE, id);
   if (!blob) throw new Error(`Image ${id} not found`);
   return blob as Blob;

@@ -3,10 +3,12 @@ import globals from "globals";
 import reactHooks from "eslint-plugin-react-hooks";
 import reactPlugin from "eslint-plugin-react";
 import eslintPluginPrettierRecommended from "eslint-plugin-prettier/recommended";
+import path from "path";
 import importPlugin from "eslint-plugin-import";
 import eslint from "@eslint/js";
+import type { ConfigArray } from "typescript-eslint";
 
-export default tseslint.config(
+const config: ConfigArray = tseslint.config(
   {
     ignores: ["**/dist", "**/node_modules", "eslint.config.ts"],
   },
@@ -22,6 +24,10 @@ export default tseslint.config(
     },
     settings: {
       "import/resolver": {
+        alias: {
+          map: [["@", path.resolve(__dirname, "./src")]],
+          extensions: [".ts", ".tsx", ".js", ".jsx", ".json"],
+        },
         typescript: {
           project: ["./tsconfig.json", "./tsconfig.node.json"],
         },
@@ -89,3 +95,5 @@ export default tseslint.config(
 
   eslintPluginPrettierRecommended
 );
+
+export default config;

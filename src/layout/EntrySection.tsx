@@ -11,15 +11,15 @@ import { isEmpty, isEqual } from "lodash";
 import clsx from "clsx";
 import DownloadingIcon from "@mui/icons-material/Downloading";
 
-import { useSelectionStore } from "../data/selectionStore";
-import { useDerivedMeaning } from "../data/ruleset";
-import { upsertWord, updateContextText } from "../data/mutations";
-import { saveImage, useImageUrl } from "../data/images";
-import TrunicWord from "../components/TrunicWord";
-import TruneTyper from "../components/TruneTyper";
-import InlineEdit from "../components/InlineEdit";
+import Section from "../components/ui/section";
 
-import Section from "./Section";
+import { useSelectionStore } from "@/data/selectionStore";
+import { useDerivedMeaning } from "@/data/ruleset";
+import { upsertWord, updateContextText } from "@/data/mutations";
+import { saveImage, useImageUrl } from "@/data/images";
+import TrunicWord from "@/components/TrunicWord";
+import TruneTyper from "@/components/TruneTyper";
+import InlineEdit from "@/components/InlineEdit";
 
 const clearButton = "text-red-900 hover:bg-red-400";
 

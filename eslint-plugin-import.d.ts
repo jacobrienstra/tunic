@@ -26,9 +26,7 @@ declare module "eslint-plugin-import" {
       electron: Linter.Config;
       typescript: Linter.Config;
     };
-    rules: {
-      [key: string]: Rule.RuleModule;
-    };
+    rules: Record<string, Rule.RuleModule>;
   };
   export default plugin;
 }

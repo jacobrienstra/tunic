@@ -22,7 +22,7 @@ import {
   strokeWidth,
   strokeLinecap,
   strokeLinejoin,
-} from "../glyph";
+} from "@/glyph";
 
 interface TruneTyperProps {
   emitGrapheme: (val: number) => void;

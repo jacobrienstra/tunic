@@ -1,0 +1,5 @@
+allowBuilds:
+  '@journeyapps/wa-sqlite': true
+  '@tailwindcss/oxide': true
+  esbuild: true
+  unrs-resolver: true

@@ -1,3 +1,6 @@
+import { glyphSymbolId, computeGlyphLines } from "./Glyph";
+
+import { cn } from "@/lib/utils";
 import {
   W,
   H,
@@ -7,9 +10,8 @@ import {
   strokeWidth,
   strokeLinecap,
   strokeLinejoin,
-} from "../glyph";
-
-import { glyphSymbolId, computeGlyphLines } from "./GlyphDefs";
+} from "@/glyph";
+import { wordKeyFromTruneIds } from "@/data/store";
 
 interface TrunicWordProps {
   wordTrunes: number[];
@@ -19,25 +21,21 @@ interface TrunicWordProps {
 
 // One <svg> per word: each glyph is offset by x = i * W within a single
 // viewport, rather than wrapping every glyph in its own <svg>.
-function TrunicWord({
-  wordTrunes,
-  width = 20,
-  inline = false,
-}: TrunicWordProps) {
+function TrunicWord({ wordTrunes, inline = false }: TrunicWordProps) {
   const n = wordTrunes.length;
   return (
     <div
-      data-word={wordTrunes}
-      className="word"
-      style={{ paddingInline: `${(pad / W) * width}px` }}
+      data-word={wordKeyFromTruneIds(wordTrunes)}
+      style={{ paddingInline: `${pad / W}%` }}
+      className={cn("overflow-visible")}
     >
       {n > 0 ? (
         <svg
           xmlns="http://www.w3.org/2000/svg"
           xmlnsXlink="http://www.w3.org/1999/xlink"
-          width={width * n}
+          style={{ width: `calc(var(--glyph-size)*${n})` }}
           viewBox={`0 ${-pad} ${W * n} ${H + pad * 2}`}
-          className="overflow-visible"
+          className={cn("overflow-visible")}
           {...(inline ? { strokeWidth, strokeLinecap, strokeLinejoin } : null)}
         >
           {wordTrunes.map((t, i) =>

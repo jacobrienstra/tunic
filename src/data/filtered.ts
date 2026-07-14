@@ -10,10 +10,11 @@ import {
   contextWordsJunction,
   allTrunes,
   allContexts,
-  useTruneIds,
   wordsWithTruneIds,
   NGRAM_COLLECTIONS,
   truneIdsFromWordKey,
+  useTrunes,
+  type Trune,
 } from "./store";
 import { NGramSize, useSelectionStore } from "./selectionStore";
 
@@ -21,23 +22,26 @@ export function getGrapheme(trune: number, mask: number) {
   return trune & mask;
 }
 
-export function useDerivedGraphemeIds(): Map<string, number[]> {
+export function useDerivedGraphemes(): Map<string, Trune[]> {
   const { data: subsets } = useGlyphSubsets();
-  const { data: truneIds } = useTruneIds();
-
+  const trunes = useTrunes();
   return useMemo(() => {
-    const result = new Map<string, number[]>();
+    const result = new Map<string, Trune[]>();
     for (const subset of subsets) {
       if (subset.modifier) continue;
       result.set(
         subset.id,
-        uniq(truneIds.map((t) => getGrapheme(t.id, subset.mask)))
+        uniq(trunes.data.map((t) => getGrapheme(t.id, subset.mask)))
           .filter((g) => g !== 0)
-          .sort((a, b) => a - b)
+          .map(
+            (g) =>
+              trunes.collection.get(g) ?? { id: g, meaning: "", derived: true }
+          )
+          .sort((a, b) => a.id - b.id)
       );
     }
     return result;
-  }, [subsets, truneIds]);
+  }, [subsets, trunes]);
 }
 
 export function useFilteredTrunes() {

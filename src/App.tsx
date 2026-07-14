@@ -1,13 +1,13 @@
-import WordsSection from "./sections/WordsSection";
-import TrunesSection from "./sections/TrunesSection";
-import GraphemesSection from "./sections/GraphemesSection";
-// import EntrySection from "./sections/EntrySection";
-import ContextsSection from "./sections/ContextsSection";
+import TrunesSection from "./layout/TrunesSection";
+
+import WordsSection from "@/layout/WordsSection";
+import GraphemesSection from "@/layout/GraphemesSection";
+import ContextsSection from "@/layout/ContextsSection";
 import {
   DerivedMeaningContext,
   useComputeDerivedMeaning,
-} from "./data/ruleset";
-import GlyphDefs from "./components/GlyphDefs";
+} from "@/data/ruleset";
+import { GlyphDefs } from "@/components/Glyph";
 
 function App() {
   const derivedMeaning = useComputeDerivedMeaning();

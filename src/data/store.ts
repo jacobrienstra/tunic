@@ -29,6 +29,17 @@ export const SUBSET_COLORS = [
   "purple",
 ] as const;
 
+export const SUBSET_COLOR_CLASSES: Record<
+  (typeof SUBSET_COLORS)[number],
+  string
+> = {
+  magenta: "[--subset-color:var(--color-pink-500)]",
+  blue: "[--subset-color:var(--color-blue-500)]",
+  green: "[--subset-color:var(--color-emerald-400)]",
+  orange: "[--subset-color:var(--color-orange-400)]",
+  purple: "[--subset-color:var(--color-purple-400)]",
+};
+
 export const WORD_KEY_SEP = "_";
 export function wordKeyFromTruneIds(ids: number[]): string {
   return ids.join(WORD_KEY_SEP);
