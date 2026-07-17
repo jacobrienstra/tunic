@@ -16,12 +16,13 @@ import {
   SectionTitle,
   SectionControls,
   SectionContent,
+  SectionMain,
 } from "@/components/ui/section";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { InputInline } from "@/components/ui/input-inline";
 import { ButtonGroup } from "@/components/ui/button-group";
 import { Button } from "@/components/ui/button";
 import TrunicWord from "@/components/TrunicWord";
-import InlineEdit from "@/components/InlineEdit";
 
 function WordsSection() {
   const derivedMeaning = useDerivedMeaning();
@@ -36,69 +37,79 @@ function WordsSection() {
 
   return (
     <Section>
-      <SectionControls>
-        <SectionTitle>Words</SectionTitle>
-        <ButtonGroup
-          orientation="vertical"
-          aria-label="Filter direction"
-          className="h-fit"
-        >
-          <Button
-            variant="outline"
-            size="icon"
-            active={wordFilterDirection === "backward"}
-            onClick={() => setWordFilterDirection("backward")}
+      <SectionMain>
+        <SectionControls>
+          <SectionTitle>Words</SectionTitle>
+          <ButtonGroup
+            orientation="vertical"
+            aria-label="Filter direction"
+            className="h-fit"
           >
-            <ArrowBigUp />
-          </Button>
-          <Button
-            variant="outline"
-            size="icon"
-            active={wordFilterDirection === "off"}
-            onClick={() => setWordFilterDirection("off")}
-          >
-            <Ban />
-          </Button>
-          <Button
-            variant="outline"
-            size="icon"
-            active={wordFilterDirection === "forward"}
-            onClick={() => setWordFilterDirection("forward")}
-          >
-            <ArrowBigDown />
-          </Button>
-        </ButtonGroup>
-      </SectionControls>
-      <SectionContent>
-        <ScrollArea orientation="horizontal">
-          <div className={"flex w-max flex-row"}>
-            {allWords.data.map((w) => (
-              <Tile
-                key={w.id}
-                active={selectedWord === w.id}
-                toggleFn={toggleSelectedWord}
-                val={w.id}
-                hidden={!filteredWords.collection.has(w.id)}
-              >
-                <TileTrunic>
-                  <TrunicWord wordTrunes={w.truneIds} />
-                </TileTrunic>
-                <TileAnnotation>
-                  {w.truneIds.map((t) => derivedMeaning(t)).join("")}
-                </TileAnnotation>
-                <TileInput>
-                  <InlineEdit
-                    value={w.meaning ?? ""}
-                    setValueFn={(val: string) => {
-                      updateWordMeaning(w.id, val);
-                    }}
-                  />
-                </TileInput>
-              </Tile>
-            ))}
-          </div>
-        </ScrollArea>
-      </SectionContent>
+            <Button
+              variant="outline"
+              size="icon"
+              active={wordFilterDirection === "backward"}
+              onClick={() => setWordFilterDirection("backward")}
+            >
+              <ArrowBigUp />
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              active={wordFilterDirection === "off"}
+              onClick={() => setWordFilterDirection("off")}
+            >
+              <Ban />
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              active={wordFilterDirection === "forward"}
+              onClick={() => setWordFilterDirection("forward")}
+            >
+              <ArrowBigDown />
+            </Button>
+          </ButtonGroup>
+        </SectionControls>
+        <SectionContent>
+          <ScrollArea orientation="horizontal" className="h-full py-1">
+            <div className={"flex w-max flex-row"}>
+              {allWords.data.map((w) => (
+                <Tile
+                  key={w.id}
+                  active={selectedWord === w.id}
+                  toggleFn={toggleSelectedWord}
+                  val={w.id}
+                  hidden={!filteredWords.collection.has(w.id)}
+                >
+                  <TileTrunic>
+                    <TrunicWord wordTrunes={w.truneIds} />
+                  </TileTrunic>
+                  <TileAnnotation>
+                    {w.truneIds.map((t) => derivedMeaning(t)).join("")}
+                  </TileAnnotation>
+                  <TileInput>
+                    <InputInline
+                      defaultValue={w.meaning ?? ""}
+                      key={w.meaning ?? ""}
+                      onBlur={(e) => {
+                        updateWordMeaning(w.id, e.target.value);
+                      }}
+                      onKeyDown={(e) => {
+                        if (
+                          (e.key === "Enter" && !e.shiftKey) ||
+                          e.key === "Escape"
+                        )
+                          e.currentTarget.blur();
+                      }}
+                    />
+                  </TileInput>
+                </Tile>
+              ))}
+            </div>
+          </ScrollArea>
+        </SectionContent>
+      </SectionMain>
     </Section>
   );
 }

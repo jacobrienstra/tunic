@@ -6,9 +6,19 @@ function Section({ className, ...props }: React.ComponentProps<"section">) {
   return (
     <section
       className={cn(
-        "group/section flex flex-row items-stretch border-b-2 border-green-600",
+        "group/section flex flex-col items-stretch border-b-2 border-green-600",
         className
       )}
+      {...props}
+    />
+  );
+}
+
+function SectionMain({ className, ...props }: React.ComponentProps<"div">) {
+  return (
+    <div
+      data-slot="section-main"
+      className={cn("group/section flex flex-row", className)}
       {...props}
     />
   );
@@ -27,17 +37,38 @@ function SectionControls({ className, ...props }: React.ComponentProps<"div">) {
   );
 }
 
-function SectionTitle({ className, ...props }: React.ComponentProps<"h3">) {
+function SectionTitle({ className, ...props }: React.ComponentProps<"h2">) {
   return <h2 className={cn("group/section text-xl", className)} {...props} />;
 }
 
 function SectionContent({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
-      className={cn("flex flex-row items-start py-1", className)}
+      data-slot="section-content"
+      className={cn("group/section flex flex-row items-start", className)}
       {...props}
     />
   );
 }
 
-export { Section, SectionTitle, SectionControls, SectionContent };
+function SectionFooter({ className, ...props }: React.ComponentProps<"div">) {
+  return (
+    <div
+      data-slot="section-footer"
+      className={cn(
+        "group/section flex h-min flex-row border-t-2 p-2",
+        className
+      )}
+      {...props}
+    ></div>
+  );
+}
+
+export {
+  Section,
+  SectionTitle,
+  SectionControls,
+  SectionContent,
+  SectionFooter,
+  SectionMain,
+};

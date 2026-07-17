@@ -51,7 +51,7 @@ function Button({
   active = false,
   ...props
 }: ButtonPrimitive.Props &
-  VariantProps<typeof buttonVariants> & { active: boolean }) {
+  VariantProps<typeof buttonVariants> & { active?: boolean }) {
   return (
     <ButtonPrimitive
       data-slot="button"

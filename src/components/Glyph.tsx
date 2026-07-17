@@ -42,17 +42,15 @@ function GlyphSymbol({ val }: { val: number }) {
       id={glyphSymbolId(val)}
       viewBox={tightViewBox}
       preserveAspectRatio="xMidYMid meet"
-      className="overflow-visible"
+      className="overflow-visible stroke-black"
       strokeWidth={strokeWidth}
       strokeLinecap={strokeLinecap}
       strokeLinejoin={strokeLinejoin}
     >
       {lines.map((l, i) => (
-        <line className="stroke-black" {...l} key={i} />
+        <line {...l} key={i} />
       ))}
-      {val & BCK ? (
-        <circle {...BC} className="fill-transparent stroke-black" />
-      ) : null}
+      {val & BCK ? <circle {...BC} className="fill-transparent" /> : null}
     </symbol>
   );
 }
@@ -68,17 +66,15 @@ function Glyph({ val, inline = false }: GlyphProps) {
       xmlns="http://www.w3.org/2000/svg"
       xmlnsXlink="http://www.w3.org/1999/xlink"
       viewBox={paddedViewBox}
-      className={cn("w-(--glyph-size) overflow-visible")}
+      className={cn("w-(--glyph-size) overflow-visible stroke-black")}
       {...(inline ? { strokeWidth, strokeLinecap, strokeLinejoin } : null)}
     >
       {inline ? (
         <>
           {computeGlyphLines(val).map((l, i) => (
-            <line className="stroke-black" {...l} key={i} />
+            <line {...l} key={i} />
           ))}
-          {val & BCK ? (
-            <circle {...BC} className="[fill:transparent] stroke-black" />
-          ) : null}
+          {val & BCK ? <circle {...BC} className="fill-transparent" /> : null}
         </>
       ) : (
         <use href={`#${glyphSymbolId(val)}`} width={W} height={H} />

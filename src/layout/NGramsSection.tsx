@@ -17,6 +17,7 @@ import {
   SectionTitle,
   SectionControls,
   SectionContent,
+  SectionMain,
 } from "@/components/ui/section";
 import { ButtonGroup } from "@/components/ui/button-group";
 import { Button } from "@/components/ui/button";
@@ -38,59 +39,61 @@ function NGrams() {
 
   return (
     <Section>
-      <SectionControls>
-        <SectionTitle>Words</SectionTitle>
-        <ButtonGroup
-          orientation="vertical"
-          aria-label="Filter direction"
-          className="h-fit"
-        >
-          <Button
-            variant="outline"
-            size="icon"
-            active={truneFilterDirection === "backward"}
-            onClick={() => setTruneFilterDirection("backward")}
+      <SectionMain>
+        <SectionControls>
+          <SectionTitle>Words</SectionTitle>
+          <ButtonGroup
+            orientation="vertical"
+            aria-label="Filter direction"
+            className="h-fit"
           >
-            <ArrowBigUp />
-          </Button>
-          <Button
-            variant="outline"
-            size="icon"
-            active={truneFilterDirection === "off"}
-            onClick={() => setTruneFilterDirection("off")}
-          >
-            <Ban />
-          </Button>
-          <Button
-            variant="outline"
-            size="icon"
-            active={truneFilterDirection === "forward"}
-            onClick={() => setTruneFilterDirection("forward")}
-          >
-            <ArrowBigDown />
-          </Button>
-        </ButtonGroup>
-      </SectionControls>
-      <SectionContent>
-        {allNGrams.data.map((ng) => (
-          <Tile
-            key={ng.ngKey}
-            active={isEqual(selectedNGram, ng)}
-            toggleFn={toggleSelectedNGram}
-            val={ng.ngKey}
-            hidden={!filteredNGrams.collection.has(ng.ngKey)}
-          >
-            <TrunicWord wordTrunes={truneIdsFromWordKey(ng.ngKey)} />
-            <div className="text-cyan-600">
-              {truneIdsFromWordKey(ng.ngKey)
-                .map((val) => {
-                  derivedMeaning(val);
-                })
-                .join("")}
-            </div>
-          </Tile>
-        ))}
-      </SectionContent>
+            <Button
+              variant="outline"
+              size="icon"
+              active={truneFilterDirection === "backward"}
+              onClick={() => setTruneFilterDirection("backward")}
+            >
+              <ArrowBigUp />
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              active={truneFilterDirection === "off"}
+              onClick={() => setTruneFilterDirection("off")}
+            >
+              <Ban />
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              active={truneFilterDirection === "forward"}
+              onClick={() => setTruneFilterDirection("forward")}
+            >
+              <ArrowBigDown />
+            </Button>
+          </ButtonGroup>
+        </SectionControls>
+        <SectionContent>
+          {allNGrams.data.map((ng) => (
+            <Tile
+              key={ng.ngKey}
+              active={isEqual(selectedNGram, ng)}
+              toggleFn={toggleSelectedNGram}
+              val={ng.ngKey}
+              hidden={!filteredNGrams.collection.has(ng.ngKey)}
+            >
+              <TrunicWord wordTrunes={truneIdsFromWordKey(ng.ngKey)} />
+              <div className="text-cyan-600">
+                {truneIdsFromWordKey(ng.ngKey)
+                  .map((val) => {
+                    derivedMeaning(val);
+                  })
+                  .join("")}
+              </div>
+            </Tile>
+          ))}
+        </SectionContent>
+      </SectionMain>
     </Section>
   );
 }

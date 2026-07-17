@@ -44,7 +44,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
-@import "@fontsource-variable/geist";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -94,6 +93,19 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+
+  --animate-blink: blink 1s step-end infinite;
+
+  @keyframes blink {
+    0%,
+    100% {
+      stroke: var(-border);
+    }
+
+    50% {
+      stroke: var(--subset-color);
+    }
+  }
 }
 
 :root {
@@ -181,8 +193,26 @@
     overscroll-behavior: none;
   }
 
+  #root,
+  html,
+  body {
+    height: 100dvh;
+  }
+
   button:not(:disabled),
   [role="button"]:not(:disabled) {
     cursor: pointer;
+  }
+}
+
+@layer components {
+  h1 {
+    font-size: var(--text-3xl);
+  }
+  h2 {
+    font-size: var(--text-2xl);
+  }
+  h3 {
+    font-size: var(--text-xl);
   }
 }

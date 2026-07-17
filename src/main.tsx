@@ -2,12 +2,14 @@ import ReactDOM from "react-dom/client";
 import { StrictMode } from "react";
 
 import * as store from "./data/store";
-import { importSeed } from "./data/importSeed";
+import { importSeed, importSeedFromStatic } from "./data/importSeed";
 import App from "./App";
 
 if (import.meta.env.DEV) {
   Object.assign(window, { importSeed, store });
 }
+
+// void importSeedFromStatic();
 
 import "./index.css";
 

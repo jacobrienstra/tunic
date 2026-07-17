@@ -48,17 +48,31 @@ export function updateGlyphSubset(
 ): void {
   if (!glyphSubsets.has(id)) return;
   const oldName = glyphSubsets.get(id)!.name;
+  const oldColor = glyphSubsets.get(id)!.color;
 
-  const cleaned = _.pickBy(patch, (v) => v !== undefined);
+  const cleaned = _.pickBy(patch, (v) => v !== undefined) as Partial<
+    Omit<GlyphSubset, "id">
+  >;
+
+  if (cleaned.color != null && cleaned.color !== oldColor) {
+    const takenColorSubset = [...glyphSubsets.values()].find(
+      (gs) => gs.color == cleaned.color
+    );
+    if (takenColorSubset != null) {
+      glyphSubsets.update(takenColorSubset.id, (draft) => {
+        draft.color = oldColor;
+      });
+    }
+  }
   glyphSubsets.update(id, (draft) => Object.assign(draft, cleaned));
 
   if (
-    patch.name != null &&
-    patch.name.toLowerCase() !== oldName.toLowerCase()
+    cleaned.name != null &&
+    cleaned.name.toLowerCase() !== oldName.toLowerCase()
   ) {
-    const oldRef = `{${oldName}}`.toLowerCase();
-    const newRef = `{${patch.name}}`;
-    const oldRefPattern = new RegExp(`\\{${oldName}\\}`, "gi");
+    const oldRef = `{{${oldName}}}`.toLowerCase();
+    const newRef = `{{${patch.name}}}`;
+    const oldRefPattern = new RegExp(`\\{\\{${oldName}\\}\\}`, "gi");
     // Snapshot before iterating: updates below mutate the collection.
     for (const r of [...glyphSubsets.values()]) {
       if (r.id === id) continue;

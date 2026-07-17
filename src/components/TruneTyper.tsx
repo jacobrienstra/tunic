@@ -1,5 +1,6 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 
+import { cn } from "@/lib/utils";
 import {
   glyphStrokes,
   UTLK,
@@ -25,90 +26,33 @@ import {
 } from "@/glyph";
 
 interface TruneTyperProps {
-  emitGrapheme: (val: number) => void;
-  emitWord: () => void;
-  popLastGrapheme: () => number;
-  isActive: boolean;
-  width?: number;
+  value?: number;
+  emitTrune: (val: number) => void;
+  emitWord?: () => void;
+  popLastGrapheme?: () => number;
+  disabled: boolean;
+  className?: string;
 }
 
 function TruneTyper({
-  emitGrapheme,
+  value = 0,
+  emitTrune,
   emitWord,
   popLastGrapheme,
-  isActive,
-  width = 150,
+  disabled,
+  className = "",
 }: TruneTyperProps) {
-  const [val, setVal] = useState(0);
-
-  const unusedLines = [];
-  const usedLines = [];
-
+  const [editingVal, setEditingVal] = useState<number>(value);
   const svgRef = useRef<SVGSVGElement>(null);
 
-  const handleKeyDown = (event: React.KeyboardEvent) => {
-    switch (event.key) {
-      case "w":
-        setVal(val ^ UTLK);
-        break;
-      case "r":
-        setVal(val ^ UTRK);
-        break;
-      case "s":
-        setVal(val ^ UBLK);
-        break;
-      case "d":
-        setVal(val ^ UMVK);
-        break;
-      case "f":
-        setVal(val ^ UBRK);
-        break;
-      case "u":
-        setVal(val ^ LTLK);
-        break;
-      case "o":
-        setVal(val ^ LTRK);
-        break;
-      case "k":
-        setVal(val ^ LMVK);
-        break;
-      case "j":
-        setVal(val ^ LBLK);
-        break;
-      case "l":
-        setVal(val ^ LBRK);
-        break;
-      case "a":
-        setVal(val ^ LVK);
-        break;
-      case ",":
-        setVal(val ^ BCK);
-        break;
-      case "Enter":
-        emitGrapheme(val);
-        setVal(0);
-        break;
-      case " ":
-        if (val) {
-          emitGrapheme(val);
-        } else {
-          emitWord();
-        }
-        setVal(0);
-        break;
-      case "Escape":
-      case "Backspace":
-        if (val) {
-          setVal(0);
-        } else {
-          const newVal = popLastGrapheme();
-          setVal(newVal);
-        }
-        break;
-      default:
-        return;
-    }
-  };
+  const toggleVal = useCallback(
+    (lineVal: number) => {
+      if (!disabled) setEditingVal((v) => v ^ lineVal);
+    },
+    [disabled]
+  );
+  // I want to have some focus logic here so if you click away it turns off, that kind of thing. Like InlineEdit
+  const isActive = !disabled;
 
   useEffect(() => {
     if (isActive) {
@@ -116,72 +60,162 @@ function TruneTyper({
     }
   }, [isActive, svgRef]);
 
-  // For strokes 0 through 9, push lines (10 is actually 2 segments, 11 is circle)
-  for (const i of [...Array(10).keys()]) {
-    if (val & (1 << i)) {
-      usedLines.push({ ...glyphStrokes[1 << i], k: 1 << i });
-    } else {
-      unusedLines.push({ ...glyphStrokes[1 << i], k: 1 << i });
+  const glyphKeyboardMapper = (event: React.KeyboardEvent) => {
+    switch (event.key) {
+      case "w":
+        setEditingVal((v) => v ^ UTLK);
+        break;
+      case "r":
+        setEditingVal((v) => v ^ UTRK);
+        break;
+      case "s":
+        setEditingVal((v) => v ^ UBLK);
+        break;
+      case "d":
+        setEditingVal((v) => v ^ UMVK);
+        break;
+      case "f":
+        setEditingVal((v) => v ^ UBRK);
+        break;
+      case "u":
+        setEditingVal((v) => v ^ LTLK);
+        break;
+      case "o":
+        setEditingVal((v) => v ^ LTRK);
+        break;
+      case "k":
+        setEditingVal((v) => v ^ LMVK);
+        break;
+      case "j":
+        setEditingVal((v) => v ^ LBLK);
+        break;
+      case "l":
+        setEditingVal((v) => v ^ LBRK);
+        break;
+      case "a":
+        setEditingVal((v) => v ^ LVK);
+        break;
+      case ",":
+        setEditingVal((v) => v ^ BCK);
+        break;
+      case "Enter":
+        emitTrune(editingVal);
+        setEditingVal(0);
+        break;
+      case " ":
+        if (editingVal) {
+          emitTrune(editingVal);
+        } else if (emitWord !== undefined) {
+          emitWord();
+        }
+        setEditingVal(0);
+        break;
+      case "Escape":
+      case "Backspace":
+        if (editingVal) {
+          setEditingVal(0);
+        } else if (popLastGrapheme !== undefined) {
+          const newVal = popLastGrapheme();
+          setEditingVal(newVal);
+        }
+        break;
+      default:
+        return;
     }
-  }
-  if (val & LVK) {
-    usedLines.push({ ...ULV, k: LVK });
-    usedLines.push({ ...LLV, k: LVK });
-  } else {
-    unusedLines.push({ ...ULV, k: LVK });
-    unusedLines.push({ ...LLV, k: LVK });
-  }
+  };
 
   return (
     <svg
-      width={width ?? "100%"}
       xmlns="http://www.w3.org/2000/svg"
       xmlnsXlink="http://www.w3.org/1999/xlink"
       viewBox={paddedViewBox}
-      strokeWidth={strokeWidth}
-      strokeLinecap={strokeLinecap}
-      strokeLinejoin={strokeLinejoin}
       tabIndex={0}
-      onKeyDown={handleKeyDown}
+      onKeyDown={glyphKeyboardMapper}
       ref={svgRef}
-      className={"outline-none"} // TODO: Make sure not overridden on focus
-      style={{ maxWidth: `${width}px` }} // Better way of doing this?
+      className={cn("w-(--glyph-size) outline-none", className)}
+      {...{ strokeWidth, strokeLinecap, strokeLinejoin }}
     >
-      {unusedLines.map((l, i) => (
-        <line
-          className="stroke-slate-200"
-          {...l}
-          key={i} // TODO: use a better key
-          onClick={() => {
-            if (isActive) {
-              setVal(val ^ l.k);
-            }
-          }}
-        />
-      ))}
-      <circle
-        className={`[fill:transparent] ${val & BCK ? "stroke-black" : "stroke-slate-200"}`}
-        {...BC}
-        onClick={() => setVal(val ^ BCK)}
-      />
-      ;{/* Midline */}
+      {Object.keys(glyphStrokes)
+        .map(Number)
+        .map((k) => {
+          return (
+            <line
+              className={cn(
+                "stroke-(--border)",
+                isActive ? "cursor-pointer" : ""
+              )}
+              {...glyphStrokes[k]}
+              key={k}
+              onClick={() => toggleVal(k)}
+            />
+          );
+        })}
       <line
-        className={isActive ? "animate-blink stroke-black" : "stroke-slate-200"}
-        {...Midline}
+        {...ULV}
+        key={`${LVK}_0`}
+        onClick={() => toggleVal(LVK)}
+        className={cn("stroke-(--border)", isActive ? "cursor-pointer" : "")}
       />
-      ;
-      {usedLines.map((l) => (
-        <line
-          key={l.k + l.x1 + l.y1}
-          className="stroke-black"
-          {...l}
-          onClick={() => {
-            if (isActive) {
-              setVal(val ^ l.k);
-            }
-          }}
+      <line
+        {...LLV}
+        key={`${LVK}_1`}
+        onClick={() => toggleVal(LVK)}
+        className={cn("stroke-(--border)", isActive ? "cursor-pointer" : "")}
+      />
+      <circle
+        className={cn(
+          "fill-transparent stroke-(--border)",
+          isActive ? "cursor-pointer" : ""
+        )}
+        {...BC}
+        onClick={() => toggleVal(BCK)}
+      />
+      <line
+        {...Midline}
+        className={cn(isActive ? "animate-(--animate-blink)" : "")}
+      />
+      {/* Overlay of active strokes. SVG uses paint order, not z-index, so I have to do this to avoid shuffling the strokes every edit */}
+      {Object.keys(glyphStrokes)
+        .map(Number)
+        .filter((k) => (editingVal & k) === k)
+        .map((k, i) => {
+          // console.log(k, i);
+          return (
+            <line
+              className={cn(
+                "pointer-none pointer-events-none stroke-(--subset-color)"
+              )}
+              {...glyphStrokes[k]}
+              key={k}
+            />
+          );
+        })}
+      {(editingVal & LVK) === LVK ? (
+        <>
+          <line
+            {...ULV}
+            key={`${LVK}_10`}
+            className={cn(
+              "pointer-none pointer-events-none stroke-(--subset-color)"
+            )}
+          />
+          <line
+            {...LLV}
+            key={`${LVK}_11`}
+            className={cn(
+              "pointer-none pointer-events-none stroke-(--subset-color)"
+            )}
+          />
+        </>
+      ) : null}
+      {(editingVal & BCK) === BCK ? (
+        <circle
+          className={cn(
+            "pointer-none pointer-events-none fill-transparent stroke-(--subset-color)"
+          )}
+          {...BC}
         />
-      ))}
+      ) : null}
     </svg>
   );
 }

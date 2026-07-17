@@ -42,7 +42,7 @@ export function useComputeDerivedMeaning(): (val: number) => string {
     const subsetsByName = new Map((glyphSubsets ?? []).map((s) => [s.name, s]));
 
     const applyRule = (trune: number, rule: string): string =>
-      rule.replace(/\{([^}]+)\}/g, (_, name) => {
+      rule.replace(/\{\{([^}]+)\}\}/g, (_, name) => {
         const subset = subsetsByName.get(String(name));
         if (!subset) return "?";
         const derived = getGrapheme(trune, subset.mask);
