@@ -41,7 +41,7 @@ function TrunesSection() {
         <SectionControls>
           <SectionTitle>Trunes</SectionTitle>
           <ButtonGroup
-            orientation="vertical"
+            orientation="horizontal"
             aria-label="Filter direction"
             className="h-fit"
           >
@@ -80,7 +80,7 @@ function TrunesSection() {
                   active={selectedTrune === t.id}
                   toggleFn={toggleSelectedTrune}
                   val={t.id}
-                  hidden={!filteredTrunes.collection?.has(t.id)}
+                  hidden={!filteredTrunes.has(t.id)}
                 >
                   <TileTrunic>
                     <Glyph val={t.id} />

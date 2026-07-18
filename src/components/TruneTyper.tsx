@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 
 import { cn } from "@/lib/utils";
 import {
@@ -27,30 +27,39 @@ import {
 
 interface TruneTyperProps {
   value?: number;
-  emitTrune: (val: number) => void;
+  persistent?: boolean;
+  emitTrune?: (val: number) => void;
   emitWord?: () => void;
   popLastGrapheme?: () => number;
+  onChange?: (val: number) => void;
   disabled: boolean;
   className?: string;
 }
 
 function TruneTyper({
   value = 0,
+  persistent = true,
   emitTrune,
   emitWord,
   popLastGrapheme,
+  onChange,
   disabled,
   className = "",
 }: TruneTyperProps) {
   const [editingVal, setEditingVal] = useState<number>(value);
   const svgRef = useRef<SVGSVGElement>(null);
 
-  const toggleVal = useCallback(
-    (lineVal: number) => {
-      if (!disabled) setEditingVal((v) => v ^ lineVal);
-    },
-    [disabled]
-  );
+  // Apply an edit to the working value and notify onChange. Every mutation goes
+  // through here so consumers that read the value on demand (e.g. a Save button)
+  // stay in sync — emitTrune only fires on Enter/Space.
+  const applyVal = (next: number) => {
+    setEditingVal(next);
+    onChange?.(next);
+  };
+
+  const toggleVal = (lineVal: number) => {
+    if (!disabled) applyVal(editingVal ^ lineVal);
+  };
   // I want to have some focus logic here so if you click away it turns off, that kind of thing. Like InlineEdit
   const isActive = !disabled;
 
@@ -63,60 +72,67 @@ function TruneTyper({
   const glyphKeyboardMapper = (event: React.KeyboardEvent) => {
     switch (event.key) {
       case "w":
-        setEditingVal((v) => v ^ UTLK);
+        applyVal(editingVal ^ UTLK);
         break;
       case "r":
-        setEditingVal((v) => v ^ UTRK);
+        applyVal(editingVal ^ UTRK);
         break;
       case "s":
-        setEditingVal((v) => v ^ UBLK);
+        applyVal(editingVal ^ UBLK);
         break;
       case "d":
-        setEditingVal((v) => v ^ UMVK);
+        applyVal(editingVal ^ UMVK);
         break;
       case "f":
-        setEditingVal((v) => v ^ UBRK);
+        applyVal(editingVal ^ UBRK);
         break;
       case "u":
-        setEditingVal((v) => v ^ LTLK);
+        applyVal(editingVal ^ LTLK);
         break;
       case "o":
-        setEditingVal((v) => v ^ LTRK);
+        applyVal(editingVal ^ LTRK);
         break;
       case "k":
-        setEditingVal((v) => v ^ LMVK);
+        applyVal(editingVal ^ LMVK);
         break;
       case "j":
-        setEditingVal((v) => v ^ LBLK);
+        applyVal(editingVal ^ LBLK);
         break;
       case "l":
-        setEditingVal((v) => v ^ LBRK);
+        applyVal(editingVal ^ LBRK);
         break;
       case "a":
-        setEditingVal((v) => v ^ LVK);
+        applyVal(editingVal ^ LVK);
         break;
       case ",":
-        setEditingVal((v) => v ^ BCK);
+        applyVal(editingVal ^ BCK);
         break;
       case "Enter":
-        emitTrune(editingVal);
-        setEditingVal(0);
+        if (emitTrune) {
+          emitTrune(editingVal);
+          applyVal(0);
+        }
         break;
       case " ":
-        if (editingVal) {
-          emitTrune(editingVal);
-        } else if (emitWord !== undefined) {
-          emitWord();
+        if (emitTrune) {
+          if (editingVal) {
+            emitTrune(editingVal);
+          }
+          if (emitWord) {
+            emitWord();
+          }
+          applyVal(0);
         }
-        setEditingVal(0);
         break;
       case "Escape":
       case "Backspace":
-        if (editingVal) {
-          setEditingVal(0);
-        } else if (popLastGrapheme !== undefined) {
-          const newVal = popLastGrapheme();
-          setEditingVal(newVal);
+        if (emitTrune) {
+          if (editingVal) {
+            applyVal(0);
+          }
+          if (popLastGrapheme) {
+            applyVal(popLastGrapheme());
+          }
         }
         break;
       default:
@@ -140,10 +156,7 @@ function TruneTyper({
         .map((k) => {
           return (
             <line
-              className={cn(
-                "stroke-(--border)",
-                isActive ? "cursor-pointer" : ""
-              )}
+              className={cn("stroke-border", isActive ? "cursor-pointer" : "")}
               {...glyphStrokes[k]}
               key={k}
               onClick={() => toggleVal(k)}
@@ -154,17 +167,17 @@ function TruneTyper({
         {...ULV}
         key={`${LVK}_0`}
         onClick={() => toggleVal(LVK)}
-        className={cn("stroke-(--border)", isActive ? "cursor-pointer" : "")}
+        className={cn("stroke-border", isActive ? "cursor-pointer" : "")}
       />
       <line
         {...LLV}
         key={`${LVK}_1`}
         onClick={() => toggleVal(LVK)}
-        className={cn("stroke-(--border)", isActive ? "cursor-pointer" : "")}
+        className={cn("stroke-border", isActive ? "cursor-pointer" : "")}
       />
       <circle
         className={cn(
-          "fill-transparent stroke-(--border)",
+          "stroke-border fill-transparent",
           isActive ? "cursor-pointer" : ""
         )}
         {...BC}
@@ -178,8 +191,7 @@ function TruneTyper({
       {Object.keys(glyphStrokes)
         .map(Number)
         .filter((k) => (editingVal & k) === k)
-        .map((k, i) => {
-          // console.log(k, i);
+        .map((k) => {
           return (
             <line
               className={cn(

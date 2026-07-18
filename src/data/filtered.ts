@@ -5,33 +5,42 @@ import { useLiveQuery, eq, count } from "@tanstack/react-db";
 import {
   useGlyphSubsets,
   contexts,
-  trunes,
   wordTrunesJunction,
   contextWordsJunction,
-  allTrunes,
   allContexts,
+  allTrunes,
+  trunes as trunesCollection,
   wordsWithTruneIds,
   NGRAM_COLLECTIONS,
   truneIdsFromWordKey,
   useTrunes,
   type Trune,
+  type GlyphSubsetsCollection,
 } from "./store";
+import { getGrapheme } from "./store";
 import { NGramSize, useSelectionStore } from "./selectionStore";
-
-export function getGrapheme(trune: number, mask: number) {
-  return trune & mask;
-}
+import { valPassesFilter, type LogicNode } from "./logic";
 
 export function useDerivedGraphemes(): Map<string, Trune[]> {
   const { data: subsets } = useGlyphSubsets();
+  const selectedTruneId = useSelectionStore((s) => s.selectedTrune);
+  const truneFilterDirection = useSelectionStore((s) => s.truneFilterDirection);
+
   const trunes = useTrunes();
+
   return useMemo(() => {
+    const truneSource =
+      truneFilterDirection == "backward" &&
+      selectedTruneId != null &&
+      trunes.collection.get(selectedTruneId) != null
+        ? [trunes.collection.get(selectedTruneId)!]
+        : trunes.data;
     const result = new Map<string, Trune[]>();
     for (const subset of subsets) {
       if (subset.modifier) continue;
       result.set(
         subset.id,
-        uniq(trunes.data.map((t) => getGrapheme(t.id, subset.mask)))
+        uniq(truneSource.map((t) => getGrapheme(t.id, subset.mask)))
           .filter((g) => g !== 0)
           .map(
             (g) =>
@@ -41,29 +50,92 @@ export function useDerivedGraphemes(): Map<string, Trune[]> {
       );
     }
     return result;
-  }, [subsets, trunes]);
+  }, [subsets, trunes, truneFilterDirection, selectedTruneId]);
 }
 
-export function useFilteredTrunes() {
+// Trune ids matching the grapheme filter tree. Each subset leaf tests
+// getGrapheme(t.id, mask) against that subset's selected grapheme; a subset
+// with no selection is discarded (see valPassesFilter). A null result — no
+// constraint — counts as a match, so a fully-discarded tree matches every trune.
+export function matchingTruneIds(
+  tree: LogicNode,
+  trunes: Trune[],
+  subsets: GlyphSubsetsCollection,
+  selectedGraphemes: Record<string, number | null>
+): Set<number> {
+  const ids = new Set<number>();
+  for (const t of trunes) {
+    const r = valPassesFilter(tree, t.id, subsets, selectedGraphemes);
+    if (r !== false) ids.add(t.id);
+  }
+  return ids;
+}
+
+// The trune ids to show. With no active filter, that's every trune.
+export function useFilteredTrunes(): Set<number> {
   const selectedWord = useSelectionStore((s) => s.selectedWord);
   const wordFilterDirection = useSelectionStore((s) => s.wordFilterDirection);
-  const byWord = wordFilterDirection === "backward" && selectedWord != null;
+  const graphemeFilterLogic = useSelectionStore((s) => s.graphemeFilterLogic);
+  const selectedGraphemes = useSelectionStore((s) => s.selectedGraphemes);
+  const graphemesFilterDirection = useSelectionStore(
+    (s) => s.graphemesFilterDirection
+  );
+  const subsets = useGlyphSubsets();
 
-  return useLiveQuery(
+  const byWord = wordFilterDirection === "backward" && selectedWord != null;
+  // valPassesFilter returns null iff every leaf discards (no live selection),
+  // independent of the value passed — so any value reveals whether the filter
+  // constrains anything.
+  const byGraphemes =
+    graphemesFilterDirection === "forward" &&
+    graphemeFilterLogic !== null &&
+    valPassesFilter(
+      graphemeFilterLogic,
+      0,
+      subsets.collection,
+      selectedGraphemes
+    ) !== null;
+
+  // The candidate trunes to filter: the selected word's, joined through the
+  // junction, or every trune when the word filter is off (also the no-op
+  // collection the hook must return each render).
+  const candidates = useLiveQuery(
     (q) => {
-      if (!byWord) return allTrunes;
+      if (!byWord || selectedWord == null) return allTrunes;
       return {
         getKey: (t: { id: number }) => t.id,
         query: q
           .from({ j: wordTrunesJunction })
           .where(({ j }) => eq(j.wordId, selectedWord))
-          .innerJoin({ t: trunes }, ({ j, t }) => eq(t.id, j.truneId))
+          .innerJoin({ t: trunesCollection }, ({ j, t }) => eq(t.id, j.truneId))
           .orderBy(({ j }) => j.order)
           .select(({ t }) => t),
       };
     },
     [byWord, selectedWord]
   );
+
+  return useMemo(() => {
+    const source = candidates.data ?? [];
+    // The grapheme tree can't be expressed in the query, so filter candidates
+    // in JS. With byWord on, source is already the word's trunes, so matching
+    // over it yields the intersection.
+    if (byGraphemes && graphemeFilterLogic) {
+      return matchingTruneIds(
+        graphemeFilterLogic,
+        source,
+        subsets.collection,
+        selectedGraphemes
+      );
+    }
+    return new Set(source.map((t) => t.id));
+  }, [
+    byGraphemes,
+    candidates,
+    graphemeFilterLogic,
+    selectedGraphemes,
+    subsets,
+  ]);
 }
 
 export function useFilteredNGrams() {

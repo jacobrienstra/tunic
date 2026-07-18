@@ -2,8 +2,7 @@ import { persist } from "zustand/middleware";
 import { create } from "zustand";
 import { createContext, useContext, useMemo } from "react";
 
-import { useTrunes, useGlyphSubsets, useSettings } from "./store";
-import { getGrapheme } from "./filtered";
+import { useTrunes, useGlyphSubsets, useSettings, getGrapheme } from "./store";
 
 export interface RulesetState {
   exclusiveSubsetMasks: boolean;

@@ -41,7 +41,7 @@ function WordsSection() {
         <SectionControls>
           <SectionTitle>Words</SectionTitle>
           <ButtonGroup
-            orientation="vertical"
+            orientation="horizontal"
             aria-label="Filter direction"
             className="h-fit"
           >

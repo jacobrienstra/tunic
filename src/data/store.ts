@@ -48,6 +48,10 @@ export function truneIdsFromWordKey(key: string): number[] {
   return key.split(WORD_KEY_SEP).map(Number);
 }
 
+export function getGrapheme(trune: number, mask: number) {
+  return trune & mask;
+}
+
 // Tanstack DB Setup Functions
 /*
  * One OPFS-backed SQLite database shared by every collection. wa-sqlite's
@@ -378,6 +382,9 @@ export function useContexts() {
 export function useGlyphSubsets() {
   return useLiveQuery(allGlyphSubsets);
 }
+export type GlyphSubsetsCollection = ReturnType<
+  typeof useGlyphSubsets
+>["collection"];
 
 export function useSettings() {
   return useLiveQuery(allSettings);

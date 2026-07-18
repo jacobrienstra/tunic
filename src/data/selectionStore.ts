@@ -2,6 +2,8 @@ import { persist } from "zustand/middleware";
 import { create } from "zustand";
 import { isEqual } from "lodash";
 
+import { LogicNode } from "./logic";
+
 export type Mode = "trunes" | "ngrams";
 export type FilterDirection = "off" | "backward" | "forward";
 export type NGramSize = 2 | 3 | 4;
@@ -13,6 +15,8 @@ export interface SelectionState {
   truneFilterDirection: FilterDirection;
   wordFilterDirection: FilterDirection;
   contextFilterDirection: FilterDirection;
+  graphemeFilterLogic: LogicNode | null;
+  selectedGraphemes: Record<string, number | null>;
   selectedTrune: number | null;
   selectedNGram: string | null;
   selectedWord: string | null;
@@ -26,6 +30,8 @@ const initialState: SelectionState = {
   truneFilterDirection: "forward",
   wordFilterDirection: "forward",
   contextFilterDirection: "off",
+  graphemeFilterLogic: null,
+  selectedGraphemes: {},
   selectedTrune: null,
   selectedNGram: null,
   selectedWord: null,
@@ -39,6 +45,8 @@ interface SelectionActions {
   setTruneFilterDirection: (v: FilterDirection) => void;
   setWordFilterDirection: (v: FilterDirection) => void;
   setContextFilterDirection: (v: FilterDirection) => void;
+  setGraphemeFilterLogic: (v: LogicNode | null) => void;
+  toggleSelectedGrapheme: (subsetId: string, graphemeId: number) => void;
   toggleSelectedTrune: (v: number | null) => void;
   toggleSelectedNGram: (v: string | null) => void;
   toggleSelectedWord: (v: string | null) => void;
@@ -99,6 +107,16 @@ export const useSelectionStore = create<SelectionState & SelectionActions>()(
           }
           return next;
         }),
+      setGraphemeFilterLogic: (graphemeFilterLogic) =>
+        set({ graphemeFilterLogic }),
+      toggleSelectedGrapheme: (subsetId, graphemeId) =>
+        set((s) => ({
+          selectedGraphemes: {
+            ...s.selectedGraphemes,
+            [subsetId]:
+              s.selectedGraphemes[subsetId] === graphemeId ? null : graphemeId,
+          },
+        })),
       toggleSelectedTrune: (selectedTrune) =>
         set((s) => {
           if (s.selectedTrune === selectedTrune) {

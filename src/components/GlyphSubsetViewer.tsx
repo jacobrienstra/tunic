@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Check, Edit } from "lucide-react";
+import { Check, Edit, SquareXIcon } from "lucide-react";
 
 import {
   Select,
@@ -10,6 +10,7 @@ import {
   SelectItem,
   SelectLabel,
 } from "./ui/select";
+import { ButtonGroup } from "./ui/button-group";
 import TruneTyper from "./TruneTyper";
 
 import { cn } from "@/lib/utils";
@@ -26,6 +27,7 @@ function GlyphSubsetViewer({
   isLocked,
   setIsEditing,
   handleSave,
+  handleCancel,
   className,
 }: React.ComponentProps<"article"> & {
   subset: GlyphSubset;
@@ -33,6 +35,7 @@ function GlyphSubsetViewer({
   isLocked: boolean;
   setIsEditing: (id: string) => void;
   handleSave: (subset: Partial<GlyphSubset>) => void;
+  handleCancel: () => void;
 }) {
   const [draft, setDraft] = useState<GlyphSubset | null>(null);
   // Only the card being edited holds a buffer; idle cards read straight from
@@ -60,16 +63,26 @@ function GlyphSubsetViewer({
           <Edit /> Edit Subset
         </Button>
       ) : (
-        <Button
-          variant="outline"
-          className="w-full"
-          onClick={() => {
-            handleSave(view);
-            setDraft(null);
-          }}
-        >
-          <Check /> Save Changes
-        </Button>
+        <ButtonGroup className="w-full">
+          <Button
+            variant="outline"
+            onClick={() => {
+              handleCancel();
+              setDraft(null);
+            }}
+          >
+            <SquareXIcon /> Cancel
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => {
+              handleSave(view);
+              setDraft(null);
+            }}
+          >
+            <Check /> Save
+          </Button>
+        </ButtonGroup>
       )}
       <InputInline
         className="border-none text-xl text-(--subset-color)"
@@ -88,8 +101,8 @@ function GlyphSubsetViewer({
       <TruneTyper
         disabled={!isEditing}
         value={view.mask}
-        emitTrune={(v) => {
-          setDraft((d) => ({ ...d!, mask: v }));
+        onChange={(v) => {
+          setDraft((d) => (d ? { ...d, mask: v } : d));
         }}
         className={cn(
           SUBSET_COLOR_CLASSES[view.color],

@@ -42,7 +42,7 @@ function GlyphSymbol({ val }: { val: number }) {
       id={glyphSymbolId(val)}
       viewBox={tightViewBox}
       preserveAspectRatio="xMidYMid meet"
-      className="overflow-visible stroke-black"
+      className="overflow-visible stroke-(--subset-color)"
       strokeWidth={strokeWidth}
       strokeLinecap={strokeLinecap}
       strokeLinejoin={strokeLinejoin}
@@ -58,15 +58,19 @@ function GlyphSymbol({ val }: { val: number }) {
 interface GlyphProps {
   val: number;
   inline?: boolean;
+  className?: string;
 }
 
-function Glyph({ val, inline = false }: GlyphProps) {
+function Glyph({ val, inline = false, className = "" }: GlyphProps) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
       xmlnsXlink="http://www.w3.org/1999/xlink"
       viewBox={paddedViewBox}
-      className={cn("w-(--glyph-size) overflow-visible stroke-black")}
+      className={cn(
+        "w-(--glyph-size) overflow-visible stroke-(--subset-color)",
+        className
+      )}
       {...(inline ? { strokeWidth, strokeLinecap, strokeLinejoin } : null)}
     >
       {inline ? (

@@ -1,11 +1,9 @@
 import { useCallback, useState } from "react";
 import { Blend } from "lucide-react";
 
-import { ScrollArea } from "./ui/scroll-area";
-import GlyphSubsetViewer from "./GlyphSubsetViewer";
-
 import { GlyphSubset, useGlyphSubsets } from "@/data/store";
 import { updateGlyphSubset } from "@/data/mutations";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Dialog,
   DialogTrigger,
@@ -14,8 +12,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import GlyphSubsetViewer from "@/components/GlyphSubsetViewer";
 
-function SubsetsEditor() {
+function SubsetsEditor({ className }: { className: string }) {
   const glyphSubsets = useGlyphSubsets();
   const [subsetBeingEdited, setSubsetBeingEdited] = useState<string | null>(
     null
@@ -34,6 +33,7 @@ function SubsetsEditor() {
   return (
     <Dialog>
       <DialogTrigger
+        className={className}
         render={
           <Button variant="outline">
             <Blend /> Edit Subsets
@@ -57,6 +57,7 @@ function SubsetsEditor() {
                   }
                   setIsEditing={setSubsetBeingEdited}
                   handleSave={handleSubsetSave}
+                  handleCancel={() => setSubsetBeingEdited(null)}
                 />
               );
             })}
