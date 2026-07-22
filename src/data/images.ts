@@ -35,16 +35,21 @@ export async function deleteImage(id: string): Promise<void> {
   await db.delete(STORE, id);
 }
 
-export function useImageUrl(imageId: string | null): string | undefined {
+export function useImageUrl(source: string | Blob | null): string | undefined {
   const [url, setUrl] = useState<string>();
   useEffect(() => {
-    if (imageId == null) {
+    if (source == null) {
       setUrl(undefined);
       return;
     }
+    if (source instanceof Blob) {
+      const objectUrl = URL.createObjectURL(source);
+      setUrl(objectUrl);
+      return () => URL.revokeObjectURL(objectUrl);
+    }
     let cancelled = false;
     let objectUrl: string | undefined;
-    void getImage(imageId).then((blob) => {
+    void getImage(source).then((blob) => {
       if (cancelled) return;
       objectUrl = URL.createObjectURL(blob);
       setUrl(objectUrl);
@@ -53,6 +58,6 @@ export function useImageUrl(imageId: string | null): string | undefined {
       cancelled = true;
       if (objectUrl) URL.revokeObjectURL(objectUrl);
     };
-  }, [imageId]);
+  }, [source]);
   return url;
 }

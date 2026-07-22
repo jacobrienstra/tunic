@@ -145,13 +145,19 @@ export const WordTruneJunctionSchema = z.object({
   truneId: z.number(),
 });
 export type WordTruneJunction = z.output<typeof WordTruneJunctionSchema>;
+export type WordTruneJunctionKey =
+  `${WordTruneJunction["wordId"]}:${WordTruneJunction["order"]}`;
 export const wordTrunesJunction = persistedCollection({
   id: "wordTrunesJunction",
   schema: WordTruneJunctionSchema,
-  getKey: (r) => `${r.wordId}:${r.order}`,
+  getKey: (r): WordTruneJunctionKey => `${r.wordId}:${r.order}`,
 });
-wordTrunesJunction.createIndex((row) => row.wordId);
-wordTrunesJunction.createIndex((row) => row.truneId);
+export const wordTrunesJunctionByWordId = wordTrunesJunction.createIndex(
+  (row) => row.wordId
+);
+export const wordTrunesJunctionByTruneId = wordTrunesJunction.createIndex(
+  (row) => row.truneId
+);
 
 export const ContextSchema = z.object({
   id: z.uuid(),
@@ -192,13 +198,17 @@ export const ContextWordJunctionSchema = z.object({
 export type ContextWordJunction = z.output<typeof ContextWordJunctionSchema>;
 
 // Keyed "<contextId>:<order>", one row per ordered position.
+export type ContextWordJunctionKey =
+  `${ContextWordJunction["contextId"]}:${ContextWordJunction["order"]}`;
 export const contextWordsJunction = persistedCollection({
   id: "contextWordsJunction",
   schema: ContextWordJunctionSchema,
-  getKey: (r) => `${r.contextId}:${r.order}`,
+  getKey: (r): ContextWordJunctionKey => `${r.contextId}:${r.order}`,
 });
 contextWordsJunction.createIndex((row) => row.contextId);
-contextWordsJunction.createIndex((row) => row.wordId);
+export const contextWordsJunctionByWordId = contextWordsJunction.createIndex(
+  (row) => row.wordId
+);
 
 export const SETTINGS_KEY = "default";
 export const SettingsSchema = z.object({

@@ -1,5 +1,5 @@
 import _ from "lodash";
-import { safeRandomUUID } from "@tanstack/react-db";
+import { createTransaction, safeRandomUUID } from "@tanstack/react-db";
 
 import {
   trunes,
@@ -7,10 +7,14 @@ import {
   contexts,
   glyphSubsets,
   contextWordsJunction,
+  contextWordsJunctionByWordId,
   wordTrunesJunction,
+  wordTrunesJunctionByWordId,
+  wordTrunesJunctionByTruneId,
   WORD_KEY_SEP,
 } from "./store";
-import type { GlyphSubset, Trune } from "./store";
+import type { ContextWordJunctionKey, GlyphSubset, Trune } from "./store";
+import { saveImage } from "./images";
 
 // Writes are optimistic against each collection's in-memory state; the SQLite
 // persister writes through in the background.
@@ -36,6 +40,76 @@ export function updateContextText(id: string, text: string | null): void {
   contexts.update(id, (draft) => {
     draft.text = text;
   });
+}
+
+export async function createContextWithImage(
+  image: Blob
+): Promise<{ contextId: string; imageId: string }> {
+  const imageId = await saveImage(image);
+  const contextId = safeRandomUUID();
+  contexts.insert({
+    id: contextId,
+    imageId,
+    text: null,
+    order: 0,
+  });
+  return { contextId, imageId };
+}
+
+export async function updateContextWords(
+  contextId: string,
+  wordsArr: number[][]
+): Promise<void> {
+  const tx = createTransaction({
+    mutationFn: async ({ transaction }) => {
+      await Promise.all([
+        trunes.utils.acceptMutations(transaction),
+        words.utils.acceptMutations(transaction),
+        wordTrunesJunction.utils.acceptMutations(transaction),
+        contextWordsJunction.utils.acceptMutations(transaction),
+      ]);
+    },
+  });
+  tx.mutate(() => {
+    const oldWordIds: string[] = [];
+    for (let i = 0; ; i++) {
+      const key: ContextWordJunctionKey = `${contextId}:${i}`;
+      const r = contextWordsJunction.get(key);
+      if (!r) break;
+      oldWordIds.push(r.wordId);
+    }
+    const oldLen = oldWordIds.length;
+    const newLen = wordsArr.length;
+
+    for (const [order, w] of wordsArr.entries()) {
+      upsertWord(w, contextId, order);
+    }
+    for (let i = newLen; i < oldLen; i++) {
+      const key: ContextWordJunctionKey = `${contextId}:${i}`;
+      contextWordsJunction.delete(key);
+    }
+
+    const affectedTruneIds = new Set<number>();
+    for (const wordId of new Set(oldWordIds)) {
+      if (contextWordsJunctionByWordId.equalityLookup(wordId).size > 0)
+        continue;
+      for (const key of wordTrunesJunctionByWordId.equalityLookup(wordId)) {
+        const row = wordTrunesJunction.get(key);
+        if (row) affectedTruneIds.add(row.truneId);
+        // wordTrunesJunction.delete(key);
+      }
+      // TODO: Should probably surface this to the user and ask if the word should be deleted or left orphaned, so any meaning they added to it is preserved
+      // words.delete(wordId);
+    }
+
+    for (const truneId of affectedTruneIds) {
+      if (wordTrunesJunctionByTruneId.equalityLookup(truneId).size > 0)
+        continue;
+      // TODO: Surface to user before deleting to preserve meaning annotations
+      // trunes.delete(truneId);
+    }
+  });
+  await tx.isPersisted.promise;
 }
 
 export function addGlyphSubset(s: Omit<GlyphSubset, "id">): void {
@@ -109,7 +183,7 @@ export function upsertWord(
     });
   }
 
-  const junctionKey: `${string}:${number}` = `${ctxId}:${order}`;
+  const junctionKey: ContextWordJunctionKey = `${ctxId}:${order}`;
   if (contextWordsJunction.has(junctionKey)) {
     contextWordsJunction.update(junctionKey, (d) => {
       d.contextId = ctxId;

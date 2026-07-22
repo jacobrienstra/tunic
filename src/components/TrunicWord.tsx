@@ -12,22 +12,33 @@ import {
   strokeLinejoin,
 } from "@/glyph";
 import { wordKeyFromTruneIds } from "@/data/store";
+import { useDerivedMeaning } from "@/data/ruleset";
 
 interface TrunicWordProps {
   wordTrunes: number[];
-  width?: number;
   inline?: boolean;
+  withMeaning?: boolean;
+  className?: string;
 }
 
 // One <svg> per word: each glyph is offset by x = i * W within a single
 // viewport, rather than wrapping every glyph in its own <svg>.
-function TrunicWord({ wordTrunes, inline = false }: TrunicWordProps) {
+function TrunicWord({
+  wordTrunes,
+  inline = false,
+  withMeaning = false,
+  className = "",
+}: TrunicWordProps) {
   const n = wordTrunes.length;
+  const derivedMeaning = useDerivedMeaning();
   return (
     <div
       data-word={wordKeyFromTruneIds(wordTrunes)}
-      style={{ paddingInline: `${pad / W}%` }}
-      className={cn("overflow-visible")}
+      style={{
+        marginInline: `calc(var(--glyph-size) * ${pad / W})`,
+        minHeight: `calc(var(--glyph-size) * ${(H + pad * 2) / W})`,
+      }}
+      className={cn("flex flex-col items-center overflow-visible", className)}
     >
       {n > 0 ? (
         <svg
@@ -45,7 +56,7 @@ function TrunicWord({ wordTrunes, inline = false }: TrunicWordProps) {
                   <line className="stroke-black" {...l} key={j} />
                 ))}
                 {t & BCK ? (
-                  <circle {...BC} className="[fill:transparent] stroke-black" />
+                  <circle {...BC} className="fill-transparent stroke-black" />
                 ) : null}
               </g>
             ) : (
@@ -59,6 +70,11 @@ function TrunicWord({ wordTrunes, inline = false }: TrunicWordProps) {
             )
           )}
         </svg>
+      ) : null}
+      {withMeaning ? (
+        <span className="text-sky-500">
+          {wordTrunes.map((w) => derivedMeaning(w)).join("")}
+        </span>
       ) : null}
     </div>
   );

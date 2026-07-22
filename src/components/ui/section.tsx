@@ -29,7 +29,7 @@ function SectionControls({ className, ...props }: React.ComponentProps<"div">) {
     <div
       data-slot="section-controls"
       className={cn(
-        "group/section mr-2 flex min-w-30 flex-col items-center border-r-2 border-pink-600 px-4 py-3",
+        "group/section mr-2 flex w-30 min-w-35 flex-col items-center border-r-2 border-pink-600 px-4 py-3",
         className
       )}
       {...props}

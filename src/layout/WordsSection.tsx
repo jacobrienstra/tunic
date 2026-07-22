@@ -83,11 +83,11 @@ function WordsSection() {
                   hidden={!filteredWords.collection.has(w.id)}
                 >
                   <TileTrunic>
-                    <TrunicWord wordTrunes={w.truneIds} />
+                    <TrunicWord wordTrunes={w.truneIds} withMeaning />
                   </TileTrunic>
-                  <TileAnnotation>
+                  {/* <TileAnnotation>
                     {w.truneIds.map((t) => derivedMeaning(t)).join("")}
-                  </TileAnnotation>
+                  </TileAnnotation> */}
                   <TileInput>
                     <InputInline
                       defaultValue={w.meaning ?? ""}

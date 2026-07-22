@@ -14,7 +14,7 @@ import {
 import { Button } from "@/components/ui/button";
 import GlyphSubsetViewer from "@/components/GlyphSubsetViewer";
 
-function SubsetsEditor({ className }: { className: string }) {
+function SubsetsEditorDialog({ className }: { className: string }) {
   const glyphSubsets = useGlyphSubsets();
   const [subsetBeingEdited, setSubsetBeingEdited] = useState<string | null>(
     null
@@ -68,4 +68,4 @@ function SubsetsEditor({ className }: { className: string }) {
   );
 }
 
-export default SubsetsEditor;
+export default SubsetsEditorDialog;

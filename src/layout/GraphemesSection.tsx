@@ -18,7 +18,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { InputInline } from "@/components/ui/input-inline";
 import { ButtonGroup } from "@/components/ui/button-group";
 import { Button } from "@/components/ui/button";
-import SubsetsEditor from "@/components/SubsetsEditor";
+import SubsetsEditorDialog from "@/components/SubsetsEditorDialog";
 import LogicStringView from "@/components/LogicStringView";
 import { Glyph } from "@/components/Glyph";
 import ComboLogicDialog from "@/components/ComboLogicDialog";
@@ -128,7 +128,7 @@ function GraphemesSection() {
         </SectionContent>
       </SectionMain>
       <SectionFooter className="min-h-min items-center">
-        <SubsetsEditor className="mr-1" />
+        <SubsetsEditorDialog className="mr-1" />
         <LogicStringView filterLogic={graphemeFilterLogic} mode="text" />
       </SectionFooter>
     </Section>
