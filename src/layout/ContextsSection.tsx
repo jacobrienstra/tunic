@@ -127,6 +127,7 @@ function ContextsSection() {
               editingContext.mode === "edit" ? editingContext.id : null
             }
             onCreated={(id) => setEditingContext({ mode: "edit", id })}
+            onDeleted={() => setEditingContext(null)}
           />
         )}
       </Dialog>

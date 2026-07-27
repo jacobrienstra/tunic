@@ -7,7 +7,7 @@ import {
 } from "react";
 import { Filter, Plus, XIcon } from "lucide-react";
 
-import LogicStringView from "./LogicStringView";
+import LogicStringView from "../components/LogicStringView";
 
 import { cn } from "@/lib/utils";
 import {

@@ -10,6 +10,7 @@ import {
   BCK,
   W,
   H,
+  pad,
   GlyphLine,
   Midline,
   strokeWidth,
@@ -18,7 +19,8 @@ import {
   tightViewBox,
   paddedViewBox,
 } from "@/glyph";
-import { useTruneIds } from "@/data/store";
+import { useTruneIds, useTrunes } from "@/data/store";
+import { useDerivedMeaning } from "@/data/ruleset";
 
 export function computeGlyphLines(val: number): GlyphLine[] {
   const lines: GlyphLine[] = [];
@@ -37,6 +39,7 @@ export const glyphSymbolId = (val: number) => `glyph-${val}`;
 
 function GlyphSymbol({ val }: { val: number }) {
   const lines = computeGlyphLines(val);
+
   return (
     <symbol
       id={glyphSymbolId(val)}
@@ -58,32 +61,52 @@ function GlyphSymbol({ val }: { val: number }) {
 interface GlyphProps {
   val: number;
   inline?: boolean;
+  withMeaning?: boolean;
   className?: string;
 }
 
-function Glyph({ val, inline = false, className = "" }: GlyphProps) {
+function Glyph({
+  val,
+  inline = false,
+  withMeaning = false,
+  className = "",
+}: GlyphProps) {
+  const derivedMeaning = useDerivedMeaning();
+
   return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      xmlnsXlink="http://www.w3.org/1999/xlink"
-      viewBox={paddedViewBox}
-      className={cn(
-        "w-(--glyph-size) overflow-visible stroke-(--subset-color)",
-        className
-      )}
-      {...(inline ? { strokeWidth, strokeLinecap, strokeLinejoin } : null)}
+    <div
+      data-trune={val}
+      style={{
+        marginInline: `calc(var(--glyph-size) * ${pad / W})`,
+        minHeight: `calc(var(--glyph-size) * ${(H + pad * 2) / W})`,
+      }}
+      className={cn("flex flex-col items-center overflow-visible", className)}
     >
-      {inline ? (
-        <>
-          {computeGlyphLines(val).map((l, i) => (
-            <line {...l} key={i} />
-          ))}
-          {val & BCK ? <circle {...BC} className="fill-transparent" /> : null}
-        </>
-      ) : (
-        <use href={`#${glyphSymbolId(val)}`} width={W} height={H} />
-      )}
-    </svg>
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        xmlnsXlink="http://www.w3.org/1999/xlink"
+        viewBox={paddedViewBox}
+        className={cn(
+          "w-(--glyph-size) overflow-visible stroke-(--subset-color)",
+          className
+        )}
+        {...(inline ? { strokeWidth, strokeLinecap, strokeLinejoin } : null)}
+      >
+        {inline ? (
+          <>
+            {computeGlyphLines(val).map((l, i) => (
+              <line {...l} key={i} />
+            ))}
+            {val & BCK ? <circle {...BC} className="fill-transparent" /> : null}
+          </>
+        ) : (
+          <use href={`#${glyphSymbolId(val)}`} width={W} height={H} />
+        )}
+      </svg>
+      {withMeaning ? (
+        <span className="text-sky-500">{derivedMeaning(val)}</span>
+      ) : null}
+    </div>
   );
 }
 

@@ -59,7 +59,7 @@ export async function createContextWithImage(
 export async function updateContextWords(
   contextId: string,
   wordsArr: number[][]
-): Promise<void> {
+): Promise<{ orphanedWordIds: string[]; orphanedTruneIds: number[] }> {
   const tx = createTransaction({
     mutationFn: async ({ transaction }) => {
       await Promise.all([
@@ -70,6 +70,8 @@ export async function updateContextWords(
       ]);
     },
   });
+  const orphanedWordIds = new Set<string>();
+  const orphanedTruneIds = new Set<number>();
   tx.mutate(() => {
     const oldWordIds: string[] = [];
     for (let i = 0; ; i++) {
@@ -99,6 +101,7 @@ export async function updateContextWords(
         // wordTrunesJunction.delete(key);
       }
       // TODO: Should probably surface this to the user and ask if the word should be deleted or left orphaned, so any meaning they added to it is preserved
+      orphanedWordIds.add(wordId);
       // words.delete(wordId);
     }
 
@@ -106,8 +109,87 @@ export async function updateContextWords(
       if (wordTrunesJunctionByTruneId.equalityLookup(truneId).size > 0)
         continue;
       // TODO: Surface to user before deleting to preserve meaning annotations
+      orphanedTruneIds.add(truneId);
       // trunes.delete(truneId);
     }
+  });
+  await tx.isPersisted.promise;
+  return {
+    orphanedWordIds: [...orphanedWordIds],
+    orphanedTruneIds: [...orphanedTruneIds],
+  };
+}
+
+export function previewContextDeleteOrphans(contextId: string): string[] {
+  const oldWordIds: string[] = [];
+  for (let i = 0; ; i++) {
+    const key: ContextWordJunctionKey = `${contextId}:${i}`;
+    const r = contextWordsJunction.get(key);
+    if (!r) break;
+    oldWordIds.push(r.wordId);
+  }
+  const orphaned: string[] = [];
+  for (const wordId of new Set(oldWordIds)) {
+    let referencedElsewhere = false;
+    for (const key of contextWordsJunctionByWordId.equalityLookup(wordId)) {
+      const row = contextWordsJunction.get(key);
+      if (!row) continue;
+      if (row.contextId !== contextId) {
+        referencedElsewhere = true;
+        break;
+      }
+    }
+    if (!referencedElsewhere) orphaned.push(wordId);
+  }
+  return orphaned;
+}
+
+export async function deleteContext(contextId: string): Promise<void> {
+  const tx = createTransaction({
+    mutationFn: async ({ transaction }) => {
+      await Promise.all([
+        contexts.utils.acceptMutations(transaction),
+        contextWordsJunction.utils.acceptMutations(transaction),
+      ]);
+    },
+  });
+  tx.mutate(() => {
+    for (let i = 0; ; i++) {
+      const key: ContextWordJunctionKey = `${contextId}:${i}`;
+      if (!contextWordsJunction.has(key)) break;
+      contextWordsJunction.delete(key);
+    }
+    contexts.delete(contextId);
+  });
+  await tx.isPersisted.promise;
+}
+
+export async function deleteWord(wordId: string): Promise<void> {
+  const tx = createTransaction({
+    mutationFn: async ({ transaction }) => {
+      await Promise.all([
+        words.utils.acceptMutations(transaction),
+        wordTrunesJunction.utils.acceptMutations(transaction),
+      ]);
+    },
+  });
+  tx.mutate(() => {
+    for (const key of wordTrunesJunctionByWordId.equalityLookup(wordId)) {
+      wordTrunesJunction.delete(key);
+    }
+    words.delete(wordId);
+  });
+  await tx.isPersisted.promise;
+}
+
+export async function deleteTrune(truneId: number): Promise<void> {
+  const tx = createTransaction({
+    mutationFn: async ({ transaction }) => {
+      await trunes.utils.acceptMutations(transaction);
+    },
+  });
+  tx.mutate(() => {
+    trunes.delete(truneId);
   });
   await tx.isPersisted.promise;
 }

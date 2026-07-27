@@ -1,8 +1,16 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
+import OrphansDialog from "@/layout/OrphansDialog";
 import { useContexts, useWords } from "@/data/store";
-import { createContextWithImage, updateContextWords } from "@/data/mutations";
+import {
+  createContextWithImage,
+  deleteContext,
+  previewContextDeleteOrphans,
+  updateContextText,
+  updateContextWords,
+} from "@/data/mutations";
 import { useImageUrl } from "@/data/images";
+import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { FileUpload, FileUploadDropzone } from "@/components/ui/file-upload";
 import {
@@ -19,9 +27,11 @@ import ContextImage from "@/components/ContextImage";
 function ContextEditor({
   contextId,
   onCreated,
+  onDeleted,
 }: {
   contextId: string | null;
   onCreated?: (contextId: string) => void;
+  onDeleted?: (contextId: string) => void;
 }) {
   // Context/image functions
   const contexts = useContexts();
@@ -29,7 +39,19 @@ function ContextEditor({
   const curContext = contextId ? contexts.collection.get(contextId) : null;
   const [file, setFile] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
+  const [orphans, setOrphans] = useState<{ wordIds: string[] } | null>(null);
+  const [text, setText] = useState<string>(curContext?.text ?? "");
   const previewUrl = useImageUrl(file);
+
+  useEffect(() => {
+    setText(curContext?.text ?? "");
+  }, [curContext]);
+
+  const onSaveText = () => {
+    if (!contextId) return;
+    updateContextText(contextId, text.length > 0 ? text : null);
+  };
+
   const onNewSave = async () => {
     if (!file || saving) return;
     setSaving(true);
@@ -42,11 +64,42 @@ function ContextEditor({
     }
   };
 
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
+  const onDelete = async () => {
+    if (saving || !contextId) return;
+    const orphanedWordIds = previewContextDeleteOrphans(contextId);
+    if (orphanedWordIds.length > 0) {
+      setPendingDeleteId(contextId);
+      setOrphans({ wordIds: orphanedWordIds });
+      return;
+    }
+    setSaving(true);
+    try {
+      await deleteContext(contextId);
+      onDeleted?.(contextId);
+    } finally {
+      setSaving(false);
+    }
+  };
+  const commitPendingDelete = async () => {
+    if (!pendingDeleteId) return;
+    const id = pendingDeleteId;
+    await deleteContext(id);
+    setPendingDeleteId(null);
+    onDeleted?.(id);
+  };
+
   const onSaveChanges = async () => {
     if (saving || !contextId) return;
     setSaving(true);
     try {
-      await updateContextWords(contextId, trunicText);
+      const { orphanedWordIds } = await updateContextWords(
+        contextId,
+        trunicText
+      );
+      if (orphanedWordIds.length > 0) {
+        setOrphans({ wordIds: orphanedWordIds });
+      }
     } finally {
       setSaving(false);
     }
@@ -55,14 +108,26 @@ function ContextEditor({
   // Typing functions
   const [trunicText, setTrunicText] = useState<number[][]>([]);
 
-  useEffect(() => {
-    setTrunicText(
+  const savedTrunicText = useMemo<number[][]>(
+    () =>
       curContext?.words.toArray.flatMap((w) => {
         const t = words.collection.get(w.wordId)?.truneIds;
         return t ? [t] : [];
-      }) ?? []
+      }) ?? [],
+    [curContext, words]
+  );
+
+  useEffect(() => {
+    setTrunicText(savedTrunicText);
+  }, [savedTrunicText]);
+
+  const trunicTextDirty =
+    trunicText.length !== savedTrunicText.length ||
+    trunicText.some(
+      (w, i) =>
+        w.length !== savedTrunicText[i].length ||
+        w.some((t, j) => t !== savedTrunicText[i][j])
     );
-  }, [curContext, words]);
 
   const [curTrunicWord, setCurTrunicWord] = useState<number[]>([]);
 
@@ -91,16 +156,22 @@ function ContextEditor({
   };
 
   return (
-    <DialogContent>
+    <DialogContent
+      className={
+        curContext
+          ? "h-[calc(100%-2rem)] grid-rows-[auto_minmax(0,1fr)_auto]"
+          : undefined
+      }
+    >
       <DialogHeader>
-        <DialogTitle>Edit Context & Trune Entry</DialogTitle>
+        <DialogTitle>Edit Context / Trune Entry</DialogTitle>
       </DialogHeader>
-      <div className="flex h-full flex-row gap-5">
-        <div className="flex flex-col">
+      <div className="flex h-full min-h-0 flex-row gap-5">
+        <div className="flex h-full min-h-0 flex-col items-start gap-3">
           {curContext ? (
             <ContextImage
               imageId={curContext.imageId}
-              className="h-full w-auto object-contain"
+              className="h-auto w-auto object-contain"
             />
           ) : (
             <FileUpload
@@ -114,7 +185,7 @@ function ContextEditor({
                 <img
                   src={previewUrl}
                   alt={file.name}
-                  className="h-full w-auto object-contain"
+                  className="w-auto object-contain"
                 />
               ) : (
                 <FileUploadDropzone className="h-full">
@@ -123,9 +194,26 @@ function ContextEditor({
               )}
             </FileUpload>
           )}
+          {curContext ? (
+            <>
+              <div className="flex min-h-0 flex-1 flex-col self-stretch">
+                <Textarea
+                  value={text}
+                  onChange={(e) => setText(e.target.value)}
+                  className="h-full"
+                />
+              </div>
+              <Button
+                disabled={text === (curContext.text ?? "")}
+                onClick={onSaveText}
+              >
+                Save Text
+              </Button>
+            </>
+          ) : null}
         </div>
         {contextId ? (
-          <div className="flex flex-[0_0_50%] flex-col">
+          <div className="flex h-full flex-[0_0_60%] flex-col gap-2">
             <div
               tabIndex={0}
               className="flex w-full flex-row"
@@ -178,29 +266,58 @@ function ContextEditor({
                 </div>
               </div>
             </div>
+            {contextId ? (
+              <Button
+                disabled={saving || !trunicTextDirty}
+                onClick={() => void onSaveChanges()}
+                className="mt-auto self-end"
+              >
+                {saving ? "Saving..." : "Save Changes"}
+              </Button>
+            ) : null}
           </div>
         ) : null}
       </div>
 
-      <DialogFooter>
-        {file && previewUrl ? (
-          <Button variant="destructive" onClick={() => setFile(null)}>
-            Remove
-          </Button>
-        ) : null}
+      <DialogFooter className="flex-row items-center justify-between sm:justify-between">
         {contextId ? (
-          <Button disabled={saving} onClick={() => void onSaveChanges()}>
-            {saving ? "Saving..." : "Save Changes"}
+          <Button
+            variant="destructive"
+            disabled={saving}
+            onClick={() => void onDelete()}
+          >
+            Delete Context
           </Button>
         ) : (
-          <Button
-            disabled={saving || !file || !previewUrl}
-            onClick={() => void onNewSave()}
-          >
-            {saving ? "Saving..." : "Create New Context"}
-          </Button>
+          <span />
         )}
+        <div className="flex flex-row gap-2">
+          {file && previewUrl ? (
+            <Button variant="destructive" onClick={() => setFile(null)}>
+              Remove
+            </Button>
+          ) : null}
+          {contextId === null ? (
+            <Button
+              disabled={saving || !file || !previewUrl}
+              onClick={() => void onNewSave()}
+            >
+              {saving ? "Saving..." : "Create New Context"}
+            </Button>
+          ) : null}
+        </div>
       </DialogFooter>
+      <OrphansDialog
+        open={orphans != null}
+        onOpenChange={(o) => {
+          if (!o) {
+            setOrphans(null);
+            setPendingDeleteId(null);
+          }
+        }}
+        orphanedWordIds={orphans?.wordIds ?? []}
+        onConfirmed={pendingDeleteId ? commitPendingDelete : undefined}
+      />
     </DialogContent>
   );
 }

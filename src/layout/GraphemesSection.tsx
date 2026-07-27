@@ -1,6 +1,8 @@
 import { ArrowBigDown, Ban } from "lucide-react";
 
 import { cn } from "@/lib/utils";
+import SubsetsEditorDialog from "@/layout/SubsetsEditorDialog";
+import ComboLogicDialog from "@/layout/ComboLogicDialog";
 import { SUBSET_COLOR_CLASSES, useGlyphSubsets } from "@/data/store";
 import { useSelectionStore } from "@/data/selectionStore";
 import { updateTrune } from "@/data/mutations";
@@ -18,10 +20,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { InputInline } from "@/components/ui/input-inline";
 import { ButtonGroup } from "@/components/ui/button-group";
 import { Button } from "@/components/ui/button";
-import SubsetsEditorDialog from "@/components/SubsetsEditorDialog";
 import LogicStringView from "@/components/LogicStringView";
 import { Glyph } from "@/components/Glyph";
-import ComboLogicDialog from "@/components/ComboLogicDialog";
 
 function GraphemesSection() {
   const graphemesFilterDirection = useSelectionStore(
@@ -99,6 +99,7 @@ function GraphemesSection() {
                         <TileTrunic>
                           <Glyph
                             val={g.id}
+                            inline={g.derived}
                             className="[--subset-color:var(--foreground)]"
                           />
                         </TileTrunic>

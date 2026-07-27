@@ -2,15 +2,7 @@ import { ArrowBigDown, Ban, ArrowBigUp } from "lucide-react";
 
 import { useTrunes } from "@/data/store";
 import { useSelectionStore } from "@/data/selectionStore";
-import { useDerivedMeaning } from "@/data/ruleset";
-import { updateTrune } from "@/data/mutations";
 import { useFilteredTrunes } from "@/data/filtered";
-import {
-  Tile,
-  TileTrunic,
-  TileAnnotation,
-  TileInput,
-} from "@/components/ui/tile";
 import {
   Section,
   SectionTitle,
@@ -19,10 +11,9 @@ import {
   SectionMain,
 } from "@/components/ui/section";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { InputInline } from "@/components/ui/input-inline";
 import { ButtonGroup } from "@/components/ui/button-group";
 import { Button } from "@/components/ui/button";
-import { Glyph } from "@/components/Glyph";
+import TruneTile from "@/components/TruneTile";
 
 function TrunesSection() {
   const truneFilterDirection = useSelectionStore((s) => s.truneFilterDirection);
@@ -33,7 +24,6 @@ function TrunesSection() {
   const toggleSelectedTrune = useSelectionStore((s) => s.toggleSelectedTrune);
   const filteredTrunes = useFilteredTrunes();
   const allTrunes = useTrunes();
-  const derivedMeaning = useDerivedMeaning();
 
   return (
     <Section>
@@ -75,34 +65,13 @@ function TrunesSection() {
           <ScrollArea orientation="horizontal" className="h-full py-1">
             <div className={"flex w-max flex-row"}>
               {allTrunes.data.map((t) => (
-                <Tile
+                <TruneTile
+                  trune={t}
                   key={t.id}
                   active={selectedTrune === t.id}
                   toggleFn={toggleSelectedTrune}
-                  val={t.id}
                   hidden={!filteredTrunes.has(t.id)}
-                >
-                  <TileTrunic>
-                    <Glyph val={t.id} />
-                  </TileTrunic>
-                  <TileAnnotation>{derivedMeaning(t.id)}</TileAnnotation>
-                  <TileInput>
-                    <InputInline
-                      defaultValue={t.meaning ?? ""}
-                      key={t.meaning ?? ""}
-                      onBlur={(e) => {
-                        updateTrune(t.id, { meaning: e.target.value });
-                      }}
-                      onKeyDown={(e) => {
-                        if (
-                          (e.key === "Enter" && !e.shiftKey) ||
-                          e.key === "Escape"
-                        )
-                          e.currentTarget.blur();
-                      }}
-                    />
-                  </TileInput>
-                </Tile>
+                />
               ))}
             </div>
           </ScrollArea>

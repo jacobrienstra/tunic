@@ -2,7 +2,7 @@ import * as React from "react";
 
 import { cn } from "@/lib/utils";
 
-interface TileProps<T> {
+export interface TileProps<T> {
   active?: boolean;
   activeClass?: string;
   toggleFn: (v: T) => void;
@@ -21,7 +21,7 @@ function Tile<T>({
     <div
       data-slot="tile"
       className={cn(
-        "group/tile ring-foreground/20 relative m-1 flex min-w-min cursor-pointer flex-col items-center overflow-hidden rounded-sm p-(--tile-spacing) ring-1 transition-all [--tile-spacing:--spacing(2)] hover:shadow-md",
+        "group/tile ring-foreground/20 relative m-1 flex min-w-min cursor-pointer flex-col items-center overflow-hidden rounded-sm p-(--tile-spacing) ring-1 [--tile-spacing:--spacing(2)] hover:shadow-md",
         { "ring-3 ring-sky-500": active },
         { [activeClass]: active },
         className
